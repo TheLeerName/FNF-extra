@@ -371,7 +371,7 @@ class KeyBindMenu extends FlxSubState
                 }
             }
 
-        if (r.contains("NUMPAD"))
+        if (notAllowed.contains(r))
         {
             keys[curSelected] = null;
             lastKey = r;
