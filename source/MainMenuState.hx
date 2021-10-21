@@ -37,10 +37,11 @@ class MainMenuState extends MusicBeatState
 	var newGaming2:FlxText;
 	public static var firstStart:Bool = true;
 
-	public static var nightly:String = "";
+	public static var nightly:String = "-nightly1";
 
-	public static var kadeEngineVer:String = "1.6.2" + nightly;
+	public static var kadeEngineVer:String = "1.6.2";
 	public static var gameVer:String = "0.2.7.1";
+	public static var modVer:String = "1.0" + nightly;
 
 	var magenta:FlxSprite;
 	var camFollow:FlxObject;
@@ -116,13 +117,10 @@ class MainMenuState extends MusicBeatState
 
 		FlxG.camera.follow(camFollow, null, 0.60 * (60 / FlxG.save.data.fpsCap));
 
-		var versionShit:FlxText = new FlxText(5, FlxG.height - 18, 0, gameVer +  (Main.watermarks ? " FNF - " + kadeEngineVer + " Kade Engine" : ""), 12);
+		var versionShit:FlxText = new FlxText(5, FlxG.height - 18, 0, "FNF " + gameVer + " | " + "Kade Engine " + kadeEngineVer + " | FNF Extra Mod " + modVer, 12);
 		versionShit.scrollFactor.set();
 		versionShit.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		add(versionShit);
-
-		// NG.core.calls.event.logEvent('swag').send();
-
 
 		if (FlxG.save.data.dfjk)
 			controls.setKeyboardScheme(KeyboardScheme.Solo, true);

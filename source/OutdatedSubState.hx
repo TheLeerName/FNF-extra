@@ -1,4 +1,6 @@
-package;
+// lol not used
+
+/*package;
 
 import flixel.FlxG;
 import flixel.FlxSprite;
@@ -110,3 +112,4 @@ class OutdatedSubState extends MusicBeatState
 		super.update(elapsed);
 	}
 }
+*/
