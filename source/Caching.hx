@@ -82,7 +82,7 @@ class Caching extends MusicBeatState
 
 		FlxGraphic.defaultPersist = FlxG.save.data.cacheImages;
 
-		/*#if cpp
+		#if cpp
 		if (FlxG.save.data.cacheImages)
 		{
 			trace("caching images...");
@@ -108,12 +108,12 @@ class Caching extends MusicBeatState
 		var bar = new FlxBar(10,FlxG.height - 50,FlxBarFillDirection.LEFT_TO_RIGHT,FlxG.width,40,null,"done",0,toBeDone);
 		bar.color = FlxColor.PURPLE;
 
-		add(bar);*/
+		add(bar);
 
 		add(kadeLogo);
 		add(text);
 
-		//trace('starting caching..');
+		trace('starting caching..');
 		
 		#if cpp
 		// update thread
@@ -152,7 +152,7 @@ class Caching extends MusicBeatState
 
 	function cache()
 	{
-		/*trace("LOADING: " + toBeDone + " OBJECTS.");
+		trace("LOADING: " + toBeDone + " OBJECTS.");
 
 		for (i in images)
 		{
@@ -175,11 +175,11 @@ class Caching extends MusicBeatState
 		}
 
 
-		trace("Finished caching...");*/
+		trace("Finished caching...");
 
 		loaded = true;
 
-		//trace(Assets.cache.hasBitmapData('GF_assets'));
+		trace(Assets.cache.hasBitmapData('GF_assets'));
 
 		FlxG.switchState(new TitleState());
 	}

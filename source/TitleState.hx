@@ -63,14 +63,16 @@ class TitleState extends MusicBeatState
 		{
 			trace("Loaded " + openfl.Assets.getLibrary("default").assetsLoaded + " assets (DEFAULT)");
 		}*/
+		#if !FEATURE_PRELOAD
 		trace('Caching is not started; its disabled.');
+		#end
 
-		#if !cpp
+		#if FEATURE_PRELOAD
 		FlxG.save.bind('funkin', 'ninjamuffin99');
-		PlayerSettings.init();
 		KadeEngineData.initSave();
-		#end	
 		Highscore.load();
+		#end
+		PlayerSettings.init();
 
 		curWacky = FlxG.random.getObject(getIntroTextShit());
 
@@ -80,6 +82,13 @@ class TitleState extends MusicBeatState
 
 		super.create();
 
+		#if !FEATURE_PRELOAD
+		// i replace this because game crashing if initialState = TitleState
+		FlxG.save.bind('funkin', 'ninjamuffin99');
+		KadeEngineData.initSave();
+		Highscore.load();
+		#end
+
 		#if FREEPLAY
 		FlxG.switchState(new FreeplayState());
 		clean();
@@ -87,7 +96,7 @@ class TitleState extends MusicBeatState
 		FlxG.switchState(new ChartingState());
 		clean();
 		#else
-		#if !cpp
+		#if !FEATURE_PRELOAD
 		new FlxTimer().start(1, function(tmr:FlxTimer)
 		{
 			startIntro();

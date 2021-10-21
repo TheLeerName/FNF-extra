@@ -85,7 +85,7 @@ class Main extends Sprite
 		framerate = 60;
 		zoom = 1;
 		#end
-		#if cpp
+		#if FEATURE_PRELOAD
 		initialState = Caching;
 		#end
 		game = new FlxGame(gameWidth, gameHeight, initialState, zoom, framerate, framerate, skipSplash, startFullscreen);
