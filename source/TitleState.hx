@@ -59,10 +59,11 @@ class TitleState extends MusicBeatState
 		#end
 		#end
 
-		@:privateAccess
+		/*@:privateAccess
 		{
 			trace("Loaded " + openfl.Assets.getLibrary("default").assetsLoaded + " assets (DEFAULT)");
-		}
+		}*/
+		trace('Caching is not started; its disabled.');
 
 		#if !cpp
 		FlxG.save.bind('funkin', 'ninjamuffin99');
