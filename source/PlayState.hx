@@ -3424,10 +3424,7 @@ class PlayState extends MusicBeatState
 					#end
 
 					if (SONG.validScore)
-					{
-						NGio.unlockMedal(60961);
 						Highscore.saveWeekScore(storyWeek, campaignScore, storyDifficulty);
-					}
 
 					StoryMenuState.unlockNextWeek(storyWeek);
 				}
