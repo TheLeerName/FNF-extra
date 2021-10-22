@@ -111,9 +111,13 @@ class PlayState extends MusicBeatState
 	var halloweenLevel:Bool = false;
 
 	var songLength:Float = 0;
-	var optionsWatermark:FlxText;
+
+	public var optionsWatermark:FlxText; // make it public for update speed song on the watermark
 	var versionWatermark:FlxText;
 	var songWatermark:FlxText;
+
+	public static var primarySpeed:Float;
+	public var secondarySpeed:Float = 0;
 
 	#if cpp
 	// Discord RPC variables
@@ -1635,12 +1639,12 @@ class PlayState extends MusicBeatState
 		}
 		if (data == -1)
 		{
-			trace("couldn't find a keybind with the code " + key);
+			//trace("couldn't find a keybind with the code " + key);
 			return;
 		}
 		if (keys[data])
 		{
-			trace("ur already holding " + key);
+			//trace("ur already holding " + key);
 			return;
 		}
 
@@ -1750,6 +1754,7 @@ class PlayState extends MusicBeatState
 		vocals.time = startTime;
 		Conductor.songPosition = startTime;
 		startTime = 0;
+		primarySpeed = (FlxG.save.data.scrollSpeed ? SONG.speed : FlxG.save.data.scrollSpeed);
 
 		for(i in 0...unspawnNotes.length)
 			if (unspawnNotes[i].strumTime < startTime)
@@ -2290,7 +2295,7 @@ class PlayState extends MusicBeatState
 		}
 
 		PlayStateChangeables.scrollSpeed = newScroll;
-	
+
 		if (PlayStateChangeables.botPlay && FlxG.keys.justPressed.ONE)
 			camHUD.visible = !camHUD.visible;
 
@@ -2439,6 +2444,8 @@ class PlayState extends MusicBeatState
 
 		if (FlxG.keys.justPressed.SEVEN && songStarted)
 		{
+			SONG.speed = primarySpeed;
+			secondarySpeed = 0;
 			if (useVideo)
 			{
 				GlobalVideo.get().stop();
@@ -3883,7 +3890,7 @@ class PlayState extends MusicBeatState
 			{
 				if (daNote.isSustainNote && daNote.canBeHit && daNote.mustPress && holdArray[daNote.noteData] && daNote.sustainActive)
 				{
-					trace(daNote.sustainActive);
+					//trace(daNote.sustainActive);
 					goodNoteHit(daNote);
 				}
 			});
@@ -4581,6 +4588,23 @@ class PlayState extends MusicBeatState
 	override function beatHit()
 	{
 		super.beatHit();
+
+		// pre lowercasing the song name (not lua modcharts)
+		var songLowercase = StringTools.replace(PlayState.SONG.song, " ", "-").toLowerCase();
+		switch (songLowercase)
+		{
+			case 'dad-battle':
+				songLowercase = 'dadbattle';
+			case 'philly-nice':
+				songLowercase = 'philly';
+		}
+
+		// not lua modcharts there!
+		switch (songLowercase)
+		{
+			case 'song':
+
+		}
 
 		if (generatedMusic)
 		{

@@ -222,6 +222,8 @@ class PauseSubState extends MusicBeatSubstate
 						PlayState.instance.remove(PlayState.instance.videoSprite);
 						PlayState.instance.removedVideo = true;
 					}
+					PlayState.SONG.speed = PlayState.primarySpeed;
+					PlayState.instance.secondarySpeed = 0;
 					PlayState.instance.clean();
 					FlxG.resetState();
 				case "Exit to menu":
@@ -249,6 +251,8 @@ class PauseSubState extends MusicBeatSubstate
 					if (FlxG.save.data.fpsCap > 290)
 						(cast (Lib.current.getChildAt(0), Main)).setFPSCap(290);
 					
+					PlayState.SONG.speed = PlayState.primarySpeed;
+					PlayState.instance.secondarySpeed = 0;
 					PlayState.instance.clean();
 
 					if (PlayState.isStoryMode)

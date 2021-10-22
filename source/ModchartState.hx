@@ -524,7 +524,38 @@ class ModchartState
 				Lua_helper.add_callback(lua,"setHudAngle", function (x:Float) {
 					PlayState.instance.camHUD.angle = x;
 				});
-				
+
+				Lua_helper.add_callback(lua,"setSpeed", function (value:Float, updateWatermark:Bool = true) {
+
+					/*
+					EXAMPLE: new scroll speed = 3.1 (value that you can write in brackets)
+					btw, you can use value "scrollspeed" to set it default of song
+					*/
+					PlayState.SONG.speed = value;
+
+					// you can disable update watermark while changing scroll speed (idk why, but it maybe needed)
+					if (updateWatermark) 
+						PlayState.instance.optionsWatermark.text = (PlayStateChangeables.safeFrames != 10 ? "SF " + PlayStateChangeables.safeFrames + " | " : "")
+							+ (FlxG.save.data.ghost ? "GhosTap | " : "")
+							+ (PlayStateChangeables.scrollSpeed == 1 ? "Speed " + PlayState.SONG.speed : "Speed " + PlayStateChangeables.scrollSpeed + " ("+ PlayState.SONG.speed + ")");
+				});
+
+				Lua_helper.add_callback(lua,"addSpeed", function (value:Float, updateWatermark:Bool = true) {
+
+					/*
+					EXAMPLE: new scroll speed =
+					2.6 (primary speed of song (here speed from M.I.L.F)) +
+					0.5 (value that you can write in brackets will be summed up on primary speed)
+					*/
+					PlayState.SONG.speed = (FlxG.save.data.scrollSpeed != 1 ? FlxG.save.data.scrollSpeed : PlayState.SONG.speed) + value;
+
+					// you can disable update watermark while changing scroll speed (idk why, but it maybe needed)
+					if (updateWatermark)
+						PlayState.instance.optionsWatermark.text = (PlayStateChangeables.safeFrames != 10 ? "SF " + PlayStateChangeables.safeFrames + " | " : "")
+							+ (FlxG.save.data.ghost ? "GhosTap | " : "")
+							+ (PlayStateChangeables.scrollSpeed == 1 ? "Speed " + PlayState.SONG.speed : "Speed " + PlayStateChangeables.scrollSpeed + " ("+ PlayState.SONG.speed + ")");
+				});
+
 				Lua_helper.add_callback(lua,"setHealth", function (heal:Float) {
 					PlayState.instance.health = heal;
 				});
@@ -533,7 +564,7 @@ class ModchartState
 					PlayState.instance.camHUD.x = x;
 					PlayState.instance.camHUD.y = y;
 				});
-	
+
 				Lua_helper.add_callback(lua,"getHudX", function () {
 					return PlayState.instance.camHUD.x;
 				});
@@ -541,28 +572,28 @@ class ModchartState
 				Lua_helper.add_callback(lua,"getHudY", function () {
 					return PlayState.instance.camHUD.y;
 				});
-				
+
 				Lua_helper.add_callback(lua,"setCamPosition", function (x:Int, y:Int) {
 					FlxG.camera.x = x;
 					FlxG.camera.y = y;
 				});
-	
+
 				Lua_helper.add_callback(lua,"getCameraX", function () {
 					return FlxG.camera.x;
 				});
-	
+
 				Lua_helper.add_callback(lua,"getCameraY", function () {
 					return FlxG.camera.y;
 				});
-	
+
 				Lua_helper.add_callback(lua,"setCamZoom", function(zoomAmount:Float) {
 					FlxG.camera.zoom = zoomAmount;
 				});
-	
+
 				Lua_helper.add_callback(lua,"setHudZoom", function(zoomAmount:Float) {
 					PlayState.instance.camHUD.zoom = zoomAmount;
 				});
-	
+
 				// strumline
 
 				Lua_helper.add_callback(lua, "setStrumlineY", function(y:Float)
