@@ -277,10 +277,10 @@ class TitleState extends MusicBeatState
 			new FlxTimer().start(2, function(tmr:FlxTimer)
 			{
 				// bye bye version check
-				
+
 				/*var http = new haxe.Http("https://raw.githubusercontent.com/KadeDev/Kade-Engine/master/version.downloadMe");
 				var returnedData:Array<String> = [];
-				
+
 				http.onData = function (data:String)
 				{
 					returnedData[0] = data.substring(0, data.indexOf(';'));
@@ -299,13 +299,13 @@ class TitleState extends MusicBeatState
 						clean();
 					//}
 				//}
-				
+
 				/*http.onError = function (error) {
 				  trace('error: $error');
 				  FlxG.switchState(new MainMenuState()); // fail but we go anyway
 				  clean();
 				}
-				
+
 				http.request();*/
 			});
 			// FlxG.sound.play(Paths.music('titleShoot'), 0.7);
