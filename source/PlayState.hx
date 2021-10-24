@@ -3439,7 +3439,7 @@ class PlayState extends MusicBeatState
 					{
 						FlxG.sound.playMusic(Paths.music('freakyMenu'));
 						Conductor.changeBPM(102);
-						FlxG.switchState(new StoryMenuState());
+						FlxG.switchState(new /*Story*/MainMenuState());
 						clean();
 					}
 
@@ -3454,7 +3454,7 @@ class PlayState extends MusicBeatState
 					if (SONG.validScore)
 						Highscore.saveWeekScore(storyWeek, campaignScore, storyDifficulty);
 
-					StoryMenuState.unlockNextWeek(storyWeek);
+					//StoryMenuState.unlockNextWeek(storyWeek);
 				}
 				else
 				{

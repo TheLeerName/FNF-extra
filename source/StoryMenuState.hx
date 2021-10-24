@@ -1,3 +1,6 @@
+// disable for fix later
+
+/*
 package;
 
 import flixel.input.gamepad.FlxGamepad;
@@ -490,3 +493,4 @@ class StoryMenuState extends MusicBeatState
 		grpWeekCharacters.members[2].bopHead();
 	}
 }
+*/
