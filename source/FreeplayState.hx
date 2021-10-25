@@ -1,4 +1,5 @@
 package;
+
 import lime.app.Application;
 import openfl.utils.Future;
 import openfl.media.Sound;
@@ -19,6 +20,8 @@ import flixel.math.FlxMath;
 import flixel.text.FlxText;
 import flixel.util.FlxColor;
 import lime.utils.Assets;
+import haxe.Json;
+import haxe.format.JsonParser;
 
 
 #if windows
@@ -27,6 +30,11 @@ import Discord.DiscordClient;
 
 using StringTools;
 
+typedef SongData =
+{
+	var difficultyCount:Int;
+}
+
 class FreeplayState extends MusicBeatState
 {
 	public static var songs:Array<SongMetadata> = [];
@@ -34,6 +42,10 @@ class FreeplayState extends MusicBeatState
 	var selector:FlxText;
 	public static var curSelected:Int = 0;
 	public static var curDifficulty:Int = 1;
+	var difficultyCount_primary:SongData;
+	var difficultyName_primary:Array<String>;
+	public static var difficultyCount:Int = 3; // var reduction part 1 (without this, var = difficultyCount.difficultyCount, lol)
+	public static var difficultyName:String = "EASY";
 
 	var scoreText:FlxText;
 	var comboText:FlxText;
@@ -90,12 +102,31 @@ class FreeplayState extends MusicBeatState
 
 
 			#if sys
-			if (FileSystem.exists('assets/data/${format}/${format}-hard.json'))
-				diffsThatExist.push("Hard");
-			if (FileSystem.exists('assets/data/${format}/${format}-easy.json'))
-				diffsThatExist.push("Easy");
-			if (FileSystem.exists('assets/data/${format}/${format}.json'))
-				diffsThatExist.push("Normal");
+			if (FileSystem.exists('assets/data/${format}/${format}-1.json'))
+				diffsThatExist.push("1");
+			if (FileSystem.exists('assets/data/${format}/${format}-2.json'))
+				diffsThatExist.push("2");
+
+			if (FileSystem.exists('assets/data/${format}/${format}-3.json'))
+				diffsThatExist.push("3");
+			if (FileSystem.exists('assets/data/${format}/${format}-4.json'))
+				diffsThatExist.push("4");
+
+			if (FileSystem.exists('assets/data/${format}/${format}-5.json'))
+				diffsThatExist.push("5");
+			if (FileSystem.exists('assets/data/${format}/${format}-6.json'))
+				diffsThatExist.push("6");
+
+			if (FileSystem.exists('assets/data/${format}/${format}-7.json'))
+				diffsThatExist.push("7");
+			if (FileSystem.exists('assets/data/${format}/${format}-8.json'))
+				diffsThatExist.push("8");
+
+			if (FileSystem.exists('assets/data/${format}/${format}-9.json'))
+				diffsThatExist.push("9");
+			if (FileSystem.exists('assets/data/${format}/${format}-10.json'))
+				diffsThatExist.push("10");
+
 
 			if (diffsThatExist.length == 0)
 			{
@@ -103,24 +134,39 @@ class FreeplayState extends MusicBeatState
 				continue;
 			}
 			#else
-			diffsThatExist = ["Easy","Normal","Hard"];
+			diffsThatExist = [/*"Easy",*/"1","2","3","4","5","6","7","8","9","10"];
 			#end
-			if (diffsThatExist.contains("Easy"))
+			if (diffsThatExist.contains("1"))
 				FreeplayState.loadDiff(0,format,meta.songName,diffs);
-			if (diffsThatExist.contains("Normal"))
+			if (diffsThatExist.contains("2"))
 				FreeplayState.loadDiff(1,format,meta.songName,diffs);
-			if (diffsThatExist.contains("Hard"))
+			if (diffsThatExist.contains("3"))
 				FreeplayState.loadDiff(2,format,meta.songName,diffs);
+			if (diffsThatExist.contains("4"))
+				FreeplayState.loadDiff(3,format,meta.songName,diffs);
+			if (diffsThatExist.contains("5"))
+				FreeplayState.loadDiff(4,format,meta.songName,diffs);
+
+			if (diffsThatExist.contains("6"))
+				FreeplayState.loadDiff(5,format,meta.songName,diffs);
+			if (diffsThatExist.contains("7"))
+				FreeplayState.loadDiff(6,format,meta.songName,diffs);
+			if (diffsThatExist.contains("8"))
+				FreeplayState.loadDiff(7,format,meta.songName,diffs);
+			if (diffsThatExist.contains("9"))
+				FreeplayState.loadDiff(8,format,meta.songName,diffs);
+			if (diffsThatExist.contains("10"))
+				FreeplayState.loadDiff(9,format,meta.songName,diffs);
+
 
 			meta.diffs = diffsThatExist;
 
-			if (diffsThatExist.length != 3)
-				trace("I ONLY FOUND " + diffsThatExist);
+			//if (diffsThatExist.length != 10)
+				//trace("I ONLY FOUND " + diffsThatExist);
 
 			FreeplayState.songData.set(meta.songName,diffs);
 			trace('loaded diffs for ' + meta.songName);
 			songs.push(meta);
-
 		}
 
 		trace("tryin to load sm files");
@@ -405,16 +451,33 @@ class FreeplayState extends MusicBeatState
 
 	function changeDiff(change:Int = 0)
 	{
-		if (!songs[curSelected].diffs.contains(CoolUtil.difficultyFromInt(curDifficulty + change)))
-			return;
+		var songLowercase = StringTools.replace(songs[curSelected].songName, " ", "-").toLowerCase();
+		switch (songLowercase) {
+			case 'Dad-Battle': songLowercase = 'dadbattle';
+			case 'Philly-Nice': songLowercase = 'philly';
+		}
+		//difficultyCount_primary = haxe.Json.parse(Assets.getText(Paths.json('${songLowercase}/songData')));
+		//difficultyCount = difficultyCount_primary.difficultyCount - 1;
+
+		difficultyName_primary = CoolUtil.coolTextFile(Paths.txt('data/${songLowercase}/diffNames'));
+		difficultyName = difficultyName_primary[curDifficulty];
+
+		/*if (!songs[curSelected].diffs.contains(CoolUtil.difficultyFromInt(curDifficulty + change)))
+			return;*/
+
+		trace(difficultyName + " | " + difficultyName_primary[0]);
+		trace(difficultyName + " | " + difficultyName_primary[1]);
+		trace(difficultyName + " | " + difficultyName_primary[2]);
+
+		trace(curDifficulty + " | " + difficultyCount);
 
 		curDifficulty += change;
 
 		if (curDifficulty < 0)
-			curDifficulty = 2;
-		if (curDifficulty > 2)
+			curDifficulty = difficultyCount;
+		// without "minus 1" difficultycount from json = real difficulty count (difficultycount from json + 1), but i dont want it like that :)
+		if (curDifficulty > difficultyCount)
 			curDifficulty = 0;
-
 
 		// adjusting the highscore song name to be compatible (changeDiff)
 		var songHighscore = StringTools.replace(songs[curSelected].songName, " ", "-");
@@ -422,13 +485,14 @@ class FreeplayState extends MusicBeatState
 			case 'Dad-Battle': songHighscore = 'Dadbattle';
 			case 'Philly-Nice': songHighscore = 'Philly';
 		}
-		
+
 		#if !switch
 		intendedScore = Highscore.getScore(songHighscore, curDifficulty);
 		combo = Highscore.getCombo(songHighscore, curDifficulty);
 		#end
 		diffCalcText.text = 'RATING: ${DiffCalc.CalculateDiff(songData.get(songs[curSelected].songName)[curDifficulty])}';
-		diffText.text = CoolUtil.difficultyFromInt(curDifficulty).toUpperCase();
+		//diffText.text = CoolUtil.difficultyFromInt(curDifficulty).toUpperCase();
+		diffText.text = difficultyName.toUpperCase();
 	}
 
 	function changeSelection(change:Int = 0)
@@ -441,6 +505,16 @@ class FreeplayState extends MusicBeatState
 		FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
 
 
+		var songLowercase = StringTools.replace(songs[curSelected].songName, " ", "-").toLowerCase();
+		switch (songLowercase) {
+			case 'Dad-Battle': songLowercase = 'dadbattle';
+			case 'Philly-Nice': songLowercase = 'philly';
+		}
+		difficultyCount_primary = haxe.Json.parse(Assets.getText(Paths.json('${songLowercase}/songData')));
+		difficultyCount = difficultyCount_primary.difficultyCount - 1;
+
+		difficultyName_primary = CoolUtil.coolTextFile(Paths.txt('data/${songLowercase}/diffNames'));
+		difficultyName = difficultyName_primary[curDifficulty];
 
 		curSelected += change;
 
@@ -453,12 +527,28 @@ class FreeplayState extends MusicBeatState
 		{
 			switch(songs[curSelected].diffs[0])
 			{
-				case "Easy":
+				/*case "Easy":
+					curDifficulty = 0;*/
+				case "1":
 					curDifficulty = 0;
-				case "Normal":
+				case "2":
 					curDifficulty = 1;
-				case "Hard":
+				case "3":
 					curDifficulty = 2;
+				case "4":
+					curDifficulty = 3;
+				case "5":
+					curDifficulty = 4;
+				case "6":
+					curDifficulty = 5;
+				case "7":
+					curDifficulty = 6;
+				case "8":
+					curDifficulty = 7;
+				case "9":
+					curDifficulty = 8;
+				case "10":
+					curDifficulty = 9;
 			}
 		}
 
@@ -479,8 +569,9 @@ class FreeplayState extends MusicBeatState
 		#end
 
 		diffCalcText.text = 'RATING: ${DiffCalc.CalculateDiff(songData.get(songs[curSelected].songName)[curDifficulty])}';
-		diffText.text = CoolUtil.difficultyFromInt(curDifficulty).toUpperCase();
-		
+		//diffText.text = CoolUtil.difficultyFromInt(curDifficulty).toUpperCase();
+		diffText.text = difficultyName.toUpperCase();
+
 		#if PRELOAD_ALL
 		if (songs[curSelected].songCharacter == "sm")
 		{
