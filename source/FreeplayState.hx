@@ -456,28 +456,23 @@ class FreeplayState extends MusicBeatState
 			case 'Dad-Battle': songLowercase = 'dadbattle';
 			case 'Philly-Nice': songLowercase = 'philly';
 		}
-		//difficultyCount_primary = haxe.Json.parse(Assets.getText(Paths.json('${songLowercase}/songData')));
-		//difficultyCount = difficultyCount_primary.difficultyCount - 1;
-
-		difficultyName_primary = CoolUtil.coolTextFile(Paths.txt('data/${songLowercase}/diffNames'));
-		difficultyName = difficultyName_primary[curDifficulty];
+		/*difficultyCount_primary = haxe.Json.parse(Assets.getText(Paths.json('${songLowercase}/songData')));
+		difficultyCount = difficultyCount_primary.difficultyCount - 1;*/
 
 		/*if (!songs[curSelected].diffs.contains(CoolUtil.difficultyFromInt(curDifficulty + change)))
 			return;*/
 
-		trace(difficultyName + " | " + difficultyName_primary[0]);
-		trace(difficultyName + " | " + difficultyName_primary[1]);
-		trace(difficultyName + " | " + difficultyName_primary[2]);
-
-		trace(curDifficulty + " | " + difficultyCount);
+		trace((curDifficulty + 1) + " | " + (difficultyCount + 1));
 
 		curDifficulty += change;
 
 		if (curDifficulty < 0)
 			curDifficulty = difficultyCount;
-		// without "minus 1" difficultycount from json = real difficulty count (difficultycount from json + 1), but i dont want it like that :)
 		if (curDifficulty > difficultyCount)
 			curDifficulty = 0;
+
+		difficultyName_primary = CoolUtil.coolTextFile(Paths.txt('data/${songLowercase}/diffNames'));
+		difficultyName = difficultyName_primary[curDifficulty];
 
 		// adjusting the highscore song name to be compatible (changeDiff)
 		var songHighscore = StringTools.replace(songs[curSelected].songName, " ", "-");
@@ -497,13 +492,7 @@ class FreeplayState extends MusicBeatState
 
 	function changeSelection(change:Int = 0)
 	{
-		#if !switch
-		// NGio.logEvent('Fresh');
-		#end
-
-		// NGio.logEvent('Fresh');
 		FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
-
 
 		var songLowercase = StringTools.replace(songs[curSelected].songName, " ", "-").toLowerCase();
 		switch (songLowercase) {
@@ -512,9 +501,6 @@ class FreeplayState extends MusicBeatState
 		}
 		difficultyCount_primary = haxe.Json.parse(Assets.getText(Paths.json('${songLowercase}/songData')));
 		difficultyCount = difficultyCount_primary.difficultyCount - 1;
-
-		difficultyName_primary = CoolUtil.coolTextFile(Paths.txt('data/${songLowercase}/diffNames'));
-		difficultyName = difficultyName_primary[curDifficulty];
 
 		curSelected += change;
 
@@ -553,7 +539,10 @@ class FreeplayState extends MusicBeatState
 		}
 
 		// selector.y = (70 * curSelected) + 30;
-		
+
+		difficultyName_primary = CoolUtil.coolTextFile(Paths.txt('data/${songLowercase}/diffNames'));
+		difficultyName = difficultyName_primary[curDifficulty];
+
 		// adjusting the highscore song name to be compatible (changeSelection)
 		// would read original scores if we didn't change packages
 		var songHighscore = StringTools.replace(songs[curSelected].songName, " ", "-");
