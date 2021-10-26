@@ -1179,7 +1179,7 @@ class PlayState extends MusicBeatState
 		+ (FlxG.save.data.ghost ? "GhosTap | " : "")
 		+ (PlayStateChangeables.scrollSpeed == 1 ? "Speed " + SONG.speed : "Speed " + PlayStateChangeables.scrollSpeed + " ("+ SONG.speed + ")"));
 		versionWatermark = new FlxText(4, "FNF Extra Mod V" + MainMenuState.modVer, 16);
-		songWatermark = new FlxText(4,healthBarBG.y + 50,0,SONG.song + " [" + /*CoolUtil.difficultyFromInt(storyDifficulty)*/FreeplayState.difficultyName + "]", 16);
+		songWatermark = new FlxText(4,healthBarBG.y + 50,0,SONG.song + " [" + /*CoolUtil.difficultyFromInt(storyDifficulty)*/FreeplayState.difficultyName.toUpperCase() + "]", 16);
 
 		optionsWatermark.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, RIGHT, FlxTextBorderStyle.OUTLINE,FlxColor.BLACK);
 		versionWatermark.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, RIGHT, FlxTextBorderStyle.OUTLINE,FlxColor.BLACK);
