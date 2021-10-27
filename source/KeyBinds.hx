@@ -25,6 +25,7 @@ class KeyBinds
         FlxG.save.data.gpdownBind = "DPAD_DOWN";
         FlxG.save.data.gpleftBind = "DPAD_LEFT";
         FlxG.save.data.gprightBind = "DPAD_RIGHT";
+        FlxG.save.data.fullscreenBind = "F";
         PlayerSettings.player1.controls.loadKeyBinds();
 
 	}
@@ -63,10 +64,14 @@ class KeyBinds
             FlxG.save.data.gprightBind = "DPAD_RIGHT";
             trace("No GRIGHT");
         }
-	if(FlxG.save.data.killBind == null){
+	    if(FlxG.save.data.killBind == null){
             FlxG.save.data.killBind = "R";
             trace("No KILL");
         }
+        if (FlxG.save.data.fullscreenBind == null){
+			FlxG.save.data.fullscreenBind = "F";
+			trace("No FULLSCREEN");
+		}
 
         trace('${FlxG.save.data.leftBind}-${FlxG.save.data.downBind}-${FlxG.save.data.upBind}-${FlxG.save.data.rightBind}');
     }

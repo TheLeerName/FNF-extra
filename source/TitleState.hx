@@ -243,11 +243,6 @@ class TitleState extends MusicBeatState
 			Conductor.songPosition = FlxG.sound.music.time;
 		// FlxG.watch.addQuick('amp', FlxG.sound.music.amplitude);
 
-		if (FlxG.keys.justPressed.F)
-		{
-			FlxG.fullscreen = !FlxG.fullscreen;
-		}
-
 		var pressedEnter:Bool = controls.ACCEPT;
 
 		#if mobile
@@ -431,6 +426,8 @@ class TitleState extends MusicBeatState
 	{
 		if (!skippedIntro)
 		{
+			trace('Skipping intro...');
+
 			remove(ngSpr);
 
 			FlxG.camera.flash(FlxColor.WHITE, 4);
@@ -447,6 +444,10 @@ class TitleState extends MusicBeatState
 					if (logoBl.angle == 4) 
 						FlxTween.angle(logoBl, logoBl.angle, -4, 4, {ease: FlxEase.quartInOut});
 				}, 0);
+
+			// It always bugged me that it didn't do this before.
+			// Skip ahead in the song to the drop.
+			FlxG.sound.music.time = 9400; // 9.4 seconds
 
 			skippedIntro = true;
 		}

@@ -34,15 +34,16 @@ class KeyBindMenu extends FlxSubState
     var keyTextDisplay:FlxText;
     var keyWarning:FlxText;
     var warningTween:FlxTween;
-    var keyText:Array<String> = ["LEFT", "DOWN", "UP", "RIGHT"];
-    var defaultKeys:Array<String> = ["A", "S", "W", "D", "R"];
+    var keyText:Array<String> = ["LEFT", "DOWN", "UP", "RIGHT", "FULLSCREEN"];
+    var defaultKeys:Array<String> = ["A", "S", "W", "D", "R", "F"];
     var defaultGpKeys:Array<String> = ["DPAD_LEFT", "DPAD_DOWN", "DPAD_UP", "DPAD_RIGHT"];
     var curSelected:Int = 0;
 
     var keys:Array<String> = [FlxG.save.data.leftBind,
                               FlxG.save.data.downBind,
                               FlxG.save.data.upBind,
-                              FlxG.save.data.rightBind];
+                              FlxG.save.data.rightBind,
+                              FlxG.save.data.fullscreenBind];
     var gpKeys:Array<String> = [FlxG.save.data.gpleftBind,
                               FlxG.save.data.gpdownBind,
                               FlxG.save.data.gpupBind,
@@ -85,7 +86,7 @@ class KeyBindMenu extends FlxSubState
         blackBox = new FlxSprite(0,0).makeGraphic(FlxG.width,FlxG.height,FlxColor.BLACK);
         add(blackBox);
 
-        infoText = new FlxText(-10, 580, 1280, 'Current Mode: ${KeyBinds.gamepad ? 'GAMEPAD' : 'KEYBOARD'}. Press TAB to switch\n(${KeyBinds.gamepad ? 'RIGHT Trigger' : 'Escape'} to save, ${KeyBinds.gamepad ? 'LEFT Trigger' : 'Backspace'} to leave without saving. ${KeyBinds.gamepad ? 'START To change a keybind' : ''})', 72);
+        infoText = new FlxText(-10, 596.5, 1280, 'Current Mode: ${KeyBinds.gamepad ? 'GAMEPAD' : 'KEYBOARD'}. Press TAB to switch\n(${KeyBinds.gamepad ? 'RIGHT Trigger' : 'Escape'} to save, ${KeyBinds.gamepad ? 'LEFT Trigger' : 'Backspace'} to leave without saving. ${KeyBinds.gamepad ? 'START To change a keybind' : ''})', 72);
 		infoText.scrollFactor.set(0, 0);
 		infoText.setFormat("VCR OSD Mono", 24, FlxColor.WHITE, FlxTextAlign.CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		infoText.borderSize = 2;
@@ -254,21 +255,19 @@ class KeyBindMenu extends FlxSubState
         if (KeyBinds.gamepad)
         {
             for(i in 0...4){
-
                 var textStart = (i == curSelected) ? "> " : "  ";
                 trace(gpKeys[i]);
                 keyTextDisplay.text += textStart + keyText[i] + ": " + gpKeys[i] + "\n";
-                
             }
         }
         else
         {
             for(i in 0...4){
-
                 var textStart = (i == curSelected) ? "> " : "  ";
                 keyTextDisplay.text += textStart + keyText[i] + ": " + ((keys[i] != keyText[i]) ? (keys[i] + " / ") : "" ) + keyText[i] + " ARROW\n";
-
             }
+			var textStartReset = (4 == curSelected) ? "> " : "  ";
+			keyTextDisplay.text += textStartReset + keyText[4] + ": " + (keys[4]) + "\n";
         }
 
         keyTextDisplay.screenCenter();
@@ -281,6 +280,7 @@ class KeyBindMenu extends FlxSubState
         FlxG.save.data.downBind = keys[1];
         FlxG.save.data.leftBind = keys[0];
         FlxG.save.data.rightBind = keys[3];
+        FlxG.save.data.fullscreenBind = keys[4];
         
         FlxG.save.data.gpupBind = gpKeys[2];
         FlxG.save.data.gpdownBind = gpKeys[1];
@@ -395,9 +395,9 @@ class KeyBindMenu extends FlxSubState
     {
         curSelected += _amount;
                 
-        if (curSelected > 3)
+        if (curSelected > 4)
             curSelected = 0;
         if (curSelected < 0)
-            curSelected = 3;
+            curSelected = 4;
     }
 }

@@ -9,6 +9,7 @@ import openfl.Lib;
 import Conductor.BPMChangeEvent;
 import flixel.FlxG;
 import flixel.addons.ui.FlxUIState;
+import flixel.input.keyboard.FlxKey;
 
 class MusicBeatState extends FlxUIState
 {
@@ -91,6 +92,11 @@ class MusicBeatState extends FlxUIState
 				stepHit();
 			}
 		}*/
+
+		if (FlxG.keys.anyJustPressed([FlxKey.fromString(FlxG.save.data.fullscreenBind)]))
+		{
+			FlxG.fullscreen = !FlxG.fullscreen;
+		}
 
 		if (Conductor.songPosition < 0)
 			curDecimalBeat = 0;
