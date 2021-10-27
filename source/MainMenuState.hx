@@ -171,10 +171,10 @@ class MainMenuState extends MusicBeatState
 				changeItem(1);
 			}
 
-			if (controls.BACK)
+			/*if (controls.BACK)
 			{
-				FlxG.switchState(new TitleState());
-			}
+				FlxG.switchState(new TitleState()); // lol it crash, but fullscreen you can switch anywhere now
+			}*/
 
 			if (controls.ACCEPT)
 			{

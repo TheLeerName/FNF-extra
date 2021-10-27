@@ -2287,8 +2287,17 @@ class ChartingState extends MusicBeatState
 			PlayState.SONG = _song;
 			FlxG.sound.music.stop();
 			if (!PlayState.isSM)
-			vocals.stop();
+				vocals.stop();
 			LoadingState.loadAndSwitchState(new PlayState());
+		}
+		if (FlxG.keys.justPressed.ESCAPE && FreeplayState.chartingFromFreeplay)
+		{
+			lastSection = curSection;
+			FlxG.sound.music.stop();
+			if (!PlayState.isSM)
+				vocals.stop();
+			FlxG.switchState(new FreeplayState());
+			FreeplayState.chartingFromFreeplay = false;
 		}
 
 		if (FlxG.keys.justPressed.E)
@@ -3129,7 +3138,7 @@ class ChartingState extends MusicBeatState
 
 	function loadJson(song:String):Void
 	{
-		var difficultyArray:Array<String> = ["-easy", "", "-hard"];
+		var difficultyArray:Array<String> = ["-1", "-2", "-3", "-4", "-5", "-6", "-7", "-8", "-9", "-10"];
 		var format = StringTools.replace(PlayState.SONG.song.toLowerCase(), " ", "-");
 		switch (format) {
 			case 'Dad-Battle': format = 'Dadbattle';
@@ -3155,7 +3164,7 @@ class ChartingState extends MusicBeatState
 
 	private function saveLevel()
 	{
-		var difficultyArray:Array<String> = ["-easy", "", "-hard"];
+		var difficultyArray:Array<String> = ["-1", "-2", "-3", "-4", "-5", "-6", "-7", "-8", "-9", "-10"];
 		var json = {
 			"song": _song
 		};

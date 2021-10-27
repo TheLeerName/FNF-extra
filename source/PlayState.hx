@@ -509,7 +509,7 @@ class PlayState extends MusicBeatState
 		{
 			switch (stageCheck)
 			{
-				case 'halloween':
+				/*case 'halloween':
 					{
 						curStage = 'spooky';
 						halloweenLevel = true;
@@ -823,7 +823,7 @@ class PlayState extends MusicBeatState
 						 */
 
 						// bg.shader = wiggleShit.shader;
-						// fg.shader = wiggleShit.shader;
+						// fg.shader = wiggleShit.shader;*/
 
 						/* 
 							var waveSprite = new FlxEffectSprite(bg, [waveEffectBG]);
@@ -842,7 +842,7 @@ class PlayState extends MusicBeatState
 							add(waveSprite);
 							add(waveSpriteFG);
 						 */
-					}
+					//}
 				default:
 					{
 						defaultCamZoom = 0.9;

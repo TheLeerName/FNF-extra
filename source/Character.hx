@@ -50,7 +50,7 @@ class Character extends FlxSprite
 
 				playAnim('danceRight');
 
-			case 'gf-christmas':
+			/*case 'gf-christmas':
 				tex = Paths.getSparrowAtlas('gfChristmas','shared',true);
 				frames = tex;
 				animation.addByPrefix('cheer', 'GF Cheer', 24, false);
@@ -174,7 +174,7 @@ class Character extends FlxSprite
 				animation.addByPrefix('singRIGHT', 'Monster Right note', 24, false);
 
 				loadOffsetFile(curCharacter);
-				playAnim('idle');
+				playAnim('idle');*/
 			case 'pico':
 				tex = Paths.getSparrowAtlas('Pico_FNF_assetss','shared',true);
 				frames = tex;
@@ -235,7 +235,7 @@ class Character extends FlxSprite
 
 				flipX = true;
 
-			case 'bf-christmas':
+			/*case 'bf-christmas':
 				var tex = Paths.getSparrowAtlas('bfChristmas','shared',true);
 				frames = tex;
 				animation.addByPrefix('idle', 'BF idle dance', 24, false);
@@ -377,7 +377,7 @@ class Character extends FlxSprite
 
 				loadOffsetFile(curCharacter);
 
-				playAnim('idle');
+				playAnim('idle');*/
 		}
 
 		dance();
