@@ -39,7 +39,7 @@ class FreeplayState extends MusicBeatState
 
 	var selector:FlxText;
 	public static var curSelected:Int = 0;
-	public static var curDifficulty:Int = 1;
+	public static var curDifficulty:Int = 0;
 	var difficultyCount_primary:SongData;
 	var difficultyName_primary:Array<String>;
 	public static var difficultyCount:Int = 3; // var reduction part 1 (without this, var = difficultyCount.difficultyCount, lol)
@@ -51,7 +51,7 @@ class FreeplayState extends MusicBeatState
 	var scoreText:FlxText;
 	var comboText:FlxText;
 	var diffText:FlxText;
-	var diffCalcText:FlxText;
+	public static var diffCalcText:FlxText;
 	var previewtext:FlxText;
 	var lerpScore:Int = 0;
 	var intendedScore:Int = 0;
@@ -128,7 +128,6 @@ class FreeplayState extends MusicBeatState
 			if (FileSystem.exists('assets/data/${format}/${format}-10.json'))
 				diffsThatExist.push("10");
 
-
 			if (diffsThatExist.length == 0)
 			{
 				Application.current.window.alert("No difficulties found for chart, skipping.",meta.songName + " Chart");
@@ -141,19 +140,22 @@ class FreeplayState extends MusicBeatState
 				FreeplayState.loadDiff(0,format,meta.songName,diffs);
 			if (diffsThatExist.contains("2"))
 				FreeplayState.loadDiff(1,format,meta.songName,diffs);
+
 			if (diffsThatExist.contains("3"))
 				FreeplayState.loadDiff(2,format,meta.songName,diffs);
 			if (diffsThatExist.contains("4"))
 				FreeplayState.loadDiff(3,format,meta.songName,diffs);
+
 			if (diffsThatExist.contains("5"))
 				FreeplayState.loadDiff(4,format,meta.songName,diffs);
-
 			if (diffsThatExist.contains("6"))
 				FreeplayState.loadDiff(5,format,meta.songName,diffs);
+
 			if (diffsThatExist.contains("7"))
 				FreeplayState.loadDiff(6,format,meta.songName,diffs);
 			if (diffsThatExist.contains("8"))
 				FreeplayState.loadDiff(7,format,meta.songName,diffs);
+
 			if (diffsThatExist.contains("9"))
 				FreeplayState.loadDiff(8,format,meta.songName,diffs);
 			if (diffsThatExist.contains("10"))
@@ -377,12 +379,13 @@ class FreeplayState extends MusicBeatState
 				FlxG.sound.playMusic(Paths.inst(songs[curSelected].songName), 0);
 			else
 			{
+				FlxG.sound.playMusic(Paths.music('freakyMenu'), 0);
 			}
 		}
 
-		//if (FlxG.keys.justPressed.SPACE && !openedPreview)
 		//if (FlxG.keys.justPressed.SPACE && !openedPreview) openSubState(new DiffOverview());
 
+		if (FlxG.keys.justPressed.ENTER) loadSong(false);
 		if (FlxG.keys.justPressed.SEVEN) loadSong(true);
 	}
 
@@ -393,13 +396,14 @@ class FreeplayState extends MusicBeatState
 		switch (songFormat) {
 			case 'Dad-Battle': songFormat = 'Dadbattle';
 			case 'Philly-Nice': songFormat = 'Philly';
+		}
 		var hmm;
 		try
 		{
+			hmm = songData.get(songs[curSelected].songName)[curDifficulty];
 			if (hmm == null)
 				return;
 		}
-
 		catch(ex)
 		{
 			return;
@@ -409,13 +413,14 @@ class FreeplayState extends MusicBeatState
 		PlayState.isStoryMode = false;
 		PlayState.storyDifficulty = curDifficulty;
 		PlayState.storyWeek = songs[curSelected].week;
+		trace('CUR WEEK' + PlayState.storyWeek);
 		#if sys
 		if (songs[curSelected].songCharacter == "sm")
 			{
+				PlayState.isSM = true;
 				PlayState.sm = songs[curSelected].sm;
 				PlayState.pathToSm = songs[curSelected].path;
 			}
-				PlayState.isSM = false;
 		else
 			PlayState.isSM = false;
 		#else
@@ -423,25 +428,25 @@ class FreeplayState extends MusicBeatState
 		#end
 
 		if (isCharting)
+		{
 			LoadingState.loadAndSwitchState(new ChartingState());
 			chartingFromFreeplay = true;
 		}
+		else
+			LoadingState.loadAndSwitchState(new PlayState());
+		clean();
 	}
 
 	function changeDiff(change:Int = 0)
 	{
-		var songLowercase = StringTools.replace(songs[curSelected].songName, " ", "-").toLowerCase();
-		switch (songLowercase) {
-			case 'Dad-Battle': songLowercase = 'dadbattle';
-			case 'Philly-Nice': songLowercase = 'philly';
-		}
-		/*difficultyCount_primary = haxe.Json.parse(Assets.getText(Paths.json('${songLowercase}/songData')));
-		difficultyCount = difficultyCount_primary.difficultyCount - 1;*/
+		difficultyCount_primary = haxe.Json.parse(Assets.getText(Paths.json('${songs[curSelected].songName.toLowerCase()}/songData')));
+		difficultyCount = difficultyCount_primary.difficultyCount - 1;
 
 		/*if (!songs[curSelected].diffs.contains(CoolUtil.difficultyFromInt(curDifficulty + change)))
-			return;*/
+			return;
 
-		trace((curDifficulty + 1) + " | " + (difficultyCount + 1));
+		if (curDifficulty == difficultyCount)
+			return;*/
 
 		curDifficulty += change;
 
@@ -450,7 +455,7 @@ class FreeplayState extends MusicBeatState
 		if (curDifficulty > difficultyCount)
 			curDifficulty = 0;
 
-		difficultyName_primary = CoolUtil.coolTextFile(Paths.txt('data/${songLowercase}/diffNames'));
+		difficultyName_primary = CoolUtil.coolTextFile(Paths.txt('data/${songs[curSelected].songName.toLowerCase()}/diffNames'));
 		difficultyName = difficultyName_primary[curDifficulty];
 
 		// adjusting the highscore song name to be compatible (changeDiff)
@@ -465,21 +470,54 @@ class FreeplayState extends MusicBeatState
 		combo = Highscore.getCombo(songHighscore, curDifficulty);
 		#end
 		diffCalcText.text = 'RATING: ${DiffCalc.CalculateDiff(songData.get(songs[curSelected].songName)[curDifficulty])}';
+
 		//diffText.text = CoolUtil.difficultyFromInt(curDifficulty).toUpperCase();
-		diffText.text = difficultyName.toUpperCase();
+		trace((curDifficulty + 1) + " | " + (difficultyCount + 1));
+		diffText.text = difficultyName.toUpperCase() + " (" + (curDifficulty + 1) + "/" + (difficultyCount + 1) + ")";
 	}
 
 	function changeSelection(change:Int = 0)
 	{
 		FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
 
-		var songLowercase = StringTools.replace(songs[curSelected].songName, " ", "-").toLowerCase();
-		switch (songLowercase) {
-			case 'Dad-Battle': songLowercase = 'dadbattle';
-			case 'Philly-Nice': songLowercase = 'philly';
+		/*difficultyCount_primary = haxe.Json.parse(Assets.getText(Paths.json('${songs[curSelected].songName.toLowerCase()}/songData')));
+		difficultyCount = difficultyCount_primary.difficultyCount - 1;*/
+
+		// error message
+		if (difficultyCount < 1 || difficultyCount > 9)
+		{
+			/*if (difficultyCount < 1)
+			{
+				trace("diff count less than 1 lol! starting error window...");
+				Application.current.window.alert("Value of difficulty count is 1 or less, try putting a value between 1 and 10.", "DIFFICULTY SYSTEM ERROR");
+			}
+			else if (difficultyCount > 9)
+			{
+				trace("diff count more than 10 lol! starting error window...");
+				Application.current.window.alert("Value of difficulty count is 10 or more, try putting a value between 1 and 10.", "DIFFICULTY SYSTEM ERROR");
+			}*/
+
+			trace
+			(
+				"diff count is "
+				+ difficultyCount
+				+ ", its " + (difficultyCount > 9 ? "more than 10" : "less than 1")
+				+ " lol! starting error window..."
+			);
+			Application.current.window.alert
+			(
+				"Value of difficulty count is "
+				+ difficultyCount
+				+ ", its " + (difficultyCount > 9 ? "more than 10!" : "less than 1!")
+				+ " Try putting a value between 1 and 10."
+
+				, "DIFFICULTY SYSTEM ERROR"
+			);
+
+			FlxG.switchState(new MainMenuState());
+			return;
 		}
-		difficultyCount_primary = haxe.Json.parse(Assets.getText(Paths.json('${songLowercase}/songData')));
-		difficultyCount = difficultyCount_primary.difficultyCount - 1;
+		curDifficulty = 0;
 
 		curSelected += change;
 
@@ -488,12 +526,19 @@ class FreeplayState extends MusicBeatState
 		if (curSelected >= songs.length)
 			curSelected = 0;
 
-		if (songs[curSelected].diffs.length != 3)
+		difficultyCount_primary = haxe.Json.parse(Assets.getText(Paths.json('${songs[curSelected].songName.toLowerCase()}/songData')));
+		difficultyCount = difficultyCount_primary.difficultyCount - 1;
+
+		difficultyName_primary = CoolUtil.coolTextFile(Paths.txt('data/${songs[curSelected].songName.toLowerCase()}/diffNames'));
+		difficultyName = difficultyName_primary[curDifficulty];
+
+		trace((curDifficulty + 1) + " | " + (difficultyCount + 1));
+		diffText.text = difficultyName.toUpperCase() + " (" + (curDifficulty + 1) + "/" + (difficultyCount + 1) + ")";
+
+		/*if (songs[curSelected].diffs.length != 3)
 		{
 			switch(songs[curSelected].diffs[0])
 			{
-				/*case "Easy":
-					curDifficulty = 0;*/
 				case "1":
 					curDifficulty = 0;
 				case "2":
@@ -515,12 +560,9 @@ class FreeplayState extends MusicBeatState
 				case "10":
 					curDifficulty = 9;
 			}
-		}
+		}*/
 
 		// selector.y = (70 * curSelected) + 30;
-
-		difficultyName_primary = CoolUtil.coolTextFile(Paths.txt('data/${songLowercase}/diffNames'));
-		difficultyName = difficultyName_primary[curDifficulty];
 
 		// adjusting the highscore song name to be compatible (changeSelection)
 		// would read original scores if we didn't change packages
@@ -538,7 +580,6 @@ class FreeplayState extends MusicBeatState
 
 		diffCalcText.text = 'RATING: ${DiffCalc.CalculateDiff(songData.get(songs[curSelected].songName)[curDifficulty])}';
 		//diffText.text = CoolUtil.difficultyFromInt(curDifficulty).toUpperCase();
-		diffText.text = difficultyName.toUpperCase();
 
 		#if PRELOAD_ALL
 		if (songs[curSelected].songCharacter == "sm")
@@ -550,7 +591,7 @@ class FreeplayState extends MusicBeatState
 			sound.loadCompressedDataFromByteArray(bytes.getData(), bytes.length);
 			FlxG.sound.playMusic(sound);
 		}
-		else
+		else if (playMusic)
 			FlxG.sound.playMusic(Paths.inst(songs[curSelected].songName), 0);
 		#end
 

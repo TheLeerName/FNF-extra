@@ -113,8 +113,8 @@ class PlayState extends MusicBeatState
 	var songLength:Float = 0;
 
 	public var optionsWatermark:FlxText; // make it public for update speed song on the watermark
-	var versionWatermark:FlxText;
-	var songWatermark:FlxText;
+	public var versionWatermark:FlxText;
+	public var songWatermark:FlxText;
 
 	public static var primarySpeed:Float;
 	public var secondarySpeed:Float = 0;
@@ -2439,7 +2439,14 @@ class PlayState extends MusicBeatState
 				clean();
 			}
 			else
+			{
+				if (FlxG.save.data.watermark)
+				{
+					optionsWatermark.y = FlxG.height * 0.91 + 28;
+					versionWatermark.visible = false;
+				}
 				openSubState(new PauseSubState(boyfriend.getScreenPosition().x, boyfriend.getScreenPosition().y));
+			}
 		}
 
 		if (FlxG.keys.justPressed.SEVEN && songStarted)
@@ -4116,7 +4123,11 @@ class PlayState extends MusicBeatState
 			FlxG.sound.music.pause();
 			vocals.pause();
 		}
-
+		if (FlxG.save.data.watermark)
+		{
+			optionsWatermark.y = FlxG.height * 0.91 + 28;
+			versionWatermark.visible = false;
+		}
 		openSubState(new PauseSubState(boyfriend.getScreenPosition().x, boyfriend.getScreenPosition().y));
 	}
 

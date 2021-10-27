@@ -66,25 +66,37 @@ class PauseSubState extends MusicBeatSubstate
 		levelDifficulty.updateHitbox();
 		add(levelDifficulty);
 
-		levelDifficulty.alpha = 0;
+		var levelRating:FlxText = new FlxText(20, 15 + 64, 0, "", 32);
+		levelRating.text += FreeplayState.diffCalcText.text;
+		levelRating.scrollFactor.set();
+		levelRating.setFormat(Paths.font('vcr.ttf'), 32);
+		levelRating.updateHitbox();
+		add(levelRating);
+
 		levelInfo.alpha = 0;
+		levelDifficulty.alpha = 0;
+		levelRating.alpha = 0;
 
 		levelInfo.x = FlxG.width - (levelInfo.width + 20);
 		levelDifficulty.x = FlxG.width - (levelDifficulty.width + 20);
+		levelRating.x = FlxG.width - (levelRating.width + 20);
 
 		FlxTween.tween(bg, {alpha: 0.6}, 0.4, {ease: FlxEase.quartInOut});
 		FlxTween.tween(levelInfo, {alpha: 1, y: 20}, 0.4, {ease: FlxEase.quartInOut, startDelay: 0.3});
 		FlxTween.tween(levelDifficulty, {alpha: 1, y: levelDifficulty.y + 5}, 0.4, {ease: FlxEase.quartInOut, startDelay: 0.5});
+		FlxTween.tween(levelRating, {alpha: 1, y: levelRating.y + 5}, 0.4, {ease: FlxEase.quartInOut, startDelay: 0.7});
 
 		grpMenuShit = new FlxTypedGroup<Alphabet>();
 		add(grpMenuShit);
-		perSongOffset = new FlxText(5, FlxG.height - 18, 0, "Additive Offset (Left, Right): " + PlayState.songOffset + " - Description - " + 'Adds value to global offset, per song.', 12);
+		perSongOffset = new FlxText(5, FlxG.height - 38, 0, "Hello chat" + " | " + (FlxG.save.data.watermark ? "FNF Extra Mod " + MainMenuState.modVer + " | " : "") + "Offset: " + PlayState.songOffset, 12);
 		perSongOffset.scrollFactor.set();
 		perSongOffset.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-		
-		#if cpp
+
+		perSongOffset.x = FlxG.width - (perSongOffset.width + 10);
+
+		//#if cpp
 			add(perSongOffset);
-		#end
+		//#end
 
 		for (i in 0...menuItems.length)
 		{
@@ -148,7 +160,7 @@ class PauseSubState extends MusicBeatSubstate
 			changeSelection(1);
 		}
 		
-		#if cpp
+		/*#if cpp
 			else if (controls.LEFT_P || leftPcontroller)
 			{
 				oldOffset = PlayState.songOffset;
@@ -203,7 +215,7 @@ class PauseSubState extends MusicBeatSubstate
 					offsetChanged = true;
 				}
 			}
-		#end
+		#end*/
 
 		if (controls.ACCEPT && !FlxG.keys.pressed.ALT)
 		{
@@ -214,6 +226,12 @@ class PauseSubState extends MusicBeatSubstate
 			{
 				case "Resume":
 					close();
+					if (FlxG.save.data.watermark)
+					{
+						PlayState.instance.optionsWatermark.y = FlxG.height * 0.91 + 11;
+						PlayState.instance.versionWatermark.y = FlxG.height * 0.91 + 28;
+						PlayState.instance.versionWatermark.visible = true;
+					}
 				case "Restart Song":
 					PlayState.startTime = 0;
 					if (PlayState.instance.useVideo)
