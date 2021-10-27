@@ -2,18 +2,10 @@
 
 FNF Modification in which there will be all sorts of improvements to the original game and mods (recharts, modcharts, gamemodes)
 
-### In last commits i added feature to change scroll speed in lua modcharts, and here a tutorial on it
-
-`setSpeed(2.8, true);` <- **sets speed to 2.8**, **if true** then **updates watermark**: `Speed: 2.8` (btw its not necessary to write true, since true is written in the function by default)
-
-`addSpeed(0.5, false);` <- **adds 0.5 to speed**, **if false** then **not updates watermark**, *idk why it, but why not?*
-
-> You can anyway change scroll speed via **function beatHit** in **PlayState.hx**, if you dont know Lua language
+## Tutorials: [Build instructions](art/docs/building.md) - [New difficulty system](art/docs/guides/songs.md) - [Modcharts](art/docs/modchart.md)
 
 ### Minor changes
-Deleted **polymod, newgrounds, version check** and **caching** *(preload files)*; **numpad** able **to bind** now
-
-## [Build instructions](art/docs/building.md)
+Deleted **polymod, newgrounds, version check** and **caching** *(preload files)*; **numpad** able **to bind** now, disabled Story Mode
 
 ![Kade Engine logo](assets/preload/images/KadeEngineLogo.png)
 
