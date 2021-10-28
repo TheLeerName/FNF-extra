@@ -16,7 +16,7 @@
 - Create file `songData.json`, and type `{ "difficultyCount": 3 }`, instead of `3` put the value you need of difficulty count
 ### NOTE: Currently no more than 10 difficulties are supported, if you put more than 10 and less than 1, then there will be an error!
 - Add song json files for 1 difficulty `song_name-1.json`, for 2 difficulty `song_name-2.json` and etc
-- (Optional) Create file `modchart.lua`, if you want a [modchart of your song](modchart.md)
+- (Optional) Create file `modchart.lua`, if you want a [modchart of your song](https://github.com/TheLeerName/FNF-extra/blob/main/art/docs/modchart.md)
 
 ![vJFWAWYSvD](https://user-images.githubusercontent.com/85291330/139118261-a979a041-d8ca-461f-9478-be192933022d.png)
 
