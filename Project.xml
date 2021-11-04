@@ -6,9 +6,9 @@
 	<app packageName="com.kadedev.kadeengine" main="Main" company="kadedev"/>
 
 	<!-- Better change this -->
-	<app unless="mobile" title="Friday Night Funkin': Kade Engine" file="Kade Engine"/>
-	<app if="mobile" title="FNF: Kade Engine" file="KadeEngine"/>
-	<app package="com.kadedev.kadeengine" version="1.0-nightly1"/>
+	<app unless="mobile" title="Friday Night Funkin' Extra"/>
+	<app if="mobile" title="FNF Extra"/>
+	<app package="com.kadedev.kadeengine" version="1.0-nightly2" file="FNFExtra"/>
 
 
 	<!--Switch Export with Unique ApplicationID and Icon-->

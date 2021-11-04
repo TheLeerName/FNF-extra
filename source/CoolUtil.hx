@@ -1,6 +1,8 @@
 package;
 
 import lime.utils.Assets;
+import haxe.Json;
+import haxe.format.JsonParser;
 
 using StringTools;
 
@@ -11,6 +13,11 @@ class CoolUtil
 	public static function difficultyFromInt(difficulty:Int):String
 	{
 		return difficultyArray[difficulty];
+	}
+
+	inline static public function parseSongJSON(key:String)
+	{
+		return haxe.Json.parse(Assets.getText(Paths.json(key)));
 	}
 
 	public static function coolTextFile(path:String):Array<String>

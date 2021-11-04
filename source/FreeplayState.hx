@@ -19,9 +19,6 @@ import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.math.FlxMath;
 import flixel.text.FlxText;
 import flixel.util.FlxColor;
-import lime.utils.Assets;
-import haxe.Json;
-import haxe.format.JsonParser;
 #if windows
 import Discord.DiscordClient;
 #end
@@ -445,13 +442,11 @@ class FreeplayState extends MusicBeatState
 
 	function changeDiff(change:Int = 0)
 	{
-		difficultyCount_primary = haxe.Json.parse(Assets.getText(Paths.json('${songs[curSelected].songName.toLowerCase()}/songData')));
+		//difficultyCount_primary = haxe.Json.parse(Assets.getText(Paths.json('${songs[curSelected].songName.toLowerCase()}/songData')));
+		difficultyCount_primary = CoolUtil.parseSongJSON('${songs[curSelected].songName.toLowerCase()}/songData');
 		difficultyCount = difficultyCount_primary.difficultyCount - 1;
 
 		/*if (!songs[curSelected].diffs.contains(CoolUtil.difficultyFromInt(curDifficulty + change)))
-			return;
-
-		if (curDifficulty == difficultyCount)
 			return;*/
 
 		curDifficulty += change;
@@ -486,23 +481,9 @@ class FreeplayState extends MusicBeatState
 	{
 		FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
 
-		/*difficultyCount_primary = haxe.Json.parse(Assets.getText(Paths.json('${songs[curSelected].songName.toLowerCase()}/songData')));
-		difficultyCount = difficultyCount_primary.difficultyCount - 1;*/
-
 		// error message
 		if (difficultyCount < 1 || difficultyCount > 9)
 		{
-			/*if (difficultyCount < 1)
-			{
-				trace("diff count less than 1 lol! starting error window...");
-				Application.current.window.alert("Value of difficulty count is 1 or less, try putting a value between 1 and 10.", "DIFFICULTY SYSTEM ERROR");
-			}
-			else if (difficultyCount > 9)
-			{
-				trace("diff count more than 10 lol! starting error window...");
-				Application.current.window.alert("Value of difficulty count is 10 or more, try putting a value between 1 and 10.", "DIFFICULTY SYSTEM ERROR");
-			}*/
-
 			trace
 			(
 				"diff count is "
@@ -532,7 +513,8 @@ class FreeplayState extends MusicBeatState
 		if (curSelected >= songs.length)
 			curSelected = 0;
 
-		difficultyCount_primary = haxe.Json.parse(Assets.getText(Paths.json('${songs[curSelected].songName.toLowerCase()}/songData')));
+		//difficultyCount_primary = haxe.Json.parse(Assets.getText(Paths.json('${songs[curSelected].songName.toLowerCase()}/songData')));
+		difficultyCount_primary = CoolUtil.parseSongJSON('${songs[curSelected].songName.toLowerCase()}/songData');
 		difficultyCount = difficultyCount_primary.difficultyCount - 1;
 
 		difficultyName_primary = CoolUtil.coolTextFile(Paths.txt('data/${songs[curSelected].songName.toLowerCase()}/diffNames'));
