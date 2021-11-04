@@ -2899,7 +2899,7 @@ class PlayState extends MusicBeatState
 				#end
 			}
 
-			if (isStoryMode)
+			/*if (isStoryMode)
 			{
 				campaignScore += songScore;
 				campaignMisses += songMisses;
@@ -2974,8 +2974,8 @@ class PlayState extends MusicBeatState
 					}
 				}
 			}
-			else
-			{
+			else*/
+			//{
 				trace('WENT BACK TO FREEPLAY??');
 				cancelFadeTween();
 				CustomFadeTransition.nextCamera = camOther;
@@ -2987,7 +2987,7 @@ class PlayState extends MusicBeatState
 				usedPractice = false;
 				changedDifficulty = false;
 				cpuControlled = false;
-			}
+			//}
 			transitioning = true;
 		}
 	}

@@ -115,10 +115,10 @@ class TitleState extends MusicBeatState
 
 		Highscore.load();
 
-		if (FlxG.save.data.weekCompleted != null)
+		/*if (FlxG.save.data.weekCompleted != null)
 		{
 			StoryMenuState.weekCompleted = FlxG.save.data.weekCompleted;
-		}
+		}*/
 
 		FlxG.mouse.visible = false;
 		#if FREEPLAY

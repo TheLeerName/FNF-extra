@@ -1,3 +1,4 @@
+/*
 package;
 
 #if desktop
@@ -403,3 +404,4 @@ class StoryMenuState extends MusicBeatState
 		#end
 	}
 }
+*/
