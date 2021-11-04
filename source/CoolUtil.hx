@@ -1,53 +1,48 @@
 package;
 
-import lime.utils.Assets;
-import haxe.Json;
-import haxe.format.JsonParser;
+import flixel.FlxG;
+import openfl.utils.Assets;
+import lime.utils.Assets as LimeAssets;
+import lime.utils.AssetLibrary;
+import lime.utils.AssetManifest;
+#if sys
+import sys.io.File;
+import sys.FileSystem;
+#else
+import openfl.utils.Assets;
+#end
 
 using StringTools;
 
-typedef SongData =
-{
-	var offset:Float;
-	var difficultyCount:Int;
-	var difficultyNames:Array<String>;
-}
-
 class CoolUtil
 {
-	public static var difficultyArray:Array<String> = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
+	// [Difficulty name, Chart file suffix]
+	public static var difficultyStuff:Array<Dynamic> = [
+		['Easy', '-easy'],
+		['Normal', ''],
+		['Hard', '-hard']
+	];
 
-	public static function difficultyFromInt(difficulty:Int):String
+	public static function difficultyString():String
 	{
-		return difficultyArray[difficulty];
+		return difficultyStuff[PlayState.storyDifficulty][0].toUpperCase();
 	}
 
-	/*inline static public function parseSongJSON(key:String)
-	{
-		return haxe.Json.parse(Assets.getText(Paths.json(key)));
-	}*/
-
-	inline static public function parseOffset(key:String):Float
-	{
-		//var man = haxe.Json.parse(Assets.getText(Paths.json('${key}/songData')));
-		return haxe.Json.parse(Assets.getText(Paths.json('${key}/songData'))).offset;
-	}
-
-	inline static public function parseDiffCount(key:String):Int
-	{
-		var man = haxe.Json.parse(Assets.getText(Paths.json('${key}/songData')));
-		return man.difficultyCount - 1; // fLoAt ShOuLd Be InT why????
-	}
-
-	inline static public function parseDiffNames(key:String):String // use only in FreeplayState!
-	{
-		//var man = haxe.Json.parse(Assets.getText(Paths.json('${key}/songData')));
-		return haxe.Json.parse(Assets.getText(Paths.json('${key}/songData'))).difficultyNames[FreeplayState.curDifficulty];
+	public static function boundTo(value:Float, min:Float, max:Float):Float {
+		var newValue:Float = value;
+		if(newValue < min) newValue = min;
+		else if(newValue > max) newValue = max;
+		return newValue;
 	}
 
 	public static function coolTextFile(path:String):Array<String>
 	{
-		var daList:Array<String> = Assets.getText(path).trim().split('\n');
+		var daList:Array<String> = [];
+		#if sys
+		if(FileSystem.exists(path)) daList = File.getContent(path).trim().split('\n');
+		#else
+		if(Assets.exists(path)) daList = Assets.getText(path).trim().split('\n');
+		#end
 
 		for (i in 0...daList.length)
 		{
@@ -56,18 +51,6 @@ class CoolUtil
 
 		return daList;
 	}
-	
-	public static function coolStringFile(path:String):Array<String>
-		{
-			var daList:Array<String> = path.trim().split('\n');
-	
-			for (i in 0...daList.length)
-			{
-				daList[i] = daList[i].trim();
-			}
-	
-			return daList;
-		}
 
 	public static function numberArray(max:Int, ?min = 0):Array<Int>
 	{
@@ -77,5 +60,20 @@ class CoolUtil
 			dumbArray.push(i);
 		}
 		return dumbArray;
+	}
+
+	//uhhhh does this even work at all? i'm starting to doubt
+	public static function precacheSound(sound:String, ?library:String = null):Void {
+		if(!Assets.cache.hasSound(Paths.sound(sound, library))) {
+			FlxG.sound.cache(Paths.sound(sound, library));
+		}
+	}
+
+	public static function browserLoad(site:String) {
+		#if linux
+		Sys.command('/usr/bin/xdg-open', [site]);
+		#else
+		FlxG.openURL(site);
+		#end
 	}
 }
