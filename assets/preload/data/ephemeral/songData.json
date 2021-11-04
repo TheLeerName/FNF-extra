@@ -1,3 +1,10 @@
 {
-	"difficultyCount": 4
+	"offset": 0,
+	"difficultyCount": 4,
+	"difficultyNames": [
+		"easy",
+		"normal",
+		"hard",
+		"insane"
+	]
 }

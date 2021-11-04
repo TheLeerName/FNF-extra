@@ -25,11 +25,6 @@ import Discord.DiscordClient;
 
 using StringTools;
 
-typedef SongData =
-{
-	var difficultyCount:Int;
-}
-
 class FreeplayState extends MusicBeatState
 {
 	public static var songs:Array<SongMetadata> = [];
@@ -37,7 +32,6 @@ class FreeplayState extends MusicBeatState
 	var selector:FlxText;
 	public static var curSelected:Int = 0;
 	public static var curDifficulty:Int = 0;
-	var difficultyCount_primary:SongData;
 	var difficultyName_primary:Array<String>;
 	public static var difficultyCount:Int = 3; // var reduction part 1 (without this, var = difficultyCount.difficultyCount, lol)
 	public static var difficultyName:String = "EASY";
@@ -442,10 +436,7 @@ class FreeplayState extends MusicBeatState
 
 	function changeDiff(change:Int = 0)
 	{
-		//difficultyCount_primary = haxe.Json.parse(Assets.getText(Paths.json('${songs[curSelected].songName.toLowerCase()}/songData')));
-		difficultyCount_primary = CoolUtil.parseSongJSON('${songs[curSelected].songName.toLowerCase()}/songData');
-		difficultyCount = difficultyCount_primary.difficultyCount - 1;
-
+		difficultyCount = CoolUtil.parseDiffCount(songs[curSelected].songName.toLowerCase());
 		/*if (!songs[curSelected].diffs.contains(CoolUtil.difficultyFromInt(curDifficulty + change)))
 			return;*/
 
@@ -456,8 +447,7 @@ class FreeplayState extends MusicBeatState
 		if (curDifficulty > difficultyCount)
 			curDifficulty = 0;
 
-		difficultyName_primary = CoolUtil.coolTextFile(Paths.txt('data/${songs[curSelected].songName.toLowerCase()}/diffNames'));
-		difficultyName = difficultyName_primary[curDifficulty];
+		difficultyName = CoolUtil.parseDiffNames(songs[curSelected].songName.toLowerCase());
 
 		// adjusting the highscore song name to be compatible (changeDiff)
 		var songHighscore = StringTools.replace(songs[curSelected].songName, " ", "-");
@@ -513,12 +503,8 @@ class FreeplayState extends MusicBeatState
 		if (curSelected >= songs.length)
 			curSelected = 0;
 
-		//difficultyCount_primary = haxe.Json.parse(Assets.getText(Paths.json('${songs[curSelected].songName.toLowerCase()}/songData')));
-		difficultyCount_primary = CoolUtil.parseSongJSON('${songs[curSelected].songName.toLowerCase()}/songData');
-		difficultyCount = difficultyCount_primary.difficultyCount - 1;
-
-		difficultyName_primary = CoolUtil.coolTextFile(Paths.txt('data/${songs[curSelected].songName.toLowerCase()}/diffNames'));
-		difficultyName = difficultyName_primary[curDifficulty];
+		difficultyCount = CoolUtil.parseDiffCount(songs[curSelected].songName.toLowerCase());
+		difficultyName = CoolUtil.parseDiffNames(songs[curSelected].songName.toLowerCase());
 
 		trace((curDifficulty + 1) + " | " + (difficultyCount + 1));
 		diffText.text = difficultyName.toUpperCase() + " (" + (curDifficulty + 1) + "/" + (difficultyCount + 1) + ")";
