@@ -1,5 +1,7 @@
 package;
 
+import haxe.Json;
+import haxe.format.JsonParser;
 import flixel.FlxG;
 import openfl.utils.Assets;
 import lime.utils.Assets as LimeAssets;
@@ -8,24 +10,57 @@ import lime.utils.AssetManifest;
 #if sys
 import sys.io.File;
 import sys.FileSystem;
-#else
-import openfl.utils.Assets;
 #end
 
 using StringTools;
+
+typedef SongData =
+{
+	var offset:Float;
+	var difficultyCount:Int;
+	var difficultyNames:Array<String>;
+}
 
 class CoolUtil
 {
 	// [Difficulty name, Chart file suffix]
 	public static var difficultyStuff:Array<Dynamic> = [
-		['Easy', '-easy'],
-		['Normal', ''],
-		['Hard', '-hard']
+		['1', '-1'],
+		['2', '-2'],
+		['3', '-3'],
+		['4', '-4'],
+		['5', '-5'],
+		['6', '-6'],
+		['7', '-7'],
+		['8', '-8'],
+		['9', '-9'],
+		['10', '-10']
 	];
 
-	public static function difficultyString():String
+	/*public static function difficultyString():String
 	{
 		return difficultyStuff[PlayState.storyDifficulty][0].toUpperCase();
+	}*/
+
+	/*inline static public function parseSongDataJSON(key:String) // disabled since i made better functions
+	{
+		return haxe.Json.parse(Assets.getText(Paths.json('${key}/songData')));
+	}*/
+
+	inline static public function parseOffset(key:String):Float
+	{
+		return haxe.Json.parse(lime.utils.Assets.getText(Paths.json('${key}/songData'))).offset;
+	}
+
+	inline static public function parseDiffCount(key:String):Int
+	{
+		var man = haxe.Json.parse(lime.utils.Assets.getText(Paths.json('${key}/songData')));
+		return man.difficultyCount - 1; // fLoAt ShOuLd Be InT why????
+	}
+
+	inline static public function parseDiffNames(key:String, curDifficulty:Int):String
+	{
+		return haxe.Json.parse(lime.utils.Assets.getText(Paths.json('${key}/songData'))).difficultyNames[curDifficulty].toUpperCase();
 	}
 
 	public static function boundTo(value:Float, min:Float, max:Float):Float {

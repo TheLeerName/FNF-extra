@@ -284,7 +284,7 @@ class PlayState extends MusicBeatState
 		Conductor.changeBPM(SONG.bpm);
 
 		#if desktop
-		storyDifficultyText = '' + CoolUtil.difficultyStuff[storyDifficulty][0];
+		storyDifficultyText = '' + /*CoolUtil.difficultyStuff[storyDifficulty][0]*/ FreeplayState.difficultyName;
 
 		// String that contains the mode defined here so it isn't necessary to call changePresence for each mode
 		if (isStoryMode)
@@ -1524,7 +1524,7 @@ class PlayState extends MusicBeatState
 			for (songNotes in section.sectionNotes)
 			{
 				if(songNotes[1] > -1) { //Real notes
-					var daStrumTime:Float = songNotes[0];
+					var daStrumTime:Float = songNotes[0] + CoolUtil.parseOffset(songName);
 					var daNoteData:Int = Std.int(songNotes[1] % 4);
 
 					var gottaHitNote:Bool = section.mustHitSection;

@@ -34,8 +34,12 @@ class PauseSubState extends MusicBeatSubstate
 		super();
 		menuItems = menuItemsOG;
 
-		for (i in 0...CoolUtil.difficultyStuff.length) {
+		/*for (i in 0...CoolUtil.difficultyStuff.length) {
 			var diff:String = '' + CoolUtil.difficultyStuff[i][0];
+			difficultyChoices.push(diff);
+		}*/
+		for (i in 0...(FreeplayState.difficultyCount + 1)) {
+			var diff:String = '' + CoolUtil.parseDiffNames(Paths.formatToSongPath(PlayState.SONG.song), i);
 			difficultyChoices.push(diff);
 		}
 		difficultyChoices.push('BACK');
@@ -59,7 +63,7 @@ class PauseSubState extends MusicBeatSubstate
 		add(levelInfo);
 
 		var levelDifficulty:FlxText = new FlxText(20, 15 + 32, 0, "", 32);
-		levelDifficulty.text += CoolUtil.difficultyString();
+		levelDifficulty.text += /*CoolUtil.difficultyString()*/ CoolUtil.parseDiffNames(Paths.formatToSongPath(PlayState.SONG.song), PlayState.storyDifficulty);
 		levelDifficulty.scrollFactor.set();
 		levelDifficulty.setFormat(Paths.font('vcr.ttf'), 32);
 		levelDifficulty.updateHitbox();

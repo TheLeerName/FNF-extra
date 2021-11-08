@@ -14,6 +14,7 @@ import flixel.text.FlxText;
 import flixel.util.FlxColor;
 import flixel.tweens.FlxTween;
 import lime.utils.Assets;
+import lime.app.Application;
 import flixel.system.FlxSound;
 import openfl.utils.Assets as OpenFlAssets;
 import WeekData;
@@ -26,7 +27,9 @@ class FreeplayState extends MusicBeatState
 
 	var selector:FlxText;
 	private static var curSelected:Int = 0;
-	private static var curDifficulty:Int = 1;
+	public static var curDifficulty:Int = 0;
+	public static var difficultyCount:Int = 3; // var reduction (without this, var = difficultyCount.difficultyCount, lol)
+	public static var difficultyName:String = "EASY";
 
 	var scoreBG:FlxSprite;
 	var scoreText:FlxText;
@@ -315,12 +318,16 @@ class FreeplayState extends MusicBeatState
 
 	function changeDiff(change:Int = 0)
 	{
+		difficultyCount = CoolUtil.parseDiffCount(Paths.formatToSongPath(songs[curSelected].songName));
+
 		curDifficulty += change;
 
 		if (curDifficulty < 0)
-			curDifficulty = CoolUtil.difficultyStuff.length-1;
-		if (curDifficulty >= CoolUtil.difficultyStuff.length)
+			curDifficulty = /*CoolUtil.difficultyStuff.length-1*/ difficultyCount;
+		if (curDifficulty > /*CoolUtil.difficultyStuff.length*/ difficultyCount)
 			curDifficulty = 0;
+
+		difficultyName = CoolUtil.parseDiffNames(Paths.formatToSongPath(songs[curSelected].songName), curDifficulty);
 
 		#if !switch
 		intendedScore = Highscore.getScore(songs[curSelected].songName, curDifficulty);
@@ -328,7 +335,9 @@ class FreeplayState extends MusicBeatState
 		#end
 
 		PlayState.storyDifficulty = curDifficulty;
-		diffText.text = '< ' + CoolUtil.difficultyString() + ' >';
+		//diffText.text = '< ' + CoolUtil.difficultyString() + ' >';
+		trace("Change diff: " + (curDifficulty + 1) + "/" + (difficultyCount + 1));
+		diffText.text = difficultyName + " (" + (curDifficulty + 1) + "/" + (difficultyCount + 1) + ")";
 		positionHighscore();
 	}
 
@@ -336,12 +345,43 @@ class FreeplayState extends MusicBeatState
 	{
 		FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
 
+		// error message
+		if (difficultyCount < 1 || difficultyCount > 9)
+		{
+			trace
+			(
+				"diff count is "
+				+ difficultyCount
+				+ ", its " + (difficultyCount > 9 ? "more than 10" : "less than 1")
+				+ " lol! starting error window..."
+			);
+			Application.current.window.alert
+			(
+				"Value of difficulty count is "
+				+ difficultyCount
+				+ ", its " + (difficultyCount > 9 ? "more than 10!" : "less than 1!")
+				+ " Try putting a value between 1 and 10."
+
+				, "DIFFICULTY SYSTEM ERROR"
+			);
+
+			FlxG.switchState(new MainMenuState());
+			return;
+		}
+		curDifficulty = 0;
+
 		curSelected += change;
 
 		if (curSelected < 0)
 			curSelected = songs.length - 1;
 		if (curSelected >= songs.length)
 			curSelected = 0;
+
+		difficultyCount = CoolUtil.parseDiffCount(Paths.formatToSongPath(songs[curSelected].songName));
+		difficultyName = CoolUtil.parseDiffNames(Paths.formatToSongPath(songs[curSelected].songName), curDifficulty);
+
+		trace("Update diff: " + (curDifficulty + 1) + "/" + (difficultyCount + 1));
+		diffText.text = difficultyName + " (" + (curDifficulty + 1) + "/" + (difficultyCount + 1) + ")";
 
 		var newColor:Int = songs[curSelected].color;
 		if(newColor != intendedColor) {
