@@ -385,7 +385,6 @@ class FreeplayState extends MusicBeatState
 
 		difficultyName = CoolUtil.parseDiffNames(Paths.formatToSongPath(songs[curSelected].songName), curDifficulty);
 
-		trace("Update diff: " + (curDifficulty + 1) + "/" + (difficultyCount + 1));
 		diffText.text = difficultyName + " (" + (curDifficulty + 1) + "/" + (difficultyCount + 1) + ")";
 
 		var newColor:Int = songs[curSelected].color;
