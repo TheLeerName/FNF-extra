@@ -321,7 +321,6 @@ class FreeplayState extends MusicBeatState
 		difficultyCount = CoolUtil.parseDiffCount(Paths.formatToSongPath(songs[curSelected].songName));
 
 		curDifficulty += change;
-
 		if (curDifficulty < 0)
 			curDifficulty = /*CoolUtil.difficultyStuff.length-1*/ difficultyCount;
 		if (curDifficulty > /*CoolUtil.difficultyStuff.length*/ difficultyCount)
@@ -368,16 +367,22 @@ class FreeplayState extends MusicBeatState
 			FlxG.switchState(new MainMenuState());
 			return;
 		}
-		curDifficulty = 0;
+
+		if ((curSelected + change) < 0)
+			difficultyCount = CoolUtil.parseDiffCount(Paths.formatToSongPath(songs[songs.length - 1].songName));
+		else if ((curSelected + change) >= songs.length)
+			difficultyCount = CoolUtil.parseDiffCount(Paths.formatToSongPath(songs[0].songName));
+		else
+			difficultyCount = CoolUtil.parseDiffCount(Paths.formatToSongPath(songs[curSelected + change].songName));
+		if (curDifficulty > difficultyCount)
+			curDifficulty = difficultyCount; // avoid crash due not finded song json file
 
 		curSelected += change;
-
 		if (curSelected < 0)
 			curSelected = songs.length - 1;
 		if (curSelected >= songs.length)
 			curSelected = 0;
 
-		difficultyCount = CoolUtil.parseDiffCount(Paths.formatToSongPath(songs[curSelected].songName));
 		difficultyName = CoolUtil.parseDiffNames(Paths.formatToSongPath(songs[curSelected].songName), curDifficulty);
 
 		trace("Update diff: " + (curDifficulty + 1) + "/" + (difficultyCount + 1));
