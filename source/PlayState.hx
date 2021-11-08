@@ -288,7 +288,7 @@ class PlayState extends MusicBeatState
 		Conductor.changeBPM(SONG.bpm);
 
 		#if desktop
-		storyDifficultyText = '' + /*CoolUtil.difficultyStuff[storyDifficulty][0]*/ FreeplayState.difficultyName;
+		storyDifficultyText = '' + /*CoolUtil.difficultyStuff[storyDifficulty][0]*/ CoolUtil.parseDiffNames(Paths.formatToSongPath(SONG.song), storyDifficulty);
 
 		// String that contains the mode defined here so it isn't necessary to call changePresence for each mode
 		if (isStoryMode)
