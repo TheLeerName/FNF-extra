@@ -9,8 +9,6 @@
 	 - Windows: install from the [git-scm](https://git-scm.com/downloads) website.
 	 - Linux: install the `git` package: `sudo apt install git` (ubuntu), `sudo pacman -S git` (arch), etc... (you probably already have it)
  4. Install and set up the necessary libraries:
-
-	> You can skip loading newgrounds and polymod btw, its not used anyway
 	 - `haxelib install lime 7.9.0`
 	 - `haxelib install openfl`
 	 - `haxelib install flixel`
