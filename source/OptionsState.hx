@@ -710,7 +710,8 @@ class PreferencesSubstate extends MusicBeatSubstate
 	];
 	static var noCheckbox:Array<String> = [
 		'Framerate',
-		'Note Delay'
+		'Note Delay',
+		'Lane Underlay'
 	];
 
 	static var options:Array<String> = [
