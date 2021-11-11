@@ -705,7 +705,8 @@ class PreferencesSubstate extends MusicBeatSubstate
 	private static var curSelected:Int = 0;
 	static var unselectableOptions:Array<String> = [
 		'GRAPHICS',
-		'GAMEPLAY'
+		'GAMEPLAY',
+		'EXTRA'
 	];
 	static var noCheckbox:Array<String> = [
 		'Framerate',
@@ -720,6 +721,9 @@ class PreferencesSubstate extends MusicBeatSubstate
 		#if !html5
 		'Framerate', //Apparently 120FPS isn't correctly supported on Browser? Probably it has some V-Sync shit enabled by default, idk
 		#end
+		'EXTRA',
+		'Kade Input',
+		'Lane Underlay',
 		'GAMEPLAY',
 		'Downscroll',
 		'Middlescroll',
@@ -884,6 +888,9 @@ class PreferencesSubstate extends MusicBeatSubstate
 						}
 						OptionsState.menuBG.antialiasing = ClientPrefs.globalAntialiasing;
 
+					case 'Kade Input':
+						ClientPrefs.kadeInput = !ClientPrefs.kadeInput;
+
 					case 'Note Splashes':
 						ClientPrefs.noteSplashes = !ClientPrefs.noteSplashes;
 
@@ -946,6 +953,14 @@ class PreferencesSubstate extends MusicBeatSubstate
 						ClientPrefs.noteOffset += add * mult;
 						if(ClientPrefs.noteOffset < 0) ClientPrefs.noteOffset = 0;
 						else if(ClientPrefs.noteOffset > 500) ClientPrefs.noteOffset = 500;
+					case 'Lane Underlay':
+						var mult:Int = 1;
+						if(holdTime > 1.5) { //x5 speed after 1.5 seconds holding
+							mult = 5;
+						}
+						ClientPrefs.laneUnderlay += add;
+						if(ClientPrefs.laneUnderlay < 0) ClientPrefs.laneUnderlay = 0;
+						else if(ClientPrefs.laneUnderlay > 100) ClientPrefs.laneUnderlay = 100;
 				}
 				reloadValues();
 
@@ -988,6 +1003,12 @@ class PreferencesSubstate extends MusicBeatSubstate
 				daText = "If checked, disables some background details,\ndecreases loading times and improves performance.";
 			case 'Persistent Cached Data':
 				daText = "If checked, images loaded will stay in memory\nuntil the game is closed, this increases memory usage,\nbut basically makes reloading times instant.";
+			case 'Kade Input':
+				daText = "If checked, input from Shaggy mod will be used.\nThis don't mean that will be more than 4 arrows, of course.";
+			case 'Whitty Cutscenes':
+				daText = "If checked, animated cutscenes will be showed in Freeplay.";
+			case 'Lane Underlay':
+				daText = "Changes transparency of lane underlay behind the notes.\nIf 0%, then it not showing.\nIf 100%, then will be a black square.";
 			case 'Anti-Aliasing':
 				daText = "If unchecked, disables anti-aliasing, increases performance\nat the cost of the graphics not looking as smooth.";
 			case 'Downscroll':
@@ -1054,6 +1075,8 @@ class PreferencesSubstate extends MusicBeatSubstate
 			if(checkbox != null) {
 				var daValue:Bool = false;
 				switch(options[checkboxNumber[i]]) {
+					case 'Kade Input':
+						daValue = ClientPrefs.kadeInput;
 					case 'FPS Counter':
 						daValue = ClientPrefs.showFPS;
 					case 'Low Quality':
@@ -1095,6 +1118,8 @@ class PreferencesSubstate extends MusicBeatSubstate
 						daText = '' + ClientPrefs.framerate;
 					case 'Note Delay':
 						daText = ClientPrefs.noteOffset + 'ms';
+					case 'Lane Underlay':
+						daText = '' + ClientPrefs.laneUnderlay + '%';
 				}
 				var lastTracker:FlxSprite = text.sprTracker;
 				text.sprTracker = null;

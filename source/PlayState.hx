@@ -136,6 +136,9 @@ class PlayState extends MusicBeatState
 	private static var prevCamFollowPos:FlxObject;
 	private static var resetSpriteCache:Bool = false;
 
+	public static var laneunderlay:FlxSprite;
+	public static var laneunderlayOpponent:FlxSprite;
+
 	public var strumLineNotes:FlxTypedGroup<StrumNote>;
 	public var opponentStrums:FlxTypedGroup<StrumNote>;
 	public var playerStrums:FlxTypedGroup<StrumNote>;
@@ -773,6 +776,23 @@ class PlayState extends MusicBeatState
 		if(ClientPrefs.downScroll) strumLine.y = FlxG.height - 150;
 		strumLine.scrollFactor.set();
 
+		laneunderlayOpponent = new FlxSprite(0, 0).makeGraphic(110 * 4 + 50, FlxG.height * 2);
+		laneunderlayOpponent.alpha = ClientPrefs.laneUnderlay / 100;
+		laneunderlayOpponent.color = FlxColor.BLACK;
+		laneunderlayOpponent.scrollFactor.set();
+
+		laneunderlay = new FlxSprite(0, 0).makeGraphic(110 * 4 + 50, FlxG.height * 2);
+		laneunderlay.alpha = ClientPrefs.laneUnderlay / 100;
+		laneunderlay.color = FlxColor.BLACK;
+		laneunderlay.scrollFactor.set();
+
+		if (ClientPrefs.laneUnderlay > 0)
+		{
+			if (!ClientPrefs.middleScroll)
+				add(laneunderlayOpponent);
+			add(laneunderlay);
+		}
+
 		timeTxt = new FlxText(STRUM_X + (FlxG.width / 2) - 248, 20, 400, "", 32);
 		timeTxt.setFormat(Paths.font("vcr.ttf"), 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		timeTxt.scrollFactor.set();
@@ -885,7 +905,7 @@ class PlayState extends MusicBeatState
 
 		// Add watermarks from KE, i fucking hate that PsychE does not have it lol
 
-		optionsWatermark = new FlxText(4, (ClientPrefs.ghostTapping ? "GhosTap | " : "") + "Speed " + SONG.speed);
+		optionsWatermark = new FlxText(4, (ClientPrefs.ghostTapping ? "GhosTap | " : "") + (ClientPrefs.kadeInput ? "KadeInput | " : "") + "Speed " + SONG.speed);
 		versionWatermark = new FlxText(4, "FNF Extra v" + MainMenuState.modVersion, 16);
 		songWatermark = new FlxText(4,healthBarBG.y + 50,0,SONG.song + " [" + CoolUtil.parseDiffNames(Paths.formatToSongPath(PlayState.SONG.song), PlayState.storyDifficulty) + "]", 16);
 
@@ -941,6 +961,8 @@ class PlayState extends MusicBeatState
 		iconP1.cameras = [camHUD];
 		iconP2.cameras = [camHUD];
 		scoreTxt.cameras = [camHUD];
+		laneunderlay.cameras = [camHUD];
+		laneunderlayOpponent.cameras = [camHUD];
 		botplayTxt.cameras = [camHUD];
 		timeBar.cameras = [camHUD];
 		timeBarBG.cameras = [camHUD];
@@ -1304,6 +1326,13 @@ class PlayState extends MusicBeatState
 		if(ret != FunkinLua.Function_Stop) {
 			generateStaticArrows(0);
 			generateStaticArrows(1);
+			
+			// Update lane underlay positions AFTER static arrows :)
+			laneunderlay.x = playerStrums.members[0].x - 25;
+			laneunderlayOpponent.x = opponentStrums.members[0].x - 25;
+			laneunderlay.screenCenter(Y);
+			laneunderlayOpponent.screenCenter(Y);
+
 			for (i in 0...playerStrums.length) {
 				setOnLuas('defaultPlayerStrumX' + i, playerStrums.members[i].x);
 				setOnLuas('defaultPlayerStrumY' + i, playerStrums.members[i].y);
@@ -3071,17 +3100,17 @@ class PlayState extends MusicBeatState
 
 		var daRating:String = "sick";
 
-		if (noteDiff > Conductor.safeZoneOffset * 0.75)
+		if (noteDiff > Conductor.safeZoneOffset * (ClientPrefs.kadeInput ? 0.85 : 0.75))
 		{
 			daRating = 'shit';
 			score = 50;
 		}
-		else if (noteDiff > Conductor.safeZoneOffset * 0.5)
+		else if (noteDiff > Conductor.safeZoneOffset * (ClientPrefs.kadeInput ? 0.6 : 0.5))
 		{
 			daRating = 'bad';
 			score = 100;
 		}
-		else if (noteDiff > Conductor.safeZoneOffset * 0.25)
+		else if (noteDiff > Conductor.safeZoneOffset * (ClientPrefs.kadeInput ? 0.2 : 0.25))
 		{
 			daRating = 'good';
 			score = 200;
@@ -3306,7 +3335,7 @@ class PlayState extends MusicBeatState
 
 							}
 						}
-						else if (canMiss) 
+						else if (canMiss && !ClientPrefs.kadeInput) 
 							ghostMiss(controlArray[i], i, true);
 
 						// I dunno what you need this for but here you go

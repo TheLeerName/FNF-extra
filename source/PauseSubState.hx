@@ -26,6 +26,7 @@ class PauseSubState extends MusicBeatSubstate
 	var pauseMusic:FlxSound;
 	var practiceText:FlxText;
 	var botplayText:FlxText;
+	var laneunderlayThing:FlxText;
 
 	public static var transCamera:FlxCamera;
 
@@ -108,6 +109,11 @@ class PauseSubState extends MusicBeatSubstate
 		grpMenuShit = new FlxTypedGroup<Alphabet>();
 		add(grpMenuShit);
 
+		laneunderlayThing = new FlxText(5, 18, 0, "Hello chat" + " | " + "Lane Underlay (Press Left or Right): " + ClientPrefs.laneUnderlay + "%", 12);
+		laneunderlayThing.scrollFactor.set();
+		laneunderlayThing.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		add(laneunderlayThing);
+
 		for (i in 0...menuItems.length)
 		{
 			var songText:Alphabet = new Alphabet(0, (70 * i) + 30, menuItems[i], true, false);
@@ -121,6 +127,7 @@ class PauseSubState extends MusicBeatSubstate
 		cameras = [FlxG.cameras.list[FlxG.cameras.list.length - 1]];
 	}
 
+	var holdTime:Float = 0;
 	override function update(elapsed:Float)
 	{
 		if (pauseMusic.volume < 0.5)
@@ -128,20 +135,32 @@ class PauseSubState extends MusicBeatSubstate
 
 		super.update(elapsed);
 
-		var upP = controls.UI_UP_P;
-		var downP = controls.UI_DOWN_P;
-		var accepted = controls.ACCEPT;
-
-		if (upP)
+		if (controls.UI_LEFT || controls.UI_RIGHT)
 		{
+			var add:Int = controls.UI_LEFT ? -1 : 1;
+			if(holdTime > 0.5 || controls.UI_LEFT_P || controls.UI_RIGHT_P)
+			{
+				var mult:Int = 1;
+				if(holdTime > 1.5) mult = 5; // x5 speed after 1.5 seconds holding
+
+				ClientPrefs.laneUnderlay += add * mult;
+
+				if (ClientPrefs.laneUnderlay < 0) ClientPrefs.laneUnderlay = 0;
+				else if (ClientPrefs.laneUnderlay > 100) ClientPrefs.laneUnderlay = 100;
+				PlayState.laneunderlayOpponent.alpha = ClientPrefs.laneUnderlay / 100;
+				PlayState.laneunderlay.alpha = ClientPrefs.laneUnderlay / 100;
+
+				laneunderlayThing.text = "Hello chat" + " | " + "Lane Underlay (Press Left or Right): " + ClientPrefs.laneUnderlay + "%"; // update text
+			}
+			holdTime += elapsed;
+		} else holdTime = 0;
+
+		if (controls.UI_UP_P)
 			changeSelection(-1);
-		}
-		if (downP)
-		{
+		if (controls.UI_DOWN_P)
 			changeSelection(1);
-		}
 
-		if (accepted)
+		if (controls.ACCEPT)
 		{
 			var daSelected:String = menuItems[curSelected];
 			for (i in 0...difficultyChoices.length-1) {
