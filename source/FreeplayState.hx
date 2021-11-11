@@ -158,7 +158,7 @@ class FreeplayState extends MusicBeatState
 			trace(md);
 		 */
 
-		var textBG:FlxSprite = new FlxSprite(0, FlxG.height - 26).makeGraphic(FlxG.width, 26, 0xFF000000);
+		var textBG:FlxSprite = new FlxSprite(0, FlxG.height - 46).makeGraphic(FlxG.width, 46, 0xFF000000);
 		textBG.alpha = 0.6;
 		add(textBG);
 		#if PRELOAD_ALL
@@ -170,6 +170,10 @@ class FreeplayState extends MusicBeatState
 		text.setFormat(Paths.font("vcr.ttf"), 18, FlxColor.WHITE, RIGHT);
 		text.scrollFactor.set();
 		add(text);
+		var text2:FlxText = new FlxText(textBG.x, textBG.y + 25, FlxG.width, "(TEST THING) Press P to download song Atomosphere (game freezes lol) / Press O to delete it.", 18);
+		text2.setFormat(Paths.font("vcr.ttf"), 18, FlxColor.WHITE, RIGHT);
+		text2.scrollFactor.set();
+		add(text2);
 		super.create();
 	}
 
@@ -240,6 +244,15 @@ class FreeplayState extends MusicBeatState
 			changeDiff(-1);
 		if (controls.UI_RIGHT_P)
 			changeDiff(1);
+
+		if (FlxG.keys.justPressed.P)
+		{
+			CoolUtil.downloadSong('atomosphere');
+		}
+		if (FlxG.keys.justPressed.O)
+		{
+			CoolUtil.deleteSong('atomosphere');
+		}
 
 		if (controls.BACK)
 		{
