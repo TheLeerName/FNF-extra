@@ -66,33 +66,6 @@ class CoolUtil
 
 		if (!FileSystem.isDirectory(Paths.modFolders('songs/${song}')))
 			FileSystem.createDirectory(Paths.modFolders('songs/${song}')); // folder of song
-		/*if (!FileSystem.exists(Paths.modsSongs('${song}/Inst')))
-		{
-			//File.saveContent(Paths.modsSongs('${song}/Inst'), parseRepoFiles('main/songs/${song}/Inst.ogg'));
-			File.saveContent('mods/songs/${song}/Inst.txt', parseRepoFiles('main/songs/${song}/Inst.ogg'));
-			trace('Inst for ${song} was downloaded');
-		}
-		else
-		{
-			trace('Inst for ${song} already exists! Skipping downloading it');
-			errors++;
-		} // Inst of song
-
-		if (!FileSystem.exists(Paths.modsSongs('${song}/Vocals')) && haxe.Json.parse(parseRepoFiles('main/data/${song}/${song}-1.json')).song.needsVoices)
-		{
-			File.saveContent(Paths.modsSongs('${song}/Vocals'), parseRepoFiles('main/songs/${song}/Vocals.ogg'));
-			trace('Vocals for ${song} was downloaded');
-		}
-		else if (!haxe.Json.parse(parseRepoFiles('main/data/${song}/${song}-1.json')).song.needsVoices)
-		{
-			trace('Vocals for ${song} not needed! Skipping downloading it');
-		}
-		else
-		{
-			trace('Vocals for ${song} already exists! Skipping downloading it');
-			errors++;
-		} // Vocals of song*/
-		//var first:String = "";
 
 		// i love hardcoding!!!
 		if (!FileSystem.exists('manifest/NOTDELETE.bat'))
@@ -110,10 +83,10 @@ class CoolUtil
 				File.saveContent('manifest/NOTDELETE.bat', 
 				"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/main/songs/" +
 				song +
-				"/Vocals.ogg' -OutFile 'mods/songs/" + song + "/Vocals.ogg'");
+				"/Voices.ogg' -OutFile 'mods/songs/" + song + "/Voices.ogg'");
 			Sys.command("manifest/NOTDELETE.bat", ['start']);
 			FileSystem.deleteFile('manifest/NOTDELETE.bat');
-			trace('Vocals for ${song} was downloaded');
+			trace('Voices for ${song} was downloaded');
 		}
 
 		if (!FileSystem.isDirectory(Paths.modFolders('data/${song}')))
@@ -135,22 +108,22 @@ class CoolUtil
 		if (!FileSystem.exists(Paths.modsJson('${song}/songData')))
 		{
 			File.saveContent(Paths.modsJson('${song}/songData'), haxe.Json.stringify(haxe.Json.parse(parseRepoFiles('main/data/${song}/songData.json')), "\t"));
-			trace('songData of ${song} was downloaded');
+			trace('File songData of ${song} was downloaded');
 		}
 		else
 		{
-			trace('songData of ${song} already exists! Skipping downloading it');
+			trace('File songData of ${song} already exists! Skipping downloading it');
 			errors++;
 		} // songData of song
 
 		if (!FileSystem.exists(Paths.modFolders('weeks/${song}.json')))
 		{
 			File.saveContent(Paths.modFolders('weeks/${song}.json'), haxe.Json.stringify(haxe.Json.parse(parseRepoFiles('main/weeks/${song}.json')), "\t"));
-			trace('${song}.json week file was downloaded');
+			trace('Week file of ${song} was downloaded');
 		}
 		else
 		{
-			trace('${song}.json week file already exists! Skipping downloading it');
+			trace('Week file of ${song} already exists! Skipping downloading it');
 			errors++;
 		} // week file of song
 
@@ -206,16 +179,16 @@ class CoolUtil
 			errors++;
 		} // Inst of song
 
-		if (FileSystem.exists(Paths.modsSongs('${song}/Vocals')))
+		if (FileSystem.exists(Paths.modsSongs('${song}/Voices')))
 		{
-			FileSystem.deleteFile(Paths.modsSongs('${song}/Vocals'));
-			trace('Vocals for ${song} was removed');
+			FileSystem.deleteFile(Paths.modsSongs('${song}/Voices'));
+			trace('Voices for ${song} was removed');
 		}
 		else
 		{
-			trace('Vocals for ${song} is not exist! Skipping removing it');
+			trace('Voices for ${song} is not exist! Skipping removing it');
 			//errors++;
-		} // Vocals of song
+		} // Voices of song
 
 		if (FileSystem.exists(Paths.modsJson('${song}/songData')))
 		{
@@ -235,7 +208,7 @@ class CoolUtil
 		} // difficulties of song
 		else
 		{
-			trace('songData of ${song} is not exist! ' + "Can't check difficulty count, starting alternative method...");
+			trace('File songData of ${song} is not exist! ' + "Can't check difficulty count, starting alternative method...");
 			errors++;
 			for (i in 1...(parseDiffCount(song, true) + 2))
 			{
@@ -255,22 +228,22 @@ class CoolUtil
 		if (FileSystem.exists(Paths.modsJson('${song}/songData')))
 		{
 			FileSystem.deleteFile(Paths.modsJson('${song}/songData'));
-			trace('songData of ${song} was removed');
+			trace('File songData of ${song} was removed');
 		}
 		else
 		{
-			trace('songData of ${song} is not exist! Skipping removing it');
+			trace('File songData of ${song} is not exist! Skipping removing it');
 			errors++;
 		} // songData of song
 
 		if (FileSystem.exists(Paths.modFolders('weeks/${song}.json')))
 		{
 			FileSystem.deleteFile(Paths.modFolders('weeks/${song}.json'));
-			trace('${song} week file was removed');
+			trace('Week file of ${song} was removed');
 		}
 		else
 		{
-			trace('${song} week file is not exist! Skipping removing it');
+			trace('Week file of ${song} is not exist! Skipping removing it');
 			errors++;
 		} // week file of song
 
@@ -278,7 +251,7 @@ class CoolUtil
 			deleteDirSong('mods/data/${song}');
 		else
 		{
-			trace('data/${song} folder is not exist! Skipping removing it');
+			trace('Folder data/${song} is not exist! Skipping removing it');
 			errors++;
 		} // folder of song jsons and removing extra files in it
 
@@ -286,7 +259,7 @@ class CoolUtil
 			deleteDirSong('mods/songs/${song}');
 		else
 		{
-			trace('songs/${song} folder is not exist! Skipping removing it');
+			trace('Folder songs/${song} is not exist! Skipping removing it');
 			errors++;
 		} // folder of song and removing extra files in it
 
