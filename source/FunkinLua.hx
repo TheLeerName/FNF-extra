@@ -28,6 +28,10 @@ import Type.ValueType;
 import Controls;
 import DialogueBoxPsych;
 
+#if desktop
+import Discord;
+#end
+
 using StringTools;
 
 class FunkinLua {
@@ -114,6 +118,7 @@ class FunkinLua {
 
 		set('rating', 0);
 		set('ratingName', '');
+		set('version', MainMenuState.psychEngineVersion.trim());
 		
 		set('inGameOver', false);
 		set('mustHitSection', false);
@@ -1137,6 +1142,9 @@ class FunkinLua {
 			FlxG.sound.music.fadeOut(duration, toValue);
 			luaTrace('musicFadeOut is deprecated! Use soundFadeOut instead.', false, true);
 		});
+		
+		Discord.DiscordClient.addLuaCallbacks(lua);
+
 		call('onCreate', []);
 		#end
 	}
