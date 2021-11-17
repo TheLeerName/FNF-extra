@@ -24,7 +24,7 @@
       }
 
 1. If you want change **offset** of song, put the value you need instead of `0`
-2. If you want change **difficulty count**, put the value **from 1 to 10** instead of `3`
+2. If you want change **difficulty count**, put the value **more than 1** instead of `3`
 3. If you want change **difficulty names**, put the value you need instead of `"easy", "normal", "hard"`
 ### Be sure to write a name for each difficulty!
 - Add song json files for 1 difficulty `song_name-1.json`, for 2 difficulty `song_name-2.json` and etc
