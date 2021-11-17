@@ -7,6 +7,7 @@ import openfl.utils.Assets;
 import lime.utils.Assets as LimeAssets;
 import lime.utils.AssetLibrary;
 import lime.utils.AssetManifest;
+import flixel.util.FlxStringUtil;
 #if MODS_ALLOWED
 import sys.io.File;
 import sys.FileSystem;
@@ -255,6 +256,11 @@ class CoolUtil
 			return 'NORMAL';
 			#end
 		}
+	}
+
+	inline public static function format0dot00(value:Float):Float
+	{
+		return Std.parseFloat(FlxStringUtil.formatMoney(value));
 	}
 
 	public static function boundTo(value:Float, min:Float, max:Float):Float {

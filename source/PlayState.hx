@@ -918,7 +918,7 @@ class PlayState extends MusicBeatState
 
 		// Add watermarks from KE, i fucking hate that PsychE does not have it lol
 
-		optionsWatermark = new FlxText(4, (ClientPrefs.ghostTapping ? "GhosTap | " : "") + (ClientPrefs.kadeInput ? "KadeInput | " : "") + "Speed " + SONG.speed);
+		optionsWatermark = new FlxText(4, (ClientPrefs.ghostTapping ? "GhosTap | " : "") + (ClientPrefs.kadeInput ? "KadeInput | " : "") + (CoolUtil.format0dot00(ClientPrefs.speed) == 1 ? "Speed " + SONG.speed : "Speed " + CoolUtil.format0dot00(ClientPrefs.speed) + " (" + SONG.speed + ")"));
 		versionWatermark = new FlxText(4, "FNF Extra v" + MainMenuState.modVersion, 16);
 		songWatermark = new FlxText(4,healthBarBG.y + 50,0,SONG.song + " [" + CoolUtil.parseDiffNames(Paths.formatToSongPath(PlayState.SONG.song), PlayState.storyDifficulty) + "]", 16);
 
@@ -1532,10 +1532,10 @@ class PlayState extends MusicBeatState
 	private function generateSong(dataPath:String):Void
 	{
 		// FlxG.log.add(ChartParser.parse());
-		songSpeed = SONG.speed;
-		if(ClientPrefs.scroll) {
-			songSpeed = ClientPrefs.speed;
-		}
+		if (CoolUtil.format0dot00(ClientPrefs.speed) == 1)
+			songSpeed = SONG.speed;
+		else
+			songSpeed = CoolUtil.format0dot00(ClientPrefs.speed);
 
 		var songData = SONG;
 		Conductor.changeBPM(songData.bpm);

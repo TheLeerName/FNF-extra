@@ -11,7 +11,6 @@ import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.math.FlxMath;
 import flixel.text.FlxText;
 import flixel.util.FlxColor;
-import flixel.util.FlxStringUtil;
 import lime.utils.Assets;
 import flixel.FlxSubState;
 import flash.text.TextField;
@@ -735,7 +734,6 @@ class PreferencesSubstate extends MusicBeatSubstate
 		'Note Delay',
 		'Note Splashes',
 		'Note Size',
-		'Custom Scroll Speed',
 		'Scroll Speed',
 		'Hide HUD',
 		'Hide Song Length',
@@ -925,9 +923,6 @@ class PreferencesSubstate extends MusicBeatSubstate
 					case 'Hide HUD':
 						ClientPrefs.hideHud = !ClientPrefs.hideHud;
 
-					case 'Custom Scroll Speed':
-						ClientPrefs.scroll = !ClientPrefs.scroll;
-
 					case 'Persistent Cached Data':
 						ClientPrefs.imagesPersist = !ClientPrefs.imagesPersist;
 						FlxGraphic.defaultPersist = ClientPrefs.imagesPersist;
@@ -956,14 +951,14 @@ class PreferencesSubstate extends MusicBeatSubstate
 							FlxG.updateFramerate = ClientPrefs.framerate;
 						}
 					case 'Scroll Speed':
-						ClientPrefs.speed += add/10;
-						if(ClientPrefs.speed < 0.5) ClientPrefs.speed = 0.5;
-						else if(ClientPrefs.speed > 4) ClientPrefs.speed = 4;
+						ClientPrefs.speed += add/100;
+						if(ClientPrefs.speed < 0.01) ClientPrefs.speed = 0.01;
+						else if(ClientPrefs.speed > 5) ClientPrefs.speed = 5;
 
 					case 'Note Size':
-						ClientPrefs.noteSize += add/20;
-						if(ClientPrefs.noteSize < 0.5) ClientPrefs.noteSize = 0.5;
-						else if(ClientPrefs.noteSize > 1.5) ClientPrefs.noteSize = 1.5;
+						ClientPrefs.noteSize += add;
+						if(ClientPrefs.noteSize < 31) ClientPrefs.noteSize = 31;
+						else if(ClientPrefs.noteSize > 150) ClientPrefs.noteSize = 150;
 
 					case 'Note Delay':
 						var mult:Int = 1;
@@ -973,6 +968,7 @@ class PreferencesSubstate extends MusicBeatSubstate
 						ClientPrefs.noteOffset += add * mult;
 						if(ClientPrefs.noteOffset < 0) ClientPrefs.noteOffset = 0;
 						else if(ClientPrefs.noteOffset > 500) ClientPrefs.noteOffset = 500;
+
 					case 'Lane Underlay':
 						var mult:Int = 1;
 						if(holdTime > 1.5) { //x5 speed after 1.5 seconds holding
@@ -1028,7 +1024,7 @@ class PreferencesSubstate extends MusicBeatSubstate
 			case 'Whitty Cutscenes':
 				daText = "If checked, animated cutscenes will be showed in Freeplay.";
 			case 'Lane Underlay':
-				daText = "Changes transparency of lane underlay behind the notes.\nIf 0%, then it not showing.\nIf 100%, then will be a black square.";
+				daText = "Changes transparency of lane underlay behind the notes.";
 			case 'Anti-Aliasing':
 				daText = "If unchecked, disables anti-aliasing, increases performance\nat the cost of the graphics not looking as smooth.";
 			case 'Downscroll':
@@ -1041,12 +1037,10 @@ class PreferencesSubstate extends MusicBeatSubstate
 				daText = "If unchecked, your mom won't be angry at you.";
 			case 'Violence':
 				daText = "If unchecked, you won't get disgusted as frequently.";
-			case 'Custom Scroll Speed'://for Joseph -bbpanzu
-				daText = "Leave unchecked for chart-dependent scroll speed";
-			case 'Scroll Speed':
-				daText = "Arrow speed (Custom must be enabled)";
+			case 'Scroll Speed'://for Joseph -bbpanzu
+				daText = "Changes arrow speed, 1 = chart-dependent.";
 			case 'Note Size':
-				daText = "Size of notes and stuff";
+				daText = "Changes size of notes.";
 			case 'Note Splashes':
 				daText = "If unchecked, hitting \"Sick!\" notes won't show particles.";
 			case 'Flashing Lights':
@@ -1121,8 +1115,6 @@ class PreferencesSubstate extends MusicBeatSubstate
 						daValue = ClientPrefs.ghostTapping;
 					case 'Swearing':
 						daValue = ClientPrefs.cursing;
-					case 'Custom Scroll Speed':
-						daValue = ClientPrefs.scroll;
 					case 'Violence':
 						daValue = ClientPrefs.violence;
 					case 'Camera Zooms':
@@ -1147,10 +1139,9 @@ class PreferencesSubstate extends MusicBeatSubstate
 					case 'Note Delay':
 						daText = ClientPrefs.noteOffset + 'ms';
 					case 'Note Size':
-						daText = FlxStringUtil.formatMoney(ClientPrefs.noteSize) + 'x';
-						if (ClientPrefs.noteSize == 0.7) daText += "(Default)";
+						daText = ClientPrefs.noteSize + '%';
 					case 'Scroll Speed':
-						daText = ClientPrefs.speed+"";
+						daText = '' + CoolUtil.format0dot00(ClientPrefs.speed);
 					case 'Lane Underlay':
 						daText = '' + ClientPrefs.laneUnderlay + '%';
 				}

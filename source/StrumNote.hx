@@ -37,7 +37,7 @@ class StrumNote extends FlxSprite
 			animation.add('purple', [4]);
 
 			antialiasing = false;
-			setGraphicSize(Std.int(width * ClientPrefs.noteSize * PlayState.daPixelZoom));
+			setGraphicSize(Std.int(width * ((ClientPrefs.noteSize - 30) / 100) * PlayState.daPixelZoom));
 
 			switch (Math.abs(leData))
 			{
@@ -68,7 +68,7 @@ class StrumNote extends FlxSprite
 			animation.addByPrefix('red', 'arrowRIGHT');
 
 			antialiasing = ClientPrefs.globalAntialiasing;
-			setGraphicSize(Std.int(width * ClientPrefs.noteSize));
+			setGraphicSize(Std.int(width * ((ClientPrefs.noteSize - 30) / 100)));
 
 			switch (Math.abs(leData))
 			{
@@ -140,8 +140,8 @@ class StrumNote extends FlxSprite
 
 	function updateConfirmOffset() { //TO DO: Find a calc to make the offset work fine on other angles
 		//centerOffsets();
-		//offset.x -= 13*(ClientPrefs.noteSize/0.7);
-		//offset.y -= 13*(ClientPrefs.noteSize/0.7);
+		//offset.x -= 13*((ClientPrefs.noteSize/100)/0.4);
+		//offset.y -= 13*((ClientPrefs.noteSize/100)/0.4);
 
 		//like wtf was this ^^^
 
