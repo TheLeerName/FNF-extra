@@ -16,6 +16,7 @@ import flixel.math.FlxMath;
 import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxColor;
+import flixel.util.FlxTimer;
 import lime.app.Application;
 import Achievements;
 import editors.MasterEditorMenu;
@@ -187,7 +188,7 @@ class MainMenuState extends MusicBeatState
 			if (controls.BACK)
 			{
 				if (funny.alpha == 1)
-					FlxTween.tween(funny, {alpha: 0}, 1, {ease: FlxEase.quartInOut,
+					FlxTween.tween(funny, {alpha: 0}, 0.8, {ease: FlxEase.quartInOut,
 						onStart: function(twn:FlxTween)
 							{
 								FlxG.sound.play(Paths.sound('cancelMenu'));
@@ -206,13 +207,15 @@ class MainMenuState extends MusicBeatState
 				{
 					//CoolUtil.browserLoad('https://github.com/TheLeerName/FNF-Extra');
 					if (funny.alpha != 1)
-						FlxTween.tween(funny, {alpha: 1}, 1, {ease: FlxEase.quartInOut,
-							onStart: function(twn:FlxTween)
-								{
-									FlxG.sound.play(Paths.sound('dramaticBoom', 'shared'));
-								}});
+					{
+						FlxTween.tween(funny, {alpha: 1}, 0.8, {ease: FlxEase.quartInOut});
+						new FlxTimer().start(0.4, function(tmr:FlxTimer)
+							{
+								FlxG.sound.play(Paths.sound('dramaticBoom', 'shared'));
+							});
+					}
 					else
-						FlxTween.tween(funny, {alpha: 0}, 1, {ease: FlxEase.quartInOut,
+						FlxTween.tween(funny, {alpha: 0}, 0.8, {ease: FlxEase.quartInOut,
 							onStart: function(twn:FlxTween)
 								{
 									FlxG.sound.play(Paths.sound('cancelMenu'));
