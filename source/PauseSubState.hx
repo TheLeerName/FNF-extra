@@ -27,6 +27,7 @@ class PauseSubState extends MusicBeatSubstate
 	var practiceText:FlxText;
 	var botplayText:FlxText;
 	var laneunderlayThing:FlxText;
+	var scrollspeedThing:FlxText;
 
 	public static var transCamera:FlxCamera;
 
@@ -109,10 +110,20 @@ class PauseSubState extends MusicBeatSubstate
 		grpMenuShit = new FlxTypedGroup<Alphabet>();
 		add(grpMenuShit);
 
-		laneunderlayThing = new FlxText(5, 18, 0, "Hello chat" + " | " + "Lane Underlay (Press Left or Right): " + ClientPrefs.laneUnderlay + "%", 12);
+		var funnyThing:FlxText = new FlxText(5, 18, 0, "Hello chat", 12);
+		funnyThing.scrollFactor.set();
+		funnyThing.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		add(funnyThing);
+
+		laneunderlayThing = new FlxText(5, 38, 0, "Lane Underlay (Press Shift and Left or Right): " + ClientPrefs.laneUnderlay + "%", 12);
 		laneunderlayThing.scrollFactor.set();
 		laneunderlayThing.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		add(laneunderlayThing);
+
+		scrollspeedThing = new FlxText(5, 58, 0, "Scroll Speed (Press Ctrl and Left or Right): " + CoolUtil.format0dot00(ClientPrefs.speed), 12);
+		scrollspeedThing.scrollFactor.set();
+		scrollspeedThing.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		add(scrollspeedThing);
 
 		for (i in 0...menuItems.length)
 		{
@@ -143,14 +154,29 @@ class PauseSubState extends MusicBeatSubstate
 				var mult:Int = 1;
 				if(holdTime > 1.5) mult = 5; // x5 speed after 1.5 seconds holding
 
-				ClientPrefs.laneUnderlay += add * mult;
+				if (FlxG.keys.pressed.SHIFT)
+				{
+					ClientPrefs.laneUnderlay += add * mult;
 
-				if (ClientPrefs.laneUnderlay < 0) ClientPrefs.laneUnderlay = 0;
-				else if (ClientPrefs.laneUnderlay > 100) ClientPrefs.laneUnderlay = 100;
-				PlayState.laneunderlayOpponent.alpha = ClientPrefs.laneUnderlay / 100;
-				PlayState.laneunderlay.alpha = ClientPrefs.laneUnderlay / 100;
+					if (ClientPrefs.laneUnderlay < 0) ClientPrefs.laneUnderlay = 0;
+					else if (ClientPrefs.laneUnderlay > 100) ClientPrefs.laneUnderlay = 100;
+					PlayState.laneunderlayOpponent.alpha = ClientPrefs.laneUnderlay / 100;
+					PlayState.laneunderlay.alpha = ClientPrefs.laneUnderlay / 100;
+					laneunderlayThing.text = "Lane Underlay (Press Shift and Left or Right): " + ClientPrefs.laneUnderlay + "%";
+				}
+				else if (FlxG.keys.pressed.CONTROL)
+				{
+					ClientPrefs.speed += add/100;
 
-				laneunderlayThing.text = "Hello chat" + " | " + "Lane Underlay (Press Left or Right): " + ClientPrefs.laneUnderlay + "%"; // update text
+					if(ClientPrefs.speed < 0.01) ClientPrefs.speed = 0.01;
+					else if(ClientPrefs.speed > 5) ClientPrefs.speed = 5;
+					PlayState.optionsWatermark.text = (ClientPrefs.ghostTapping ? "GhosTap | " : "") + (ClientPrefs.kadeInput ? "KadeInput | " : "") + (CoolUtil.format0dot00(ClientPrefs.speed) == 1 ? "Speed " + PlayState.SONG.speed : "Speed " + CoolUtil.format0dot00(ClientPrefs.speed) + " (" + PlayState.SONG.speed + ")");
+					if (CoolUtil.format0dot00(ClientPrefs.speed) == 1)
+						PlayState.songSpeed = PlayState.SONG.speed;
+					else
+						PlayState.songSpeed = CoolUtil.format0dot00(ClientPrefs.speed);
+					scrollspeedThing.text = "Scroll Speed (Press Ctrl and Left or Right): " + CoolUtil.format0dot00(ClientPrefs.speed);
+				}
 			}
 			holdTime += elapsed;
 		} else holdTime = 0;

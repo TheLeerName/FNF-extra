@@ -234,7 +234,7 @@ class PlayState extends MusicBeatState
 	public var inCutscene:Bool = false;
 	var songLength:Float = 0;
 
-	var optionsWatermark:FlxText;
+	public static var optionsWatermark:FlxText;
 	var versionWatermark:FlxText;
 	var songWatermark:FlxText;
 
