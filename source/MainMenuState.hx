@@ -32,8 +32,9 @@ class MainMenuState extends MusicBeatState
 	private var camGame:FlxCamera;
 	private var camAchievement:FlxCamera;
 	
-	var optionShit:Array<String> = [/*'story_mode', */'freeplay', #if ACHIEVEMENTS_ALLOWED 'awards', #end 'credits', #if !switch 'donate', #end 'options'];
+	var optionShit:Array<String> = [/*'story_mode', */'freeplay', #if ACHIEVEMENTS_ALLOWED 'awards', #end /*'credits',*/ 'options', 'donate'];
 
+	var funny:FlxSprite;
 	var magenta:FlxSprite;
 	var camFollow:FlxObject;
 	var camFollowPos:FlxObject;
@@ -120,6 +121,14 @@ class MainMenuState extends MusicBeatState
 		versionShit.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		add(versionShit);
 
+		funny = new FlxSprite().loadGraphic(Paths.image('wheresmycandy', 'shared'));
+		funny.scrollFactor.set();
+		funny.updateHitbox();
+		funny.screenCenter();
+		funny.antialiasing = ClientPrefs.globalAntialiasing;
+		add(funny);
+		funny.alpha = 0;
+
 		// NG.core.calls.event.logEvent('swag').send();
 
 		changeItem();
@@ -163,13 +172,13 @@ class MainMenuState extends MusicBeatState
 
 		if (!selectedSomethin)
 		{
-			if (controls.UI_UP_P)
+			if (controls.UI_UP_P && funny.alpha == 0)
 			{
 				FlxG.sound.play(Paths.sound('scrollMenu'));
 				changeItem(-1);
 			}
 
-			if (controls.UI_DOWN_P)
+			if (controls.UI_DOWN_P && funny.alpha == 0)
 			{
 				FlxG.sound.play(Paths.sound('scrollMenu'));
 				changeItem(1);
@@ -177,16 +186,37 @@ class MainMenuState extends MusicBeatState
 
 			if (controls.BACK)
 			{
-				selectedSomethin = true;
-				FlxG.sound.play(Paths.sound('cancelMenu'));
-				MusicBeatState.switchState(new TitleState());
+				if (funny.alpha == 1)
+					FlxTween.tween(funny, {alpha: 0}, 1, {ease: FlxEase.quartInOut,
+						onStart: function(twn:FlxTween)
+							{
+								FlxG.sound.play(Paths.sound('cancelMenu'));
+							}});
+				else if (funny.alpha == 0)
+				{
+					selectedSomethin = true;
+					FlxG.sound.play(Paths.sound('cancelMenu'));
+					MusicBeatState.switchState(new TitleState());
+				}
 			}
 
 			if (controls.ACCEPT)
 			{
 				if (optionShit[curSelected] == 'donate')
 				{
-					CoolUtil.browserLoad('https://github.com/TheLeerName/FNF-Extra');
+					//CoolUtil.browserLoad('https://github.com/TheLeerName/FNF-Extra');
+					if (funny.alpha != 1)
+						FlxTween.tween(funny, {alpha: 1}, 1, {ease: FlxEase.quartInOut,
+							onStart: function(twn:FlxTween)
+								{
+									FlxG.sound.play(Paths.sound('dramaticBoom', 'shared'));
+								}});
+					else
+						FlxTween.tween(funny, {alpha: 0}, 1, {ease: FlxEase.quartInOut,
+							onStart: function(twn:FlxTween)
+								{
+									FlxG.sound.play(Paths.sound('cancelMenu'));
+								}});
 				}
 				else
 				{
@@ -232,7 +262,7 @@ class MainMenuState extends MusicBeatState
 				}
 			}
 			#if desktop
-			else if (FlxG.keys.justPressed.SEVEN)
+			else if (FlxG.keys.justPressed.SEVEN && funny.alpha == 0)
 			{
 				selectedSomethin = true;
 				MusicBeatState.switchState(new MasterEditorMenu());
