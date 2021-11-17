@@ -99,7 +99,6 @@ class CoolUtil
 		else
 		{
 			trace('Inst for ${song} is not exist! Skipping removing it');
-			errors++;
 		} // Inst of song
 
 		if (FileSystem.exists(Paths.modsSongs('${song}/Voices')))
@@ -110,7 +109,6 @@ class CoolUtil
 		else
 		{
 			trace('Voices for ${song} is not exist! Skipping removing it');
-			//errors++;
 		} // Voices of song
 
 		if (FileSystem.exists(Paths.modsJson('${song}/songData')))
@@ -125,14 +123,12 @@ class CoolUtil
 				else
 				{
 					trace('${i} difficulty of ${song} is not exist! Skipping removing it');
-					errors++;
 				}
 			}
 		} // difficulties of song
 		else
 		{
 			trace('File songData of ${song} is not exist! ' + "Can't check difficulty count, starting alternative method...");
-			errors++;
 			for (i in 1...(parseDiffCount(song, true) + 2))
 			{
 				if (FileSystem.exists(Paths.modsJson('${song}/${song}-${i}')))
@@ -143,7 +139,6 @@ class CoolUtil
 				else
 				{
 					trace('${i} difficulty of ${song} is not exist! Skipping removing it');
-					errors++;
 				}
 			}
 		} // alt method to remove difficulties of song
@@ -156,7 +151,6 @@ class CoolUtil
 		else
 		{
 			trace('File songData of ${song} is not exist! Skipping removing it');
-			errors++;
 		} // songData of song
 
 		if (FileSystem.exists(Paths.modFolders('weeks/${song}.json')))
@@ -167,7 +161,6 @@ class CoolUtil
 		else
 		{
 			trace('Week file of ${song} is not exist! Skipping removing it');
-			errors++;
 		} // week file of song
 
 		if (FileSystem.isDirectory('mods/data/${song}'))
@@ -175,7 +168,6 @@ class CoolUtil
 		else
 		{
 			trace('Folder data/${song} is not exist! Skipping removing it');
-			errors++;
 		} // folder of song jsons and removing extra files in it
 
 		if (FileSystem.isDirectory('mods/songs/${song}'))
@@ -183,11 +175,9 @@ class CoolUtil
 		else
 		{
 			trace('Folder songs/${song} is not exist! Skipping removing it');
-			errors++;
 		} // folder of song and removing extra files in it
 
-		trace (errors == 0 ? 'Song ${song} removed successfully!' : 'Song ${song} removed with ${errors} errors.');
-		errors = 0;
+		trace ('Song ${song} removed successfully!');
 		MusicBeatState.resetState();
 		#else
 		trace('This function is disabled, when MODS_ALLOWED is false!');
