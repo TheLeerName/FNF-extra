@@ -3373,7 +3373,8 @@ class PlayState extends MusicBeatState
 
 							}
 						}
-						else if (canMiss && !ClientPrefs.kadeInput) 
+						else if (canMiss //&& !ClientPrefs.kadeInput
+							) 
 							ghostMiss(controlArray[i], i, true);
 
 						// I dunno what you need this for but here you go

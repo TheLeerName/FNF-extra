@@ -7,7 +7,7 @@ import openfl.utils.Assets;
 import lime.utils.Assets as LimeAssets;
 import lime.utils.AssetLibrary;
 import lime.utils.AssetManifest;
-#if sys
+#if MODS_ALLOWED
 import sys.io.File;
 import sys.FileSystem;
 #end
@@ -24,7 +24,7 @@ typedef SongData =
 class CoolUtil
 {
 	// [Difficulty name, Chart file suffix]
-	public static var difficultyStuff:Array<Dynamic> = [
+	/*public static var difficultyStuff:Array<Dynamic> = [
 		['1', '-1'],
 		['2', '-2'],
 		['3', '-3'],
@@ -35,7 +35,7 @@ class CoolUtil
 		['8', '-8'],
 		['9', '-9'],
 		['10', '-10']
-	];
+	];*/
 
 	/*public static function difficultyString():String
 	{
@@ -57,84 +57,7 @@ class CoolUtil
 		return returnedData;
 	}
 
-	static var errors:Int;
-	static public function downloadSong(song:String)
-	{
-		#if MODS_ALLOWED
-		song.toLowerCase();
-		trace('Start downloading song ${song}...');
-
-		if (!FileSystem.isDirectory(Paths.modFolders('songs/${song}')))
-			FileSystem.createDirectory(Paths.modFolders('songs/${song}')); // folder of song
-
-		// i love hardcoding!!!
-		if (!FileSystem.exists('manifest/NOTDELETE.bat'))
-			File.saveContent('manifest/NOTDELETE.bat', 
-			"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/main/songs/" +
-			song +
-			"/Inst.ogg' -OutFile 'mods/songs/" + song + "/Inst.ogg'");
-		Sys.command("manifest/NOTDELETE.bat", ['start']);
-		FileSystem.deleteFile('manifest/NOTDELETE.bat');
-		trace('Inst for ${song} was downloaded');
-
-		if (song != 'atomosphere')
-		{
-			if (!FileSystem.exists('manifest/NOTDELETE.bat'))
-				File.saveContent('manifest/NOTDELETE.bat', 
-				"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/main/songs/" +
-				song +
-				"/Voices.ogg' -OutFile 'mods/songs/" + song + "/Voices.ogg'");
-			Sys.command("manifest/NOTDELETE.bat", ['start']);
-			FileSystem.deleteFile('manifest/NOTDELETE.bat');
-			trace('Voices for ${song} was downloaded');
-		}
-
-		if (!FileSystem.isDirectory(Paths.modFolders('data/${song}')))
-			FileSystem.createDirectory(Paths.modFolders('data/${song}')); // folder of song jsons
-		for (i in 1...(parseDiffCount(song, true) + 2))
-		{
-			if (!FileSystem.exists(Paths.modsJson('${song}/${song}-${i}')))
-			{
-				File.saveContent(Paths.modsJson('${song}/${song}-${i}'), haxe.Json.stringify(haxe.Json.parse(parseRepoFiles('main/data/${song}/${song}-${i}.json')), "\t"));
-				trace('${i} difficulty of ${song} was downloaded');
-			}
-			else
-			{
-				trace('${i} difficulty of ${song} already exists! Skipping downloading it');
-				errors++;
-			}
-		} // difficulties of song
-
-		if (!FileSystem.exists(Paths.modsJson('${song}/songData')))
-		{
-			File.saveContent(Paths.modsJson('${song}/songData'), haxe.Json.stringify(haxe.Json.parse(parseRepoFiles('main/data/${song}/songData.json')), "\t"));
-			trace('File songData of ${song} was downloaded');
-		}
-		else
-		{
-			trace('File songData of ${song} already exists! Skipping downloading it');
-			errors++;
-		} // songData of song
-
-		if (!FileSystem.exists(Paths.modFolders('weeks/${song}.json')))
-		{
-			File.saveContent(Paths.modFolders('weeks/${song}.json'), haxe.Json.stringify(haxe.Json.parse(parseRepoFiles('main/weeks/${song}.json')), "\t"));
-			trace('Week file of ${song} was downloaded');
-		}
-		else
-		{
-			trace('Week file of ${song} already exists! Skipping downloading it');
-			errors++;
-		} // week file of song
-
-		//File.saveContent('mods/songs/${song}.json', haxe.Json.stringify(haxe.Json.parse(parseRepoFiles('main/weeks/${song}.json')), "\t"));
-
-		trace (errors == 0 ? 'Song ${song} downloaded successfully!' : 'Song ${song} downloaded with ${errors} errors.');
-		MusicBeatState.resetState();
-		#else
-		trace('This function is disabled, when build is not sys!');
-		#end
-	}
+	// function downloadSong in DownloadSubState line 103!
 
 	// function from https://ashes999.github.io/learnhaxe/recursively-delete-a-directory-in-haxe.html
 	public static function deleteDirSong(key:String):Void

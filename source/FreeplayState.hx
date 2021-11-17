@@ -34,6 +34,7 @@ class FreeplayState extends MusicBeatState
 	var scoreBG:FlxSprite;
 	var scoreText:FlxText;
 	var diffText:FlxText;
+	var infoText:FlxText;
 	var lerpScore:Int = 0;
 	var lerpRating:Float = 0;
 	var intendedScore:Int = 0;
@@ -136,10 +137,19 @@ class FreeplayState extends MusicBeatState
 		if(curSelected >= songs.length) curSelected = 0;
 		bg.color = songs[curSelected].color;
 		intendedColor = bg.color;
+
+		var textBG:FlxSprite = new FlxSprite(0, FlxG.height - 46).makeGraphic(FlxG.width, 46, 0xFF000000);
+		textBG.alpha = 0.6;
+		add(textBG);
+		infoText = new FlxText(textBG.x, textBG.y + 25, FlxG.width, "joe biden", 18);
+		infoText.setFormat(Paths.font("vcr.ttf"), 18, FlxColor.WHITE, RIGHT);
+		infoText.scrollFactor.set();
+		add(infoText);
+
 		changeSelection();
 		changeDiff();
 
-		var swag:Alphabet = new Alphabet(1, 0, "swag");
+		//var swag:Alphabet = new Alphabet(1, 0, "swag");
 
 		// JUST DOIN THIS SHIT FOR TESTING!!!
 		/* 
@@ -158,9 +168,6 @@ class FreeplayState extends MusicBeatState
 			trace(md);
 		 */
 
-		var textBG:FlxSprite = new FlxSprite(0, FlxG.height - 46).makeGraphic(FlxG.width, 46, 0xFF000000);
-		textBG.alpha = 0.6;
-		add(textBG);
 		#if PRELOAD_ALL
 		var leText:String = "Press SPACE to listen to this Song / Press RESET to Reset your Score and Accuracy.";
 		#else
@@ -170,10 +177,6 @@ class FreeplayState extends MusicBeatState
 		text.setFormat(Paths.font("vcr.ttf"), 18, FlxColor.WHITE, RIGHT);
 		text.scrollFactor.set();
 		add(text);
-		var text2:FlxText = new FlxText(textBG.x, textBG.y + 25, FlxG.width, "(TEST THING) Press P to download song Atomosphere (game freezes lol) / Press O to delete it.", 18);
-		text2.setFormat(Paths.font("vcr.ttf"), 18, FlxColor.WHITE, RIGHT);
-		text2.scrollFactor.set();
-		add(text2);
 		super.create();
 	}
 
@@ -207,10 +210,7 @@ class FreeplayState extends MusicBeatState
 	private static var vocals:FlxSound = null;
 	override function update(elapsed:Float)
 	{
-		if (FlxG.sound.music.volume < 0.7)
-		{
-			FlxG.sound.music.volume += 0.5 * FlxG.elapsed;
-		}
+		if (FlxG.sound.music.volume < 0.7) FlxG.sound.music.volume += 0.5 * FlxG.elapsed;
 
 		lerpScore = Math.floor(FlxMath.lerp(lerpScore, intendedScore, CoolUtil.boundTo(elapsed * 24, 0, 1)));
 		lerpRating = FlxMath.lerp(lerpRating, intendedRating, CoolUtil.boundTo(elapsed * 12, 0, 1));
@@ -223,48 +223,27 @@ class FreeplayState extends MusicBeatState
 		scoreText.text = 'PERSONAL BEST: ' + lerpScore + ' (' + Math.floor(lerpRating * 100) + '%)';
 		positionHighscore();
 
-		var upP = controls.UI_UP_P;
-		var downP = controls.UI_DOWN_P;
-		var accepted = controls.ACCEPT;
-		var space = FlxG.keys.justPressed.SPACE;
-
 		var shiftMult:Int = 1;
 		if(FlxG.keys.pressed.SHIFT) shiftMult = 3;
 
-		if (upP)
-		{
-			changeSelection(-shiftMult);
-		}
-		if (downP)
-		{
-			changeSelection(shiftMult);
-		}
+		if (controls.UI_UP_P) changeSelection(-shiftMult);
+		if (controls.UI_DOWN_P) changeSelection(shiftMult);
+		if (controls.UI_LEFT_P) changeDiff(-1);
+		if (controls.UI_RIGHT_P) changeDiff(1);
 
-		if (controls.UI_LEFT_P)
-			changeDiff(-1);
-		if (controls.UI_RIGHT_P)
-			changeDiff(1);
-
-		if (FlxG.keys.justPressed.P)
-		{
-			CoolUtil.downloadSong('atomosphere');
-		}
-		if (FlxG.keys.justPressed.O)
-		{
-			CoolUtil.deleteSong('atomosphere');
-		}
+		if (FlxG.keys.justPressed.TAB) openSubState(new DownloadSubState());
+		//if (FlxG.keys.justPressed.P) CoolUtil.downloadSong('ballistic');
+		if (FlxG.keys.justPressed.DELETE && Paths.formatToSongPath(songs[curSelected].songName) != 'tutorial') CoolUtil.deleteSong(Paths.formatToSongPath(songs[curSelected].songName));
 
 		if (controls.BACK)
 		{
-			if(colorTween != null) {
-				colorTween.cancel();
-			}
+			if(colorTween != null) colorTween.cancel();
 			FlxG.sound.play(Paths.sound('cancelMenu'));
 			MusicBeatState.switchState(new MainMenuState());
 		}
 
 		#if PRELOAD_ALL
-		if(space && instPlaying != curSelected)
+		if(FlxG.keys.justPressed.SPACE && instPlaying != curSelected)
 		{
 			destroyFreeplayVocals();
 			Paths.currentModDirectory = songs[curSelected].folder;
@@ -283,7 +262,7 @@ class FreeplayState extends MusicBeatState
 			vocals.volume = 0.7;
 			instPlaying = curSelected;
 		}
-		else #end if (accepted)
+		else #end if (controls.ACCEPT)
 		{
 			var songLowercase:String = Paths.formatToSongPath(songs[curSelected].songName);
 			var poop:String = Highscore.formatSong(songLowercase, curDifficulty);
@@ -358,21 +337,24 @@ class FreeplayState extends MusicBeatState
 		FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
 
 		// error message
-		if (difficultyCount < 1 || difficultyCount > 9)
+		if (difficultyCount < 1 /*|| difficultyCount > 9*/)
 		{
 			trace
 			(
 				"diff count is "
 				+ difficultyCount
-				+ ", its " + (difficultyCount > 9 ? "more than 10" : "less than 1")
+				//+ ", its " + (difficultyCount > 9 ? "more than 10" : "less than 1")
+				+ ", its less than 1"
 				+ " lol! starting error window..."
 			);
 			Application.current.window.alert
 			(
 				"Value of difficulty count is "
 				+ difficultyCount
-				+ ", its " + (difficultyCount > 9 ? "more than 10!" : "less than 1!")
-				+ " Try putting a value between 1 and 10."
+				//+ ", its " + (difficultyCount > 9 ? "more than 10!" : "less than 1!")
+				+ ", its less than 1!"
+				//+ " Try putting a value between 1 and 10."
+				+ " Try putting a value more than 1."
 
 				, "DIFFICULTY SYSTEM ERROR"
 			);
@@ -395,6 +377,11 @@ class FreeplayState extends MusicBeatState
 			curSelected = songs.length - 1;
 		if (curSelected >= songs.length)
 			curSelected = 0;
+
+		if (Paths.formatToSongPath(songs[curSelected].songName) == 'tutorial')
+			infoText.text = "Press TAB to open download menu / You can't delete this song.";
+		else
+			infoText.text = "Press TAB to open download menu / Press DELETE to delete this song.";
 
 		difficultyName = CoolUtil.parseDiffNames(Paths.formatToSongPath(songs[curSelected].songName), curDifficulty);
 
