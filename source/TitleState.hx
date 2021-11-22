@@ -96,6 +96,10 @@ class TitleState extends MusicBeatState
 		}
 		#end
 
+		#if MODS_ALLOWED
+		CoolUtil.loadingImages();
+		#end
+
 		FlxG.game.focusLostFramerate = 60;
 		FlxG.sound.muteKeys = muteKeys;
 		FlxG.sound.volumeDownKeys = volumeDownKeys;

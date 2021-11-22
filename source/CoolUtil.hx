@@ -37,7 +37,7 @@ class CoolUtil
 	}
 
 	// function from https://ashes999.github.io/learnhaxe/recursively-delete-a-directory-in-haxe.html
-	public static function deleteDirSong(key:String):Void
+	public static function deleteDir(key:String):Void
 	{
 		#if sys
 		if (sys.FileSystem.exists(key) && sys.FileSystem.isDirectory(key))
@@ -47,7 +47,7 @@ class CoolUtil
 			{
 				if (sys.FileSystem.isDirectory(key + '/' + entry))
 				{
-					deleteDirSong(key + '/' + entry);
+					deleteDir(key + '/' + entry);
 					sys.FileSystem.deleteDirectory(key + '/' + entry);
 				}
 				else
@@ -61,6 +61,78 @@ class CoolUtil
 		trace('This function is disabled, when MODS_ALLOWED is false!');
 		#end
 	}
+
+	#if MODS_ALLOWED
+	static public function loadingImages()
+	{
+		trace('Starting checking images for loading screen...');
+
+		var ba:Array<String> = parseRepoFiles('main/loading_images/imageNames.txt').split('\n');
+		var imagesList:Array<String> = ['h'];
+		for (i in 0...FileSystem.readDirectory(Paths.modFolders('images/loading')).length)
+		{
+			var ha1:Array<String> = FileSystem.readDirectory(Paths.modFolders('images/loading'));
+			ha1.remove("loading-images-here.txt");
+			ha1.remove("imageNames.txt");
+			imagesList[i] = ha1[i].replace('.png', '');
+		}
+		//trace(ba.length + ' | ' + (imagesList.length - 2));
+		//trace(ba);
+		//trace(imagesList);
+
+		for (i in 0...imagesList.length - 2)
+			if (imagesList[i] != ba[i])
+				deleteDir('mods/images/loading');
+
+		if (!FileSystem.isDirectory(Paths.modFolders('images/loading')))
+		{
+			FileSystem.createDirectory(Paths.modFolders('images/loading'));
+			trace('Update from server was found! Updating all images...'); // i think nobody not deleting this folder specially :)
+		}
+		if (!FileSystem.exists('mods/images/loading/loading-images-here.txt'))
+			File.saveContent('mods/images/loading/loading-images-here.txt', '');
+
+		if (FileSystem.exists(Paths.modsTxt('loading/imageNames')))
+		{
+			if (ba.length != File.getContent(Paths.modsTxt('loading/imageNames')).trim().split('\n').length)
+			{
+				if (!FileSystem.exists('manifest/NOTDELETE.bat'))
+					File.saveContent('manifest/NOTDELETE.bat', 
+						"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/main/loading_images/imageNames.txt' -OutFile 'mods/images/loading/imageNames.txt'");
+				Sys.command("manifest/NOTDELETE.bat", ['start']);
+				FileSystem.deleteFile('manifest/NOTDELETE.bat');
+				trace('List of images was updated');
+			}
+		}
+		else
+		{
+			if (!FileSystem.exists('manifest/NOTDELETE.bat'))
+				File.saveContent('manifest/NOTDELETE.bat', 
+					"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/main/loading_images/imageNames.txt' -OutFile 'mods/images/loading/imageNames.txt'");
+			Sys.command("manifest/NOTDELETE.bat", ['start']);
+			FileSystem.deleteFile('manifest/NOTDELETE.bat');
+			trace('List of images was updated');
+		}
+
+		for (i in 0...ba.length)
+		{
+			if (!FileSystem.exists(Paths.modsImages('loading/${File.getContent(Paths.modsTxt('loading/imageNames')).trim().split('\n')[i]}')))
+			{
+				if (!FileSystem.exists('manifest/NOTDELETE.bat'))
+					File.saveContent('manifest/NOTDELETE.bat', 
+						"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/main/loading_images/" +
+						File.getContent(Paths.modsTxt('loading/imageNames')).trim().split('\n')[i] +
+						".png' -OutFile 'mods/images/loading/" + File.getContent(Paths.modsTxt('loading/imageNames')).trim().split('\n')[i] + ".png'");
+				Sys.command("manifest/NOTDELETE.bat", ['start']);
+				FileSystem.deleteFile('manifest/NOTDELETE.bat');
+				trace('Image ${File.getContent(Paths.modsTxt('loading/imageNames')).trim().split('\n')[i]} was downloaded');
+			}
+			//else trace('${Paths.modsTxt('loading/imageNames').trim().split('\n')[i]} image already exists! Skipping downloading it');
+		}
+
+		trace('Checking is over! Enjoy your game :)');
+	}
+	#end
 
 	static public function deleteThing(thing:String, cat:Int = 2)
 	{
@@ -144,21 +216,20 @@ class CoolUtil
 				} // week file of song
 
 				if (FileSystem.isDirectory('mods/data/${thing}'))
-					CoolUtil.deleteDirSong('mods/data/${thing}');
+					CoolUtil.deleteDir('mods/data/${thing}');
 				else
 				{
 					trace('Folder data/${thing} is not exist! Skipping removing it');
 				} // folder of song jsons and removing extra files in it
 
 				if (FileSystem.isDirectory('mods/songs/${thing}'))
-					CoolUtil.deleteDirSong('mods/songs/${thing}');
+					CoolUtil.deleteDir('mods/songs/${thing}');
 				else
 				{
 					trace('Folder songs/${thing} is not exist! Skipping removing it');
 				} // folder of song and removing extra files in it
 
 				trace ('Song ${thing} removed successfully!');
-				MusicBeatState.resetState();
 
 			case 1:
 				thing.toLowerCase();
@@ -205,7 +276,6 @@ class CoolUtil
 				} // JSON of character
 
 				trace ('Character ${thing} removed successfully!');
-				MusicBeatState.resetState();
 			#end
 
 
@@ -216,6 +286,9 @@ class CoolUtil
 				trace('Not working when MODS_ALLOWED is false!');
 				#end
 		}
+		#if MODS_ALLOWED
+		MusicBeatState.resetState();
+		#end
 	}
 
 	static public function downloadThing(thing:String, cat:Int = 2)
@@ -256,7 +329,7 @@ class CoolUtil
 					FileSystem.deleteFile('manifest/NOTDELETE.bat');
 					trace('Voices for ${thing} was downloaded');
 				}
-				else if (thing == 'atomosphere' || thing == 'unity')
+				else if (thing == 'atomosphere' || thing == 'jackpot')
 				{
 					trace('Voices for ${thing} not needed! Skipping downloading it');
 				}
@@ -299,7 +372,6 @@ class CoolUtil
 				} // week file of song
 	
 				trace('Song ${thing} downloaded successfully!');
-				MusicBeatState.resetState();
 	
 			case 1:
 				if (!FileSystem.exists(Paths.modsImages('characters/${thing}')))
@@ -361,7 +433,6 @@ class CoolUtil
 				} // JSON file of character
 
 				trace('Character ${thing} downloaded successfully!');
-				MusicBeatState.resetState();
 			#end
 
 
@@ -372,6 +443,9 @@ class CoolUtil
 				trace('Not working when MODS_ALLOWED is false!');
 				#end
 		}
+		#if MODS_ALLOWED
+		MusicBeatState.resetState();
+		#end
 	}
 
 	/*inline static public function stringify(inDir:String, outDir:String)
