@@ -18,9 +18,15 @@ class DownloadSubState extends MusicBeatSubstate
 	var black:FlxSprite;
 	var funnyText:FlxText;
 	var funnyPic:FlxSprite;
-	var man:Bool = true;
+	//var man:Bool = true;
+	var delete:Bool;
+	var infoText:FlxText;
+	var text:FlxText;
 
 	var menuItems:Array<String>;
+	var songs:Array<String>;
+	var characters:Array<String>;
+	var curCat:Int = 0;
 	var curSelected:Int = 0;
 
 	public function new()
@@ -34,23 +40,34 @@ class DownloadSubState extends MusicBeatSubstate
 		grpMenuShit = new FlxTypedGroup<Alphabet>();
 		add(grpMenuShit);
 
-		menuItems = CoolUtil.parseRepoFiles('main/songList.txt').split('\n');
-		trace(menuItems);
-		for (i in 0...menuItems.length)
-		{
-			var songText:Alphabet = new Alphabet(0, (70 * i) + 30, menuItems[i], true, false);
-			songText.isMenuItem = true;
-			songText.targetY = i;
-			grpMenuShit.add(songText);
+		songs = CoolUtil.parseRepoFiles('main/songList.txt').split('\n');
+		characters = CoolUtil.parseRepoFiles('main/characterList.txt').split('\n');
+		menuItems = songs;
+		trace('MenuItems: ${menuItems} == Songs: ${songs} | Characters: ${characters}');
+		for (i in 0...menuItems.length) {
+			var item = new Alphabet(0, 70 * i + 30, menuItems[i], true, false);
+			item.isMenuItem = true;
+			item.targetY = i;
+			grpMenuShit.add(item);
 		}
 
-		var textBG:FlxSprite = new FlxSprite(0, FlxG.height - 26).makeGraphic(FlxG.width, 26, 0xFF000000);
+		var textBG:FlxSprite = new FlxSprite(0, FlxG.height - 46).makeGraphic(FlxG.width, 46, 0xFF000000);
 		textBG.alpha = 0.6;
 		add(textBG);
-		var infoText:FlxText = new FlxText(textBG.x, textBG.y + 4, FlxG.width, 'Press ACCEPT to download this song / Press RESET to update song list.', 18);
+		#if MODS_ALLOWED
+		delete = (FileSystem.isDirectory(Paths.modFolders('songs/${menuItems[curSelected]}')) || FileSystem.isDirectory(Paths.modFolders('data/${menuItems[curSelected]}')) ? true : false);
+		infoText = new FlxText(textBG.x, textBG.y + 4, FlxG.width, (delete ? 'Press DELETE to delete' : 'Press ACCEPT to download') + ' / Press RESET to update list', 18);
+		#else
+		delete = false;
+		infoText = new FlxText(textBG.x, textBG.y + 4, FlxG.width, 'Press ACCEPT to download / Press RESET to update list', 18);
+		#end
 		infoText.setFormat(Paths.font("vcr.ttf"), 18, FlxColor.WHITE, RIGHT);
 		infoText.scrollFactor.set();
 		add(infoText);
+		text = new FlxText(textBG.x, textBG.y + 25, FlxG.width, 'Press TAB or BACK to close this menu / Press LEFT or RIGHT to switch list (now songs)', 18);
+		text.setFormat(Paths.font("vcr.ttf"), 18, FlxColor.WHITE, RIGHT);
+		text.scrollFactor.set();
+		add(text);
 
 		black = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);
 		black.alpha = 0;
@@ -76,127 +93,35 @@ class DownloadSubState extends MusicBeatSubstate
 	{
 		super.update(elapsed);
 
-		if (controls.BACK) close();
+		if (FlxG.keys.justPressed.DELETE && delete) 
+		{
+			funnyText.text = 'Deleting a ' + (curCat == 0 ? 'song' : 'character') + ' ${menuItems[curSelected]}...\nWhile you wait, look at this funny picture lol!';
+			FlxTween.tween(black, {alpha: 1}, 1, {ease: FlxEase.quartInOut, onComplete: function(twn:FlxTween){CoolUtil.deleteThing(menuItems[curSelected], curCat);}});
+			FlxTween.tween(funnyText, {alpha: 1}, 1, {ease: FlxEase.quartInOut});
+			FlxTween.tween(funnyPic, {alpha: 1}, 1, {ease: FlxEase.quartInOut});
+		}
+		if (controls.BACK || FlxG.keys.justPressed.TAB) close();
 
 		if (controls.UI_UP_P) changeSelection(-1);
 		if (controls.UI_DOWN_P) changeSelection(1);
+		if (controls.UI_LEFT_P) changeCat(-1);
+		if (controls.UI_RIGHT_P) changeCat(1);
 
 		/*if (FlxG.keys.justPressed.G) // for tests
 		{
 			man = !man;
-			funnyText.text = 'Downloading a song ${menuItems[curSelected]}, game will be freezed...\nWhile you wait, look at this funny picture lol!'; // update
+			funnyText.text = 'Downloading a song ${menuItems[curSelected]}, game will be freezed...\nWhile you wait, look at this funny picture lol!';
 			FlxTween.tween(black, {alpha: (man?1:0)}, 1, {ease: FlxEase.quartInOut});
 			FlxTween.tween(funnyText, {alpha: (man?1:0)}, 1, {ease: FlxEase.quartInOut});
 			FlxTween.tween(funnyPic, {alpha: (man?1:0)}, 1, {ease: FlxEase.quartInOut});
 		}*/
 
-		if (controls.RESET)
+		if (controls.RESET) changeCat(true);
+
+		if (controls.ACCEPT && !delete)
 		{
-			new DownloadSubState();
-		}
-
-		if (controls.ACCEPT)
-		{
-			funnyText.text = 'Downloading a song ${menuItems[curSelected]}, game will be freezed...\nWhile you wait, look at this funny picture lol!'; // update
-			FlxTween.tween(black, {alpha: 1}, 1, {ease: FlxEase.quartInOut,
-			onComplete: function(twn:FlxTween){
-				//CoolUtil.downloadSong(menuItems[curSelected]);
-				#if MODS_ALLOWED
-				//text('Start downloading song ${menuItems[curSelected]}...', 1);
-
-				//trace('Creating folders of ${menuItems[curSelected]}');
-
-				if (!FileSystem.isDirectory(Paths.modFolders('songs/${menuItems[curSelected]}')))
-					FileSystem.createDirectory(Paths.modFolders('songs/${menuItems[curSelected]}')); // folder of song
-				if (!FileSystem.isDirectory(Paths.modFolders('data/${menuItems[curSelected]}')))
-					FileSystem.createDirectory(Paths.modFolders('data/${menuItems[curSelected]}')); // folder of song jsons
-
-				//trace('Starting download Inst for ${menuItems[curSelected]}...');
-
-				if (!FileSystem.exists(Paths.modsSongs('${menuItems[curSelected]}/Inst')))
-				{
-					if (!FileSystem.exists('manifest/NOTDELETE.bat'))
-						File.saveContent('manifest/NOTDELETE.bat', 
-						"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/main/songs/" +
-						menuItems[curSelected] +
-						"/Inst.ogg' -OutFile 'mods/songs/" + menuItems[curSelected] + "/Inst.ogg'");
-					Sys.command("manifest/NOTDELETE.bat", ['start /B']);
-					FileSystem.deleteFile('manifest/NOTDELETE.bat');
-					trace('Inst for ${menuItems[curSelected]} was downloaded');
-				}
-				else
-				{
-					trace('Inst for ${menuItems[curSelected]} already exists! Skipping downloading it');
-				} // Inst for song
-
-				//trace('Starting download Voices for ${menuItems[curSelected]}...');
-
-				if (menuItems[curSelected] != 'atomosphere' && !FileSystem.exists(Paths.modsSongs('${menuItems[curSelected]}/Voices')))
-				{
-					if (!FileSystem.exists('manifest/NOTDELETE.bat'))
-						File.saveContent('manifest/NOTDELETE.bat', 
-						"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/main/songs/" +
-						menuItems[curSelected] +
-						"/Voices.ogg' -OutFile 'mods/songs/" + menuItems[curSelected] + "/Voices.ogg'");
-					Sys.command("manifest/NOTDELETE.bat", ['start /B']);
-					FileSystem.deleteFile('manifest/NOTDELETE.bat');
-					trace('Voices for ${menuItems[curSelected]} was downloaded');
-				}
-				else if (menuItems[curSelected] == 'atomosphere')
-				{
-					trace('Voices for ${menuItems[curSelected]} not needed! Skipping downloading it');
-				}
-				else
-				{
-					trace('Voices for ${menuItems[curSelected]} already exists! Skipping downloading it');
-				} // Voices for song
-
-				//trace('Starting download difficulties of ${menuItems[curSelected]}...');
-
-				for (i in 1...(CoolUtil.parseDiffCount(menuItems[curSelected], true) + 2))
-				{
-					if (!FileSystem.exists(Paths.modsJson('${menuItems[curSelected]}/${menuItems[curSelected]}-${i}')))
-					{
-						File.saveContent(Paths.modsJson('${menuItems[curSelected]}/${menuItems[curSelected]}-${i}'), haxe.Json.stringify(haxe.Json.parse(CoolUtil.parseRepoFiles('main/data/${menuItems[curSelected]}/${menuItems[curSelected]}-${i}.json')), "\t"));
-						trace('${i} difficulty of ${menuItems[curSelected]} was downloaded');
-					}
-					else
-					{
-					trace('${i} difficulty of ${menuItems[curSelected]} already exists! Skipping downloading it');
-					}	
-				} // difficulties of song
-
-				//trace('Starting download songData of ${menuItems[curSelected]}...');
-
-				if (!FileSystem.exists(Paths.modsJson('${menuItems[curSelected]}/songData')))
-				{
-					File.saveContent(Paths.modsJson('${menuItems[curSelected]}/songData'), haxe.Json.stringify(haxe.Json.parse(CoolUtil.parseRepoFiles('main/data/${menuItems[curSelected]}/songData.json')), "\t"));
-					trace('File songData of ${menuItems[curSelected]} was downloaded');
-				}
-				else
-				{
-					trace('File songData of ${menuItems[curSelected]} already exists! Skipping downloading it');
-				} // songData of song
-
-				//trace('Starting download week file of ${menuItems[curSelected]}...');
-
-				if (!FileSystem.exists(Paths.modFolders('weeks/${menuItems[curSelected]}.json')))
-				{
-					File.saveContent(Paths.modFolders('weeks/${menuItems[curSelected]}.json'), haxe.Json.stringify(haxe.Json.parse(CoolUtil.parseRepoFiles('main/weeks/${menuItems[curSelected]}.json')), "\t"));
-					trace('Week file of ${menuItems[curSelected]} was downloaded');
-				}
-				else
-				{
-					trace('Week file of ${menuItems[curSelected]} already exists! Skipping downloading it');
-				} // week file of song
-
-				trace('Song ${menuItems[curSelected]} downloaded successfully!');
-				MusicBeatState.resetState();
-				#else
-				trace('Not working when MODS_ALLOWED is false!');
-				#end
-				//close();
-			}});
+			funnyText.text = 'Downloading a ' + (curCat == 0 ? 'song' : 'character') + ' ${menuItems[curSelected]}, game will be freezed...\nWhile you wait, look at this funny picture lol!';
+			FlxTween.tween(black, {alpha: 1}, 1, {ease: FlxEase.quartInOut, onComplete: function(twn:FlxTween){CoolUtil.downloadThing(menuItems[curSelected], curCat);}});
 			FlxTween.tween(funnyText, {alpha: 1}, 1, {ease: FlxEase.quartInOut});
 			FlxTween.tween(funnyPic, {alpha: 1}, 1, {ease: FlxEase.quartInOut});
 		}
@@ -213,6 +138,32 @@ class DownloadSubState extends MusicBeatSubstate
 		if (curSelected >= menuItems.length)
 			curSelected = 0;
 
+		switch (curCat)
+		{
+			case 0:
+				#if MODS_ALLOWED
+				delete = (FileSystem.isDirectory(Paths.modFolders('songs/${menuItems[curSelected]}')) || FileSystem.isDirectory(Paths.modFolders('data/${menuItems[curSelected]}')) ? true : false);
+				infoText.text = (delete ? 'Press DELETE to delete' : 'Press ACCEPT to download') + ' / Press RESET to update list';
+				#else
+				delete = false;
+				#end
+			case 1:
+				#if MODS_ALLOWED
+				delete = (
+					FileSystem.exists(Paths.modsImages('characters/${menuItems[curSelected]}')) ||
+					FileSystem.exists(Paths.modsImages('icons/${menuItems[curSelected]}')) ||
+					FileSystem.exists(Paths.modsXml('characters/${menuItems[curSelected]}')) ||
+					FileSystem.exists(Paths.modFolders('characters/${menuItems[curSelected]}.json'))
+					? true : false);
+				infoText.text = (delete ? 'Press DELETE to delete' : 'Press ACCEPT to download') + ' / Press RESET to update list';
+				#else
+				delete = false;
+				#end
+		}
+		#if !MODS_ALLOWED
+		infoText.text = 'Press ACCEPT to download / Press RESET to update list';
+		#end
+
 		var bullShit:Int = 0;
 
 		for (item in grpMenuShit.members)
@@ -227,5 +178,62 @@ class DownloadSubState extends MusicBeatSubstate
 				item.alpha = 1;
 			}
 		}
+	}
+
+	function changeCat(change:Int = 0, needUpdate:Bool = false):Void
+	{
+		curCat += change;
+		if (curCat < 0)
+			curCat = 1;
+		if (curCat > 1)
+			curCat = 0;
+
+		switch (curCat)
+		{
+			case 0:
+				if (needUpdate)
+					songs = CoolUtil.parseRepoFiles('main/songList.txt').split('\n');
+				menuItems = songs;
+				#if MODS_ALLOWED
+				delete = (FileSystem.isDirectory(Paths.modFolders('songs/${menuItems[curSelected]}')) || FileSystem.isDirectory(Paths.modFolders('data/${menuItems[curSelected]}')) ? true : false);
+				infoText.text = (delete ? 'Press DELETE to delete' : 'Press ACCEPT to download') + ' / Press RESET to update list';
+				#else
+				delete = false;
+				#end
+				text.text = 'Press TAB or BACK to close this menu / Press LEFT or RIGHT to switch list (now songs)';
+				trace('MenuItems: ${menuItems} == Songs: ${songs} | Characters: ${characters}');
+			case 1:
+				if (needUpdate)
+					characters = CoolUtil.parseRepoFiles('main/characterList.txt').split('\n');
+				menuItems = characters;
+				#if MODS_ALLOWED
+				delete = (
+					FileSystem.exists(Paths.modsImages('characters/${menuItems[curSelected]}')) ||
+					FileSystem.exists(Paths.modsImages('icons/${menuItems[curSelected]}')) ||
+					FileSystem.exists(Paths.modsXml('characters/${menuItems[curSelected]}')) ||
+					FileSystem.exists(Paths.modFolders('characters/${menuItems[curSelected]}.json'))
+					? true : false);
+				infoText.text = (delete ? 'Press DELETE to delete' : 'Press ACCEPT to download') + ' / Press RESET to update list';
+				#else
+				delete = false;
+				#end
+				text.text = 'Press TAB or BACK to close this menu / Press LEFT or RIGHT to switch list (now characters)';
+				trace('MenuItems: ${menuItems} == Characters: ${characters} | Songs: ${songs}');
+		}
+		#if !MODS_ALLOWED
+		infoText.text = 'Press ACCEPT to download / Press RESET to update list';
+		#end
+
+		for (i in 0...grpMenuShit.members.length) {
+			this.grpMenuShit.remove(this.grpMenuShit.members[0], true);
+		}
+		for (i in 0...menuItems.length) {
+			var item = new Alphabet(0, 70 * i + 30, menuItems[i], true, false);
+			item.isMenuItem = true;
+			item.targetY = i;
+			grpMenuShit.add(item);
+		}
+		curSelected = 0;
+		changeSelection();
 	}
 }

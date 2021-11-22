@@ -141,7 +141,7 @@ class FreeplayState extends MusicBeatState
 		var textBG:FlxSprite = new FlxSprite(0, FlxG.height - 46).makeGraphic(FlxG.width, 46, 0xFF000000);
 		textBG.alpha = 0.6;
 		add(textBG);
-		infoText = new FlxText(textBG.x, textBG.y + 25, FlxG.width, "joe biden", 18);
+		infoText = new FlxText(textBG.x, textBG.y + 4, FlxG.width, "joe biden", 18);
 		infoText.setFormat(Paths.font("vcr.ttf"), 18, FlxColor.WHITE, RIGHT);
 		infoText.scrollFactor.set();
 		add(infoText);
@@ -168,12 +168,12 @@ class FreeplayState extends MusicBeatState
 			trace(md);
 		 */
 
+		var text:FlxText = new FlxText(textBG.x, textBG.y + 25, FlxG.width, 'joe biden', 18);
 		#if PRELOAD_ALL
-		var leText:String = "Press SPACE to listen to this Song / Press RESET to Reset your Score and Accuracy.";
+		text.text = "Press SPACE to listen this Song / Press RESET to reset your Score and Accuracy";
 		#else
-		var leText:String = "Press RESET to Reset your Score and Accuracy.";
+		text.text = "Press RESET to reset your Score and Accuracy";
 		#end
-		var text:FlxText = new FlxText(textBG.x, textBG.y + 4, FlxG.width, leText, 18);
 		text.setFormat(Paths.font("vcr.ttf"), 18, FlxColor.WHITE, RIGHT);
 		text.scrollFactor.set();
 		add(text);
@@ -233,7 +233,7 @@ class FreeplayState extends MusicBeatState
 
 		if (FlxG.keys.justPressed.TAB) openSubState(new DownloadSubState());
 		//if (FlxG.keys.justPressed.P) CoolUtil.downloadSong('ballistic');
-		if (FlxG.keys.justPressed.DELETE && Paths.formatToSongPath(songs[curSelected].songName) != 'tutorial') CoolUtil.deleteSong(Paths.formatToSongPath(songs[curSelected].songName));
+		//if (FlxG.keys.justPressed.DELETE && Paths.formatToSongPath(songs[curSelected].songName) != 'tutorial') CoolUtil.deleteThing(Paths.formatToSongPath(songs[curSelected].songName), 0);
 
 		if (controls.BACK)
 		{
@@ -378,10 +378,11 @@ class FreeplayState extends MusicBeatState
 		if (curSelected >= songs.length)
 			curSelected = 0;
 
-		if (Paths.formatToSongPath(songs[curSelected].songName) == 'tutorial')
-			infoText.text = "Press TAB to open download menu / You can't delete this song.";
+		/*if (Paths.formatToSongPath(songs[curSelected].songName) == 'tutorial')
+			infoText.text = "Press TAB to open download menu / You can't delete this song";
 		else
-			infoText.text = "Press TAB to open download menu / Press DELETE to delete this song.";
+			infoText.text = "Press TAB to open download menu / Press DELETE to delete this song";*/
+		infoText.text = "Press TAB to open download menu";
 
 		difficultyName = CoolUtil.parseDiffNames(Paths.formatToSongPath(songs[curSelected].songName), curDifficulty);
 
