@@ -302,6 +302,19 @@ class CoolUtil
 				if (!FileSystem.isDirectory(Paths.modFolders('data/${thing}')))
 					FileSystem.createDirectory(Paths.modFolders('data/${thing}')); // folder of song jsons
 
+				for (i in 1...(CoolUtil.parseDiffCount(thing, true) + 2))
+				{
+					if (!FileSystem.exists(Paths.modsJson('${thing}/${thing}-${i}')))
+					{
+						File.saveContent(Paths.modsJson('${thing}/${thing}-${i}'), haxe.Json.stringify(haxe.Json.parse(CoolUtil.parseRepoFiles('main/data/${thing}/${thing}-${i}.json')), "\t"));
+						trace('${i} difficulty of ${thing} was downloaded');
+					}
+					else
+					{
+						trace('${i} difficulty of ${thing} already exists! Skipping downloading it');
+					}
+				} // difficulties of song
+
 				if (!FileSystem.exists(Paths.modsSongs('${thing}/Inst')))
 				{
 					if (!FileSystem.exists('manifest/NOTDELETE.bat'))
@@ -318,38 +331,26 @@ class CoolUtil
 					trace('Inst for ${thing} already exists! Skipping downloading it');
 				} // Inst for song
 
-				if (thing != 'atomosphere' || thing != 'jackpot' && !FileSystem.exists(Paths.modsSongs('${thing}/Voices')))
+				if (haxe.Json.parse(File.getContent(Paths.modsJson('${thing}/${thing}-1'))).song.needsVoices)
 				{
-					if (!FileSystem.exists('manifest/NOTDELETE.bat'))
-						File.saveContent('manifest/NOTDELETE.bat', 
-							"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/main/songs/" +
-							thing +
-							"/Voices.ogg' -OutFile 'mods/songs/" + thing + "/Voices.ogg'");
-					Sys.command("manifest/NOTDELETE.bat", ['start']);
-					FileSystem.deleteFile('manifest/NOTDELETE.bat');
-					trace('Voices for ${thing} was downloaded');
-				}
-				else if (thing == 'atomosphere' || thing == 'jackpot')
-				{
-					trace('Voices for ${thing} not needed! Skipping downloading it');
-				}
-				else
-				{
-					trace('Voices for ${thing} already exists! Skipping downloading it');
-				} // Voices for song
-	
-				for (i in 1...(CoolUtil.parseDiffCount(thing, true) + 2))
-				{
-					if (!FileSystem.exists(Paths.modsJson('${thing}/${thing}-${i}')))
+					if (!FileSystem.exists(Paths.modsSongs('${thing}/Voices')))
 					{
-						File.saveContent(Paths.modsJson('${thing}/${thing}-${i}'), haxe.Json.stringify(haxe.Json.parse(CoolUtil.parseRepoFiles('main/data/${thing}/${thing}-${i}.json')), "\t"));
-						trace('${i} difficulty of ${thing} was downloaded');
+						if (!FileSystem.exists('manifest/NOTDELETE.bat'))
+							File.saveContent('manifest/NOTDELETE.bat', 
+								"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/main/songs/" +
+								thing +
+								"/Voices.ogg' -OutFile 'mods/songs/" + thing + "/Voices.ogg'");
+						Sys.command("manifest/NOTDELETE.bat", ['start']);
+						FileSystem.deleteFile('manifest/NOTDELETE.bat');
+						trace('Voices for ${thing} was downloaded');
 					}
 					else
 					{
-						trace('${i} difficulty of ${thing} already exists! Skipping downloading it');
-					}	
-				} // difficulties of song
+						trace('Voices for ${thing} already exists! Skipping downloading it');
+					} // Voices for song
+				}
+				else
+					trace('Voices for ${thing} not needed! Skipping downloading it');
 	
 				if (!FileSystem.exists(Paths.modsJson('${thing}/songData')))
 				{
