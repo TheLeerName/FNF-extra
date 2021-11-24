@@ -138,13 +138,15 @@ class FreeplayState extends MusicBeatState
 		bg.color = songs[curSelected].color;
 		intendedColor = bg.color;
 
-		var textBG:FlxSprite = new FlxSprite(0, FlxG.height - 46).makeGraphic(FlxG.width, 46, 0xFF000000);
+		var textBG:FlxSprite = new FlxSprite(0, FlxG.height - #if MODS_ALLOWED 46 #else 26 #end).makeGraphic(FlxG.width, #if MODS_ALLOWED 46 #else 26 #end, 0xFF000000);
 		textBG.alpha = 0.6;
 		add(textBG);
-		infoText = new FlxText(textBG.x, textBG.y + 4, FlxG.width, "joe biden", 18);
+		#if MODS_ALLOWED
+		infoText = new FlxText(textBG.x, textBG.y + 4, FlxG.width, "Press TAB to open download menu", 18);
 		infoText.setFormat(Paths.font("vcr.ttf"), 18, FlxColor.WHITE, RIGHT);
 		infoText.scrollFactor.set();
 		add(infoText);
+		#end
 
 		changeSelection();
 		changeDiff();
@@ -168,12 +170,7 @@ class FreeplayState extends MusicBeatState
 			trace(md);
 		 */
 
-		var text:FlxText = new FlxText(textBG.x, textBG.y + 25, FlxG.width, 'joe biden', 18);
-		#if PRELOAD_ALL
-		text.text = "Press SPACE to listen this Song / Press RESET to reset your Score and Accuracy";
-		#else
-		text.text = "Press RESET to reset your Score and Accuracy";
-		#end
+		var text:FlxText = new FlxText(textBG.x, textBG.y + #if MODS_ALLOWED 25 #else 4 #end, FlxG.width, #if PRELOAD_ALL "Press SPACE to listen this Song / Press RESET to reset your Score and Accuracy" #else "Press RESET to reset your Score and Accuracy" #end, 18);
 		text.setFormat(Paths.font("vcr.ttf"), 18, FlxColor.WHITE, RIGHT);
 		text.scrollFactor.set();
 		add(text);
@@ -231,7 +228,9 @@ class FreeplayState extends MusicBeatState
 		if (controls.UI_LEFT_P) changeDiff(-1);
 		if (controls.UI_RIGHT_P) changeDiff(1);
 
+		#if MODS_ALLOWED
 		if (FlxG.keys.justPressed.TAB) openSubState(new DownloadSubState());
+		#end
 		//if (FlxG.keys.justPressed.P) CoolUtil.downloadSong('ballistic');
 		//if (FlxG.keys.justPressed.DELETE && Paths.formatToSongPath(songs[curSelected].songName) != 'tutorial') CoolUtil.deleteThing(Paths.formatToSongPath(songs[curSelected].songName), 0);
 
@@ -382,7 +381,6 @@ class FreeplayState extends MusicBeatState
 			infoText.text = "Press TAB to open download menu / You can't delete this song";
 		else
 			infoText.text = "Press TAB to open download menu / Press DELETE to delete this song";*/
-		infoText.text = "Press TAB to open download menu";
 
 		difficultyName = CoolUtil.parseDiffNames(Paths.formatToSongPath(songs[curSelected].songName), curDifficulty);
 
