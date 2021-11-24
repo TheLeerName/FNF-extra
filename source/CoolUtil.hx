@@ -732,15 +732,15 @@ class CoolUtil
 	{
 		if (fromNet)
 		{
-			return Std.int(haxe.Json.parse(parseRepoFiles('main/data/${song}/songData.json')).difficultyCount - 1);
+			return Std.int(haxe.Json.parse(parseRepoFiles('main/data/${song}/songData.json')).difficultyNames.length - 1);
 		}
 		else
 		{
 			#if MODS_ALLOWED
 			if (FileSystem.exists(Paths.modFolders('weeks/${song}.json')))
-				return Std.int(haxe.Json.parse(File.getContent(Paths.modsJson('${song}/songData'))).difficultyCount - 1);
+				return Std.int(haxe.Json.parse(File.getContent(Paths.modsJson('${song}/songData'))).difficultyNames.length - 1);
 			else
-				return Std.int(haxe.Json.parse(openfl.utils.Assets.getText('assets/data/${song}/songData.json')).difficultyCount - 1);
+				return Std.int(haxe.Json.parse(openfl.utils.Assets.getText('assets/data/${song}/songData.json')).difficultyNames.length - 1);
 			#else
 			trace('This function is disabled, when MODS_ALLOWED is false!');
 			return 3;
