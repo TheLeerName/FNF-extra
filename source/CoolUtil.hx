@@ -12,13 +12,6 @@ import sys.FileSystem;
 
 using StringTools;
 
-typedef SongData =
-{
-	var offset:Float;
-	var difficultyCount:Int;
-	var difficultyNames:Array<String>;
-}
-
 class CoolUtil
 {
 	inline static public function parseRepoFiles(key:String, user_slash_repo:String = 'TheLeerName/FNF-extra-docs', site_with_https:String = 'https://raw.githubusercontent.com') // here (check 27 line)
