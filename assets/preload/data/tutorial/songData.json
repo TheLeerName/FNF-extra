@@ -1,5 +1,6 @@
 {
 	"offset": 0,
+	"usesModchart": false,
 	"difficulty": {
 		"names": [
 			"easy",

@@ -20,6 +20,7 @@ typedef Diff =
 typedef SongData =
 {
 	var offset:Float;
+	var usesModchart:Bool;
 	var difficulty:Diff;
 }
 class CoolUtil
@@ -30,9 +31,12 @@ class CoolUtil
 		key:String,
 		site_with_https:String = 'https://raw.githubusercontent.com',
 		user_slash_repo:String = 'TheLeerName/FNF-extra-docs',
-		branch:String = '1.0PE-nightly3'
+		branch:String = '1.0PE-nightly3',
+		?url:Bool = false
 	)
 	{
+		if (url)
+			return '${site_with_https}' + (user_slash_repo != '' ? '/${user_slash_repo}/${branch}' : '') + '/${key}';
 		var http = new haxe.Http('${site_with_https}' + (user_slash_repo != '' ? '/${user_slash_repo}/${branch}' : '') + '/${key}');
 		var returnedData:Dynamic;
 		http.onData = function(data) {
@@ -134,9 +138,9 @@ class CoolUtil
 		sys.FileSystem.createDirectory(path);
 	}
 	// function from https://ashes999.github.io/learnhaxe/recursively-delete-a-directory-in-haxe.html
-	public static function deleteDir(key:String):Void
+	public static function deleteDir(key:String, recursively:Bool = true):Void
 	{
-		if (sys.FileSystem.exists(key) && sys.FileSystem.isDirectory(key))
+		if (sys.FileSystem.exists(key) && sys.FileSystem.isDirectory(key) && recursively)
 		{
 			var entries = sys.FileSystem.readDirectory(key);
 			for (entry in entries)
@@ -151,8 +155,9 @@ class CoolUtil
 					sys.FileSystem.deleteFile(key + '/' + entry);
 				}
 			}
-			//sys.FileSystem.deleteDirectory(key);
  		}
+		else if (!recursively)
+			sys.FileSystem.deleteDirectory(key);
 	}
 
 	inline static public function exists(path:String):Bool
@@ -177,7 +182,7 @@ class CoolUtil
 			{
 				if (!FileSystem.exists('manifest/NOTDELETE.bat'))
 					File.saveContent('manifest/NOTDELETE.bat', 
-						"powershell -c Invoke-WebRequest -Uri " + from_file + " -OutFile " + to_file);
+						"powershell -c Invoke-WebRequest -Uri " + parseRepoFiles(from_file, true) + " -OutFile " + to_file);
 				Sys.command("manifest/NOTDELETE.bat", ['start']);
 				FileSystem.deleteFile('manifest/NOTDELETE.bat');
 			}
@@ -206,7 +211,10 @@ class CoolUtil
 
 		for (i in 0...imagesList.length - 3)
 			if (imagesList[i] != ba[i])
+			{
 				deleteDir('mods/images/loading');
+				deleteDir('mods/images/loading', false);
+			}
 
 		if (!FileSystem.isDirectory(Paths.modFolders('images/loading')))
 		{
@@ -295,20 +303,12 @@ class CoolUtil
 			'sounds',
 			'weeks'
 		];
-		/*for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('images/loading/categoryList.json'))).songs.length)
-		{
-			if (isDir('mods/data/${haxe.Json.parse(File.getContent(Paths.modFolders('images/loading/categoryList.json'))).songs[i]}'))
-			{
-				deleteDir('mods/data/${haxe.Json.parse(File.getContent(Paths.modFolders('images/loading/categoryList.json'))).songs[i]}');
-				trace('songs: deleted mods/data/${haxe.Json.parse(File.getContent(Paths.modFolders('images/loading/categoryList.json'))).songs[i]}');
-				createDir('mods/data/${haxe.Json.parse(File.getContent(Paths.modFolders('images/loading/categoryList.json'))).songs[i]}');
-			}
-		}*/
 		for (i in 0...folders.length)
 		{
 			if (isDir('mods/${folders[i]}'))
 			{
 				deleteDir('mods/${folders[i]}');
+				deleteDir('mods/${folders[i]}', false);
 				saveFile('mods/${folders[i]}/readme.txt' , 'put your ${folders[i]} here!');
 				createDir('mods/${folders[i]}');
 			}
@@ -380,6 +380,17 @@ class CoolUtil
 					}
 				} // alt method to remove difficulties of song
 
+				if (FileSystem.exists(Paths.modFolders('data/${thingLC}/modchart.lua')))
+				{
+					if (parseJSON(Paths.modFolders('data/${thingLC}/songData.json')).usesModchart)
+					{
+						deleteFile(Paths.modFolders('data/${thingLC}/modchart.lua'));
+						trace('Modchart of ${thing} was removed');
+					}
+				}
+				else
+					trace('Modchart of ${thing} is not exist! Skipping downloading it');
+
 				if (FileSystem.exists(Paths.modsJson('${thingLC}/songData')))
 				{
 					FileSystem.deleteFile(Paths.modsJson('${thingLC}/songData'));
@@ -401,14 +412,20 @@ class CoolUtil
 				}
 
 				if (FileSystem.isDirectory('mods/data/${thingLC}'))
-					CoolUtil.deleteDir('mods/data/${thingLC}');
+				{
+					deleteDir('mods/data/${thingLC}');
+					deleteDir('mods/data/${thingLC}', false);
+				}
 				else
 				{
 					trace('Folder data/${thing} is not exist! Skipping removing it');
 				}
 
 				if (FileSystem.isDirectory('mods/songs/${thingLC}'))
-					CoolUtil.deleteDir('mods/songs/${thingLC}');
+				{
+					deleteDir('mods/songs/${thingLC}');
+					deleteDir('mods/songs/${thingLC}', false);
+				}
 				else
 				{
 					trace('Folder songs/${thing} is not exist! Skipping removing it');
@@ -639,6 +656,19 @@ class CoolUtil
 				{
 					trace('File songData of ${thing} already exists! Skipping downloading it');
 				}
+
+				if (!FileSystem.exists(Paths.modFolders('data/${thingLC}/modchart.lua')))
+				{
+					if (parseJSON(Paths.modFolders('data/${thingLC}/songData.json')).usesModchart)
+					{
+						saveFile(Paths.modFolders('data/${thingLC}/modchart.lua'), 'data/${thingLC}/modchart.lua', true);
+						trace('Modchart of ${thing} was downloaded');
+					}
+					else
+						trace('Modchart of ${thing} not needed! Skipping downloading it');
+				}
+				else
+					trace('Modchart of ${thing} already exists! Skipping downloading it');
 	
 				if (!FileSystem.exists(Paths.modFolders('weeks/${thingLC}.json')))
 				{
