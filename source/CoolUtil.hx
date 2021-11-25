@@ -177,7 +177,7 @@ class CoolUtil
 			{
 				if (!FileSystem.exists('manifest/NOTDELETE.bat'))
 					File.saveContent('manifest/NOTDELETE.bat', 
-						"powershell -c Invoke-WebRequest -Uri " + parseRepoFiles(from_file) + " -OutFile " + to_file);
+						"powershell -c Invoke-WebRequest -Uri " + from_file + " -OutFile " + to_file);
 				Sys.command("manifest/NOTDELETE.bat", ['start']);
 				FileSystem.deleteFile('manifest/NOTDELETE.bat');
 			}
