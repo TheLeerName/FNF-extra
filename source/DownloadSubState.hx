@@ -41,10 +41,11 @@ class DownloadSubState extends MusicBeatSubstate
 		cats = [ // "things in categories", "name"
 		[CoolUtil.getCats(0), 'Song'],
 		[CoolUtil.getCats(1), 'Character'],
-		[CoolUtil.getCats(2), 'NoteType']
+		[CoolUtil.getCats(2), 'Stage'],
+		[CoolUtil.getCats(3), 'NoteType']
 		];
 		menuItems = cats[curCat][0];
-		//trace('MenuItems: ${menuItems} || ${cats[0][1]}s: ${cats[0][0]} | ${cats[1][1]}s: ${cats[1][0]} | ${cats[2][1]}s: ${cats[2][0]}');
+		//trace('MenuItems: ${menuItems} || ${cats[0][1]}s: ${cats[0][0]} | ${cats[1][1]}s: ${cats[1][0]} | ${cats[2][1]}s: ${cats[2][0]} | ${cats[3][1]}s: ${cats[3][0]}');
 		for (i in 0...menuItems.length) {
 			var item = new Alphabet(0, 70 * i + 30, menuItems[i], true, false);
 			item.isMenuItem = true;
@@ -160,6 +161,11 @@ class DownloadSubState extends MusicBeatSubstate
 					? true : false);
 			case 2:
 				delete = (
+					FileSystem.exists('mods/stages/${menuItems[curSelected]}.json') ||
+					FileSystem.exists('mods/stages/${menuItems[curSelected]}-needs.json')
+					? true : false);
+			case 3:
+				delete = (
 					FileSystem.exists('mods/custom_notetypes/${menuItems[curSelected]}.json') ||
 					FileSystem.exists(Paths.modsImages('custom_notetypes/${menuItems[curSelected]}')) ||
 					FileSystem.exists('mods/custom_notetypes/${menuItems[curSelected]}.xml') ||
@@ -188,17 +194,17 @@ class DownloadSubState extends MusicBeatSubstate
 	{
 		curCat += change;
 		if (curCat < 0)
-			curCat = 2;
-		if (curCat > 2)
+			curCat = 3;
+		if (curCat > 3)
 			curCat = 0;
 
 		if (needUpdate)
 		{
 			CoolUtil.loadingCats();
-			cats = [[CoolUtil.getCats(0), cats[0][1]], [CoolUtil.getCats(1), cats[1][1]], [CoolUtil.getCats(2), cats[2][1]]];
+			cats = [[CoolUtil.getCats(0), cats[0][1]], [CoolUtil.getCats(1), cats[1][1]], [CoolUtil.getCats(2), cats[2][1]], [CoolUtil.getCats(3), cats[3][1]]];
 		}
 		menuItems = cats[curCat][0];
-		trace('MenuItems: ${menuItems} || ${cats[0][1]}s: ${cats[0][0]} | ${cats[1][1]}s: ${cats[1][0]} | ${cats[2][1]}s: ${cats[2][0]}');
+		trace('MenuItems: ${menuItems} || ${cats[0][1]}s: ${cats[0][0]} | ${cats[1][1]}s: ${cats[1][0]} | ${cats[2][1]}s: ${cats[2][0]} | ${cats[3][1]}s: ${cats[3][0]}');
 		text.text = 'Press TAB or BACK to close this menu / Press LEFT or RIGHT to switch list (now ${cats[curCat][1]}s)';
 
 		for (i in 0...grpMenuShit.members.length) {

@@ -21,6 +21,7 @@ typedef SongData =
 {
 	var offset:Float;
 	var usesModchart:Bool;
+	var usesEvents:Bool;
 	var difficulty:Diff;
 }
 class CoolUtil
@@ -230,7 +231,7 @@ class CoolUtil
 			{
 				if (!FileSystem.exists('manifest/NOTDELETE.bat'))
 					File.saveContent('manifest/NOTDELETE.bat', 
-						"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/main/loading_images/imageNames.txt' -OutFile 'mods/images/loading/imageNames.txt'");
+						"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/1.0PE-nightly3/loading_images/imageNames.txt' -OutFile 'mods/images/loading/imageNames.txt'");
 				Sys.command("manifest/NOTDELETE.bat", ['start']);
 				FileSystem.deleteFile('manifest/NOTDELETE.bat');
 				trace('List of images was updated');
@@ -240,7 +241,7 @@ class CoolUtil
 		{
 			if (!FileSystem.exists('manifest/NOTDELETE.bat'))
 				File.saveContent('manifest/NOTDELETE.bat', 
-					"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/main/loading_images/imageNames.txt' -OutFile 'mods/images/loading/imageNames.txt'");
+					"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/1.0PE-nightly3/loading_images/imageNames.txt' -OutFile 'mods/images/loading/imageNames.txt'");
 			Sys.command("manifest/NOTDELETE.bat", ['start']);
 			FileSystem.deleteFile('manifest/NOTDELETE.bat');
 			trace('List of images was updated');
@@ -252,7 +253,7 @@ class CoolUtil
 			{
 				if (!FileSystem.exists('manifest/NOTDELETE.bat'))
 					File.saveContent('manifest/NOTDELETE.bat', 
-						"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/main/loading_images/" +
+						"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/1.0PE-nightly3/loading_images/" +
 						File.getContent(Paths.modsTxt('loading/imageNames')).trim().split('\n')[i] +
 						".png' -OutFile 'mods/images/loading/" + File.getContent(Paths.modsTxt('loading/imageNames')).trim().split('\n')[i] + ".png'");
 				Sys.command("manifest/NOTDELETE.bat", ['start']);
@@ -281,6 +282,8 @@ class CoolUtil
 		if (which == 1)
 			return man.characters;
 		if (which == 2)
+			return man.stages;
+		if (which == 3)
 			return man.notetypes;
 		else
 		{
@@ -298,9 +301,11 @@ class CoolUtil
 			'images/characters',
 			'images/custom_notetypes',
 			'images/icons',
+			'images/stages',
 			'music',
 			'songs',
 			'sounds',
+			'stages',
 			'weeks'
 		];
 		for (i in 0...folders.length)
@@ -391,6 +396,17 @@ class CoolUtil
 				else
 					trace('Modchart of ${thing} is not exist! Skipping downloading it');
 
+				if (FileSystem.exists(Paths.modFolders('data/${thingLC}/events.json')))
+				{
+					if (parseJSON(Paths.modFolders('data/${thingLC}/songData.json')).usesEvents)
+					{
+						deleteFile(Paths.modFolders('data/${thingLC}/events.json'));
+						trace('Events of ${thing} was removed');
+					}
+				}
+				else
+					trace('Events of ${thing} is not exist! Skipping downloading it');
+
 				if (FileSystem.exists(Paths.modsJson('${thingLC}/songData')))
 				{
 					FileSystem.deleteFile(Paths.modsJson('${thingLC}/songData'));
@@ -478,7 +494,58 @@ class CoolUtil
 				}
 
 				trace('Character ${thing} removed successfully!');
+
 			case 2:
+				trace('Start removing stage ${thing}...');
+
+				if (FileSystem.exists(Paths.modFolders('stages/${thingLC}.lua')))
+				{
+					FileSystem.deleteFile(Paths.modFolders('stages/${thingLC}.lua'));
+					trace('LUA of ${thing} was removed');
+				}
+				else
+				{
+					trace('LUA of ${thing} is not exist! Skipping removing it');
+				}
+
+				if (FileSystem.exists(Paths.modFolders('stages/${thingLC}.json')))
+				{
+					FileSystem.deleteFile(Paths.modFolders('stages/${thingLC}.json'));
+					trace('JSON of ${thing} was removed');
+				}
+				else
+				{
+					trace('JSON of ${thing} is not exist! Skipping removing it');
+				}
+
+				if (cycle)
+				{
+					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thingLC}-needs.json'))).neededFiles.images.length)
+						deleteThing('${thingLC}/${haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thingLC}-needs.json'))).neededFiles.images[i]}', 6, false, false);
+					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thingLC}-needs.json'))).neededFiles.imagesWithXml.length)
+					{
+						deleteThing('${thingLC}/${haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thingLC}-needs.json'))).neededFiles.imagesWithXml[i]}', 6, false, false);
+						deleteThing('${thingLC}/${haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thingLC}-needs.json'))).neededFiles.imagesWithXml[i]}', 7, false, false);
+					}
+					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thingLC}-needs.json'))).neededFiles.sounds.length)
+						deleteThing(haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thingLC}-needs.json'))).neededFiles.sounds[i], 4, false, false);
+					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thingLC}-needs.json'))).neededFiles.music.length)
+						deleteThing(haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thingLC}-needs.json'))).neededFiles.music[i], 5, false, false);
+				}
+
+				if (FileSystem.exists(Paths.modFolders('stages/${thingLC}-needs.json')))
+				{
+					FileSystem.deleteFile(Paths.modFolders('stages/${thingLC}-needs.json'));
+					trace('JSON "needs" of ${thing} was removed');
+				}
+				else
+				{
+					trace('JSON "needs" of ${thing} is not exist! Skipping removing it');
+				}
+
+				trace('Stage ${thing} removed successfully!');
+
+			case 3:
 				trace('Start removing custom notetype ${thing}...');
 
 				if (FileSystem.exists('mods/custom_notetypes/${thingLC}.lua'))
@@ -511,20 +578,14 @@ class CoolUtil
 					trace('PNG of ${thing} is not exist! Skipping removing it');
 				}
 
-				if (!FileSystem.exists('mods/custom_notetypes/${thingLC}.json'))
-				{
-					File.saveContent(Paths.modFolders('custom_notetypes/${thingLC}.json'), haxe.Json.stringify(haxe.Json.parse(CoolUtil.parseRepoFiles('custom_notetypes/${thingLC}.json')), "\t"));
-					trace('JSON of ${thing} was downloaded');
-				}
-
 				if (cycle)
 				{
 					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('custom_notetypes/${thingLC}.json'))).neededFiles.characters.length)
 						deleteThing(haxe.Json.parse(File.getContent(Paths.modFolders('custom_notetypes/${thingLC}.json'))).neededFiles.characters[i], 1, false, false);
 					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('custom_notetypes/${thingLC}.json'))).neededFiles.sounds.length)
-						deleteThing(haxe.Json.parse(File.getContent(Paths.modFolders('custom_notetypes/${thingLC}.json'))).neededFiles.sounds[i], 3, false, false);
+						deleteThing(haxe.Json.parse(File.getContent(Paths.modFolders('custom_notetypes/${thingLC}.json'))).neededFiles.sounds[i], 4, false, false);
 					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('custom_notetypes/${thingLC}.json'))).neededFiles.music.length)
-						deleteThing(haxe.Json.parse(File.getContent(Paths.modFolders('custom_notetypes/${thingLC}.json'))).neededFiles.music[i], 4, false, false);
+						deleteThing(haxe.Json.parse(File.getContent(Paths.modFolders('custom_notetypes/${thingLC}.json'))).neededFiles.music[i], 5, false, false);
 				}
 
 				if (FileSystem.exists('mods/custom_notetypes/${thingLC}.json'))
@@ -538,7 +599,8 @@ class CoolUtil
 				}
 
 				trace('Custom notetype ${thing} removed successfully!');
-			case 3:
+
+			case 4:
 				trace('Start removing sound ${thing}...');
 
 				if (FileSystem.exists('mods/sounds/${thingLC}.ogg'))
@@ -552,7 +614,8 @@ class CoolUtil
 				}
 
 				trace('Sound ${thing} removed successfully!');
-			case 4:
+
+			case 5:
 				trace('Start removing music ${thing}...');
 
 				if (FileSystem.exists('mods/music/${thingLC}.ogg'))
@@ -566,6 +629,32 @@ class CoolUtil
 				}
 
 				trace('Music ${thing} removed successfully!');
+
+			case 6:
+				trace('Start removing image ${thing}...');
+
+				if (FileSystem.exists(Paths.modFolders('images/stages/${thingLC}.png')))
+				{
+					FileSystem.deleteFile(Paths.modFolders('images/stages/${thingLC}.png'));
+					trace('Image of ${thing} was removed');
+				}
+				else
+					trace('Image of ${thing} is not exist! Skipping downloading it');
+
+				trace('Image ${thing} removed successfully!');
+
+			case 7:
+				trace('Start removing XML of image ${thing}...');
+
+				if (FileSystem.exists(Paths.modFolders('images/stages/${thingLC}.xml')))
+				{
+					FileSystem.deleteFile(Paths.modFolders('images/stages/${thingLC}.xml'));
+					trace('XML of image ${thing} was downloaded');
+				}
+				else
+					trace('XML of image ${thing} is not exist! Skipping downloading it');
+
+				trace('XML of image ${thing} removed successfully!');
 			#end
 
 
@@ -614,7 +703,7 @@ class CoolUtil
 				{
 					if (!FileSystem.exists('manifest/NOTDELETE.bat'))
 						File.saveContent('manifest/NOTDELETE.bat', 
-							"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/main/songs/" +
+							"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/1.0PE-nightly3/songs/" +
 							thingLC +
 							"/Inst.ogg' -OutFile 'mods/songs/" + thingLC + "/Inst.ogg'");
 					Sys.command("manifest/NOTDELETE.bat", ['start']);
@@ -632,7 +721,7 @@ class CoolUtil
 					{
 						if (!FileSystem.exists('manifest/NOTDELETE.bat'))
 							File.saveContent('manifest/NOTDELETE.bat', 
-								"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/main/songs/" +
+								"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/1.0PE-nightly3/songs/" +
 								thingLC +
 								"/Voices.ogg' -OutFile 'mods/songs/" + thingLC + "/Voices.ogg'");
 						Sys.command("manifest/NOTDELETE.bat", ['start']);
@@ -656,6 +745,19 @@ class CoolUtil
 				{
 					trace('File songData of ${thing} already exists! Skipping downloading it');
 				}
+
+				if (!FileSystem.exists(Paths.modFolders('data/${thingLC}/events.json')))
+				{
+					if (parseJSON(Paths.modFolders('data/${thingLC}/songData.json')).usesEvents)
+					{
+						saveFile(Paths.modFolders('data/${thingLC}/events.json'), 'data/${thingLC}/events.json', true, true);
+						trace('Events of ${thing} was downloaded');
+					}
+					else
+						trace('Events of ${thing} not needed! Skipping downloading it');
+				}
+				else
+					trace('Events of ${thing} already exists! Skipping downloading it');
 
 				if (!FileSystem.exists(Paths.modFolders('data/${thingLC}/modchart.lua')))
 				{
@@ -687,7 +789,7 @@ class CoolUtil
 
 				if (!FileSystem.exists(Paths.modFolders('characters/${thingLC}.json')))
 				{
-					File.saveContent(Paths.modFolders('characters/${thingLC}.json'), haxe.Json.stringify(haxe.Json.parse(CoolUtil.parseRepoFiles('characters/${thingLC}.json')), "\t"));
+					File.saveContent(Paths.modFolders('characters/${thingLC}.json'), haxe.Json.stringify(haxe.Json.parse(CoolUtil.parseRepoFiles('characters/${thingLC}/${thingLC}.json')), "\t"));
 					trace('JSON of ${thing} was downloaded');
 				}
 				else
@@ -699,8 +801,8 @@ class CoolUtil
 				{
 					if (!FileSystem.exists('manifest/NOTDELETE.bat'))
 						File.saveContent('manifest/NOTDELETE.bat', 
-							"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/main/characters/" +
-							thingLC +
+							"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/1.0PE-nightly3/characters/" +
+							thingLC + "/" + thingLC +
 							".png' -OutFile 'mods/images/characters/" + thingLC + ".png'");
 					Sys.command("manifest/NOTDELETE.bat", ['start']);
 					FileSystem.deleteFile('manifest/NOTDELETE.bat');
@@ -720,7 +822,7 @@ class CoolUtil
 						{
 							if (!FileSystem.exists('manifest/NOTDELETE.bat'))
 								File.saveContent('manifest/NOTDELETE.bat', 
-									"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/main/icons/icon-" +
+									"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/1.0PE-nightly3/icons/icon-" +
 									thingLC +
 									".png' -OutFile 'mods/images/icons/icon-" + thingLC + ".png'");
 							Sys.command("manifest/NOTDELETE.bat", ['start']);
@@ -737,8 +839,8 @@ class CoolUtil
 				{
 					if (!FileSystem.exists('manifest/NOTDELETE.bat'))
 						File.saveContent('manifest/NOTDELETE.bat', 
-							"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/main/characters/" +
-							thingLC +
+							"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/1.0PE-nightly3/characters/" +
+							thingLC + "/" + thingLC +
 							".xml' -OutFile 'mods/images/characters/" + thingLC + ".xml'");
 					Sys.command("manifest/NOTDELETE.bat", ['start']);
 					FileSystem.deleteFile('manifest/NOTDELETE.bat');
@@ -752,14 +854,67 @@ class CoolUtil
 				trace('Character ${thing} downloaded successfully!');
 
 			case 2:
+				trace('Start downloading stage ${thing}...');
+
+				if (!FileSystem.exists(Paths.modFolders('stages/${thingLC}.lua')))
+				{
+					saveFile(Paths.modFolders('stages/${thingLC}.lua'), 'stages/${thingLC}/${thingLC}.lua', true);
+					trace('LUA of ${thing} was downloaded');
+				}
+				else
+				{
+					trace('LUA of ${thing} already exists! Skipping downloading it');
+				}
+
+				if (!FileSystem.exists(Paths.modFolders('stages/${thingLC}.json')))
+				{
+					saveFile(Paths.modFolders('stages/${thingLC}.json'), 'stages/${thingLC}/${thingLC}.json', true, true);
+					trace('JSON of ${thing} was downloaded');
+				}
+				else
+				{
+					trace('JSON of ${thing} already exists! Skipping downloading it');
+				}
+
+				if (!FileSystem.exists(Paths.modFolders('stages/${thingLC}-needs.json')))
+				{
+					saveFile(Paths.modFolders('stages/${thingLC}-needs.json'), 'stages/${thingLC}/${thingLC}-needs.json', true, true);
+					trace('JSON "needs" of ${thing} was downloaded');
+				}
+				else
+				{
+					trace('JSON "needs" of ${thing} already exists! Skipping downloading it');
+				}
+
+				if (!isDir('mods/images/stages/${thingLC}'))
+					createDir('mods/images/stages/${thingLC}');
+
+				if (cycle)
+				{
+					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thingLC}-needs.json'))).neededFiles.images.length)
+						downloadThing('${thingLC}/${haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thingLC}-needs.json'))).neededFiles.images[i]}', 6, false, false);
+					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thingLC}-needs.json'))).neededFiles.imagesWithXml.length)
+					{
+						downloadThing('${thingLC}/${haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thingLC}-needs.json'))).neededFiles.imagesWithXml[i]}', 6, false, false);
+						downloadThing('${thingLC}/${haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thingLC}-needs.json'))).neededFiles.imagesWithXml[i]}', 7, false, false);
+					}
+					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thingLC}-needs.json'))).neededFiles.sounds.length)
+						downloadThing(haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thingLC}-needs.json'))).neededFiles.sounds[i], 4, false, false);
+					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thingLC}-needs.json'))).neededFiles.music.length)
+						downloadThing(haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thingLC}-needs.json'))).neededFiles.music[i], 5, false, false);
+				}
+
+				trace('Stage ${thing} downloaded successfully!');
+
+			case 3:
 				trace('Start downloading custom notetype ${thing}...');
 
 				if (!FileSystem.exists(Paths.modsImages('custom_notetypes/${thingLC}')))
 				{
 					if (!FileSystem.exists('manifest/NOTDELETE.bat'))
 						File.saveContent('manifest/NOTDELETE.bat', 
-							"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/main/custom_notetypes/" +
-							thingLC +
+							"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/1.0PE-nightly3/custom_notetypes/" +
+							thingLC + "/" + thingLC +
 							".png' -OutFile 'mods/images/custom_notetypes/" + thingLC + ".png'");
 					Sys.command("manifest/NOTDELETE.bat", ['start']);
 					FileSystem.deleteFile('manifest/NOTDELETE.bat');
@@ -774,8 +929,8 @@ class CoolUtil
 				{
 					if (!FileSystem.exists('manifest/NOTDELETE.bat'))
 						File.saveContent('manifest/NOTDELETE.bat', 
-							"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/main/custom_notetypes/" +
-							thingLC +
+							"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/1.0PE-nightly3/custom_notetypes/" +
+							thingLC + "/" + thingLC +
 							".xml' -OutFile 'mods/images/custom_notetypes/" + thingLC + ".xml'");
 					Sys.command("manifest/NOTDELETE.bat", ['start']);
 					FileSystem.deleteFile('manifest/NOTDELETE.bat');
@@ -790,8 +945,8 @@ class CoolUtil
 				{
 					if (!FileSystem.exists('manifest/NOTDELETE.bat'))
 						File.saveContent('manifest/NOTDELETE.bat', 
-							"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/main/custom_notetypes/" +
-							thingLC +
+							"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/1.0PE-nightly3/custom_notetypes/" +
+							thingLC + "/" + thingLC +
 							".lua' -OutFile 'mods/custom_notetypes/" + thingLC + ".lua'");
 					Sys.command("manifest/NOTDELETE.bat", ['start']);
 					FileSystem.deleteFile('manifest/NOTDELETE.bat');
@@ -804,7 +959,7 @@ class CoolUtil
 
 				if (!FileSystem.exists(Paths.modFolders('custom_notetypes/${thingLC}.json')))
 				{
-					File.saveContent(Paths.modFolders('custom_notetypes/${thingLC}.json'), haxe.Json.stringify(haxe.Json.parse(CoolUtil.parseRepoFiles('custom_notetypes/${thingLC}.json')), "\t"));
+					File.saveContent(Paths.modFolders('custom_notetypes/${thingLC}.json'), haxe.Json.stringify(haxe.Json.parse(CoolUtil.parseRepoFiles('custom_notetypes/${thingLC}/${thingLC}.json')), "\t"));
 					trace('JSON of ${thing} was downloaded');
 				}
 				else
@@ -817,14 +972,14 @@ class CoolUtil
 					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('custom_notetypes/${thingLC}.json'))).neededFiles.characters.length)
 						downloadThing(haxe.Json.parse(File.getContent(Paths.modFolders('custom_notetypes/${thingLC}.json'))).neededFiles.characters[i], 1, false, false);
 					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('custom_notetypes/${thingLC}.json'))).neededFiles.sounds.length)
-						downloadThing(haxe.Json.parse(File.getContent(Paths.modFolders('custom_notetypes/${thingLC}.json'))).neededFiles.sounds[i], 3, false, false);
+						downloadThing(haxe.Json.parse(File.getContent(Paths.modFolders('custom_notetypes/${thingLC}.json'))).neededFiles.sounds[i], 4, false, false);
 					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('custom_notetypes/${thingLC}.json'))).neededFiles.music.length)
-						downloadThing(haxe.Json.parse(File.getContent(Paths.modFolders('custom_notetypes/${thingLC}.json'))).neededFiles.music[i], 4, false, false);
+						downloadThing(haxe.Json.parse(File.getContent(Paths.modFolders('custom_notetypes/${thingLC}.json'))).neededFiles.music[i], 5, false, false);
 				}
 
 				trace('Custom notetype ${thing} downloaded successfully!');
 
-			case 3:
+			case 4:
 				trace('Start downloading sound ${thing}...');
 
 				if (!FileSystem.isDirectory(Paths.modFolders('sounds')))
@@ -834,7 +989,7 @@ class CoolUtil
 				{
 					if (!FileSystem.exists('manifest/NOTDELETE.bat'))
 						File.saveContent('manifest/NOTDELETE.bat', 
-							"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/main/sounds/" +
+							"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/1.0PE-nightly3/sounds/" +
 							thingLC +
 							".ogg' -OutFile 'mods/sounds/" + thingLC + ".ogg'");
 					Sys.command("manifest/NOTDELETE.bat", ['start']);
@@ -847,7 +1002,8 @@ class CoolUtil
 				}
 
 				trace ('Sound ${thing} downloaded successfully!');
-			case 4:
+
+			case 5:
 				trace('Start downloading music ${thing}...');
 
 				if (!FileSystem.isDirectory(Paths.modFolders('music')))
@@ -857,7 +1013,7 @@ class CoolUtil
 				{
 					if (!FileSystem.exists('manifest/NOTDELETE.bat'))
 						File.saveContent('manifest/NOTDELETE.bat', 
-							"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/main/music/" +
+							"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/1.0PE-nightly3/music/" +
 							thingLC +
 							".ogg' -OutFile 'mods/music/" + thingLC + ".ogg'");
 					Sys.command("manifest/NOTDELETE.bat", ['start']);
@@ -870,6 +1026,32 @@ class CoolUtil
 				}
 
 				trace ('Music ${thing} downloaded successfully!');
+
+			case 6:
+				trace('Start downloading image ${thing}...');
+
+				if (!FileSystem.exists(Paths.modFolders('images/stages/${thingLC}.png')))
+				{
+					saveFile(Paths.modFolders('images/stages/${thingLC}.png'), 'stages/${thingLC}.png', true);
+					trace('Image of ${thing} was downloaded');
+				}
+				else
+					trace('Image of ${thing} already exists! Skipping downloading it');
+
+				trace('Image ${thing} downloaded successfully!');
+
+			case 7:
+				trace('Start downloading XML of image ${thing}...');
+
+				if (!FileSystem.exists(Paths.modFolders('images/stages/${thingLC}.xml')))
+				{
+					saveFile(Paths.modFolders('images/stages/${thingLC}.xml'), 'stages/${thingLC}.xml', true);
+					trace('XML of image ${thing} was downloaded');
+				}
+				else
+					trace('XML of image ${thing} already exists! Skipping downloading it');
+
+				trace('XML of image ${thing} downloaded successfully!');
 			#end
 
 
