@@ -12,12 +12,28 @@ import sys.FileSystem;
 
 using StringTools;
 
+typedef Diff =
+{
+	var names:Array<String>;
+	var needUpperCase:Bool;	
+}
+typedef SongData =
+{
+	var offset:Float;
+	var difficulty:Diff;
+}
 class CoolUtil
 {
-	inline static public function parseRepoFiles(key:String, user_slash_repo:String = 'TheLeerName/FNF-extra-docs', site_with_https:String = 'https://raw.githubusercontent.com') // here (check 27 line)
+	inline static public function parseRepoFiles
+	(
+		// you can change default repository and branch or site easily here
+		key:String,
+		site_with_https:String = 'https://raw.githubusercontent.com',
+		user_slash_repo:String = 'TheLeerName/FNF-extra-docs',
+		branch:String = '1.0PE-nightly3'
+	)
 	{
-		var http = new haxe.Http('${site_with_https}' + (user_slash_repo != '' ? '/${user_slash_repo}' : '') + '/${key}');
-		// you can change repository or site easily now in args of function :)
+		var http = new haxe.Http('${site_with_https}' + (user_slash_repo != '' ? '/${user_slash_repo}/${branch}' : '') + '/${key}');
 		var returnedData:Dynamic;
 		http.onData = function(data) {
 			returnedData = data;
@@ -30,10 +46,96 @@ class CoolUtil
 		return returnedData;
 	}
 
+	/*inline static public function stringify(inDir:String, outDir:String)
+	{
+		#if sys
+		File.saveContent(inDir, haxe.Json.stringify(haxe.Json.parse(parseRepoFiles(outDir)), "\t"));
+		trace('Successfully downloaded file from ${outDir}, and saved to ${inDir}!');
+		#else
+		trace('This function is disabled, when build is not sys!');
+		#end
+	}
+	// this three functions used for testing only!
+	inline static public function parseRepoTest(key:String)
+	{
+		var man = haxe.Json.parse(parseRepoFiles(key)).difficultyNames;
+		return 'Diffs from HTTP: ${man[0]}, ${man[1]}, ${man[2]}, ${man[3]}';
+	}
+	inline static public function parseSongDataJSON(key:String)
+	{
+		return haxe.Json.parse(Assets.getText(Paths.json('${key}/songData')));
+	}*/
+	inline static public function parseOffset(song:String, fromNet:Bool = false):Float
+	{
+		if (fromNet)
+			return haxe.Json.parse(parseRepoFiles('data/${song}/songData.json')).offset;
+
+		#if MODS_ALLOWED
+		var man:SongData = (FileSystem.exists(Paths.modFolders('weeks/${song}.json')) ? haxe.Json.parse(File.getContent(Paths.modsJson('${song}/songData'))) : haxe.Json.parse(openfl.utils.Assets.getText('assets/data/${song}/songData.json')));
+		return man.offset;
+		#else
+		trace('This function is disabled, when MODS_ALLOWED is false!');
+		return 0;
+		#end
+	}
+	inline static public function parseDiffCount(song:String, fromNet:Bool = false):Int
+	{
+		if (fromNet)
+			return Std.int(haxe.Json.parse(parseRepoFiles('data/${song}/songData.json')).difficulty.names.length - 1);
+
+		#if MODS_ALLOWED
+		var man:SongData = (FileSystem.exists(Paths.modFolders('weeks/${song}.json')) ? haxe.Json.parse(File.getContent(Paths.modsJson('${song}/songData'))) : haxe.Json.parse(openfl.utils.Assets.getText('assets/data/${song}/songData.json')));
+		return man.difficulty.names.length - 1;
+		#else
+		trace('This function is disabled, when MODS_ALLOWED is false!');
+		return 3;
+		#end
+	}
+	inline static public function parseDiffNames(song:String, curDifficulty:Int, fromNet:Bool = false, needUpperCase:Bool = true):String
+	{
+		if (fromNet)
+			return haxe.Json.parse(parseRepoFiles('data/${song}/songData.json')).difficulty.names[curDifficulty].toUpperCase();
+
+		#if MODS_ALLOWED
+		var man:SongData = (FileSystem.exists(Paths.modFolders('weeks/${song}.json')) ? haxe.Json.parse(File.getContent(Paths.modsJson('${song}/songData'))) : haxe.Json.parse(openfl.utils.Assets.getText('assets/data/${song}/songData.json')));
+		if (man.difficulty.needUpperCase && needUpperCase)
+			return man.difficulty.names[curDifficulty].toUpperCase();
+		else
+			return man.difficulty.names[curDifficulty];
+		#else
+		trace('This function is disabled, when MODS_ALLOWED is false!');
+		return 'NORMAL';
+		#end
+	}
+	inline static public function parseJSON(key:String, fromNet:Bool = false)
+	{
+		#if MODS_ALLOWED
+		if (fromNet)
+			return haxe.Json.parse(parseRepoFiles(key));
+		else
+			return haxe.Json.parse(File.getContent(key));
+		#else
+		trace('This function is disabled, when MODS_ALLOWED is false!');
+		return 0;
+		#end
+	}
+
+	#if MODS_ALLOWED
+	inline static public function isDir(path:String):Bool
+	{
+		return sys.FileSystem.isDirectory(path);
+	}
+	inline static public function readDir(path:String)
+	{
+		return sys.FileSystem.readDirectory(path);
+	}
+	static public function createDir(path:String)
+	{
+		sys.FileSystem.createDirectory(path);
+	}
 	// function from https://ashes999.github.io/learnhaxe/recursively-delete-a-directory-in-haxe.html
 	public static function deleteDir(key:String):Void
 	{
-		#if sys
 		if (sys.FileSystem.exists(key) && sys.FileSystem.isDirectory(key))
 		{
 			var entries = sys.FileSystem.readDirectory(key);
@@ -49,19 +151,46 @@ class CoolUtil
 					sys.FileSystem.deleteFile(key + '/' + entry);
 				}
 			}
-			sys.FileSystem.deleteDirectory(key);
+			//sys.FileSystem.deleteDirectory(key);
  		}
-		#else
-		trace('This function is disabled, when MODS_ALLOWED is false!');
-		#end
 	}
 
-	#if MODS_ALLOWED
+	inline static public function exists(path:String):Bool
+	{
+		return sys.FileSystem.exists(path);
+	}
+	inline static public function getContent(path:String)
+	{
+		sys.io.File.getContent(path);
+	}
+	static public function deleteFile(path:String)
+	{
+		sys.FileSystem.deleteFile(path);
+	}
+	static public function saveFile(to_file:String, from_file:String, fromNet:Bool = false, isJson:Bool = false)
+	{
+		if (fromNet)
+		{
+			if (isJson)
+				sys.io.File.saveContent(to_file, haxe.Json.stringify(parseJSON(from_file, true), "\t"));
+			else
+			{
+				if (!FileSystem.exists('manifest/NOTDELETE.bat'))
+					File.saveContent('manifest/NOTDELETE.bat', 
+						"powershell -c Invoke-WebRequest -Uri " + parseRepoFiles(from_file) + " -OutFile " + to_file);
+				Sys.command("manifest/NOTDELETE.bat", ['start']);
+				FileSystem.deleteFile('manifest/NOTDELETE.bat');
+			}
+		}
+		else
+			sys.io.File.saveContent(to_file, from_file);
+	}
+
 	static public function loadingImages()
 	{
 		trace('Starting checking images for loading screen...');
 
-		var ba:Array<String> = parseRepoFiles('main/loading_images/imageNames.txt').split('\n');
+		var ba:Array<String> = parseRepoFiles('loading_images/imageNames.txt').split('\n');
 		var imagesList:Array<String> = ['h'];
 		for (i in 0...FileSystem.readDirectory(Paths.modFolders('images/loading')).length)
 		{
@@ -132,7 +261,7 @@ class CoolUtil
 
 	static public function loadingCats() // i mean categories but not cats, of course
 	{
-		File.saveContent(Paths.modFolders('images/loading/categoryList.json'), haxe.Json.stringify(haxe.Json.parse(CoolUtil.parseRepoFiles('main/categoryList.json')), "\t"));
+		File.saveContent(Paths.modFolders('images/loading/categoryList.json'), haxe.Json.stringify(haxe.Json.parse(CoolUtil.parseRepoFiles('categoryList.json')), "\t"));
 		//trace('Category list was updated!');
 	}
 
@@ -150,6 +279,41 @@ class CoolUtil
 			trace('uh oh you using unexpected category! return 0...');
 			return 0;
 		}
+	}
+
+	static public function deleteAll()
+	{
+		var folders:Array<String> = [
+			'characters',
+			'custom_notetypes',
+			'data',
+			'images/characters',
+			'images/custom_notetypes',
+			'images/icons',
+			'music',
+			'songs',
+			'sounds',
+			'weeks'
+		];
+		/*for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('images/loading/categoryList.json'))).songs.length)
+		{
+			if (isDir('mods/data/${haxe.Json.parse(File.getContent(Paths.modFolders('images/loading/categoryList.json'))).songs[i]}'))
+			{
+				deleteDir('mods/data/${haxe.Json.parse(File.getContent(Paths.modFolders('images/loading/categoryList.json'))).songs[i]}');
+				trace('songs: deleted mods/data/${haxe.Json.parse(File.getContent(Paths.modFolders('images/loading/categoryList.json'))).songs[i]}');
+				createDir('mods/data/${haxe.Json.parse(File.getContent(Paths.modFolders('images/loading/categoryList.json'))).songs[i]}');
+			}
+		}*/
+		for (i in 0...folders.length)
+		{
+			if (isDir('mods/${folders[i]}'))
+			{
+				deleteDir('mods/${folders[i]}');
+				saveFile('mods/${folders[i]}/readme.txt' , 'put your ${folders[i]} here!');
+				createDir('mods/${folders[i]}');
+			}
+		}
+		MusicBeatState.resetState();
 	}
 	#end
 
@@ -332,7 +496,7 @@ class CoolUtil
 
 				if (!FileSystem.exists('mods/custom_notetypes/${thingLC}.json'))
 				{
-					File.saveContent(Paths.modFolders('custom_notetypes/${thingLC}.json'), haxe.Json.stringify(haxe.Json.parse(CoolUtil.parseRepoFiles('main/custom_notetypes/${thingLC}.json')), "\t"));
+					File.saveContent(Paths.modFolders('custom_notetypes/${thingLC}.json'), haxe.Json.stringify(haxe.Json.parse(CoolUtil.parseRepoFiles('custom_notetypes/${thingLC}.json')), "\t"));
 					trace('JSON of ${thing} was downloaded');
 				}
 
@@ -420,7 +584,7 @@ class CoolUtil
 				{
 					if (!FileSystem.exists(Paths.modsJson('${thingLC}/${thingLC}-${i}')))
 					{
-						File.saveContent(Paths.modsJson('${thingLC}/${thingLC}-${i}'), haxe.Json.stringify(haxe.Json.parse(CoolUtil.parseRepoFiles('main/data/${thingLC}/${thingLC}-${i}.json')), "\t"));
+						File.saveContent(Paths.modsJson('${thingLC}/${thingLC}-${i}'), haxe.Json.stringify(haxe.Json.parse(CoolUtil.parseRepoFiles('data/${thingLC}/${thingLC}-${i}.json')), "\t"));
 						trace('${i} difficulty of ${thing} was downloaded');
 					}
 					else
@@ -468,7 +632,7 @@ class CoolUtil
 	
 				if (!FileSystem.exists(Paths.modsJson('${thingLC}/songData')))
 				{
-					File.saveContent(Paths.modsJson('${thingLC}/songData'), haxe.Json.stringify(haxe.Json.parse(CoolUtil.parseRepoFiles('main/data/${thingLC}/songData.json')), "\t"));
+					File.saveContent(Paths.modsJson('${thingLC}/songData'), haxe.Json.stringify(haxe.Json.parse(CoolUtil.parseRepoFiles('data/${thingLC}/songData.json')), "\t"));
 					trace('File songData of ${thing} was downloaded');
 				}
 				else
@@ -478,7 +642,7 @@ class CoolUtil
 	
 				if (!FileSystem.exists(Paths.modFolders('weeks/${thingLC}.json')))
 				{
-					File.saveContent(Paths.modFolders('weeks/${thingLC}.json'), haxe.Json.stringify(haxe.Json.parse(CoolUtil.parseRepoFiles('main/weeks/${thingLC}.json')), "\t"));
+					File.saveContent(Paths.modFolders('weeks/${thingLC}.json'), haxe.Json.stringify(haxe.Json.parse(CoolUtil.parseRepoFiles('weeks/${thingLC}.json')), "\t"));
 					trace('Week file of ${thing} was downloaded');
 				}
 				else
@@ -493,7 +657,7 @@ class CoolUtil
 
 				if (!FileSystem.exists(Paths.modFolders('characters/${thingLC}.json')))
 				{
-					File.saveContent(Paths.modFolders('characters/${thingLC}.json'), haxe.Json.stringify(haxe.Json.parse(CoolUtil.parseRepoFiles('main/characters/${thingLC}.json')), "\t"));
+					File.saveContent(Paths.modFolders('characters/${thingLC}.json'), haxe.Json.stringify(haxe.Json.parse(CoolUtil.parseRepoFiles('characters/${thingLC}.json')), "\t"));
 					trace('JSON of ${thing} was downloaded');
 				}
 				else
@@ -610,7 +774,7 @@ class CoolUtil
 
 				if (!FileSystem.exists(Paths.modFolders('custom_notetypes/${thingLC}.json')))
 				{
-					File.saveContent(Paths.modFolders('custom_notetypes/${thingLC}.json'), haxe.Json.stringify(haxe.Json.parse(CoolUtil.parseRepoFiles('main/custom_notetypes/${thingLC}.json')), "\t"));
+					File.saveContent(Paths.modFolders('custom_notetypes/${thingLC}.json'), haxe.Json.stringify(haxe.Json.parse(CoolUtil.parseRepoFiles('custom_notetypes/${thingLC}.json')), "\t"));
 					trace('JSON of ${thing} was downloaded');
 				}
 				else
@@ -689,79 +853,6 @@ class CoolUtil
 		#if MODS_ALLOWED
 		MusicBeatState.resetState();
 		#end
-	}
-
-	/*inline static public function stringify(inDir:String, outDir:String)
-	{
-		#if sys
-		File.saveContent(inDir, haxe.Json.stringify(haxe.Json.parse(parseRepoFiles(outDir)), "\t"));
-		trace('Successfully downloaded file from ${outDir}, and saved to ${inDir}!');
-		#else
-		trace('This function is disabled, when build is not sys!');
-		#end
-	}
-	// this three functions used for testing only!
-	inline static public function parseRepoTest(key:String)
-	{
-		var man = haxe.Json.parse(parseRepoFiles(key)).difficultyNames;
-		return 'Diffs from HTTP: ${man[0]}, ${man[1]}, ${man[2]}, ${man[3]}';
-	}
-	inline static public function parseSongDataJSON(key:String)
-	{
-		return haxe.Json.parse(Assets.getText(Paths.json('${key}/songData')));
-	}*/
-
-	inline static public function parseOffset(song:String, fromNet:Bool = false):Float
-	{
-		if (fromNet)
-			return haxe.Json.parse(parseRepoFiles('main/data/${song}/songData.json')).offset;
-		else
-		{
-			#if MODS_ALLOWED
-			if (FileSystem.exists(Paths.modFolders('weeks/${song}.json')))
-				return haxe.Json.parse(File.getContent(Paths.modsJson('${song}/songData'))).offset;
-			else
-				return haxe.Json.parse(openfl.utils.Assets.getText('assets/data/${song}/songData.json')).offset;
-			#else
-			trace('This function is disabled, when MODS_ALLOWED is false!');
-			return 0;
-			#end
-		}
-	}
-	inline static public function parseDiffCount(song:String, fromNet:Bool = false):Int
-	{
-		if (fromNet)
-		{
-			return Std.int(haxe.Json.parse(parseRepoFiles('main/data/${song}/songData.json')).difficultyNames.length - 1);
-		}
-		else
-		{
-			#if MODS_ALLOWED
-			if (FileSystem.exists(Paths.modFolders('weeks/${song}.json')))
-				return Std.int(haxe.Json.parse(File.getContent(Paths.modsJson('${song}/songData'))).difficultyNames.length - 1);
-			else
-				return Std.int(haxe.Json.parse(openfl.utils.Assets.getText('assets/data/${song}/songData.json')).difficultyNames.length - 1);
-			#else
-			trace('This function is disabled, when MODS_ALLOWED is false!');
-			return 3;
-			#end
-		}
-	}
-	inline static public function parseDiffNames(song:String, curDifficulty:Int, fromNet:Bool = false):String
-	{
-		if (fromNet)
-			return haxe.Json.parse(parseRepoFiles('main/data/${song}/songData.json')).difficultyNames[curDifficulty].toUpperCase();
-		{
-			#if MODS_ALLOWED
-			if (FileSystem.exists(Paths.modFolders('weeks/${song}.json')))
-				return haxe.Json.parse(File.getContent(Paths.modsJson('${song}/songData'))).difficultyNames[curDifficulty].toUpperCase();
-			else
-				return haxe.Json.parse(openfl.utils.Assets.getText('assets/data/${song}/songData.json')).difficultyNames[curDifficulty].toUpperCase();
-			#else
-			trace('This function is disabled, when MODS_ALLOWED is false!');
-			return 'NORMAL';
-			#end
-		}
 	}
 
 	inline public static function format0dot00(value:Float):Float

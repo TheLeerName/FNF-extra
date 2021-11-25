@@ -1,8 +1,11 @@
 {
 	"offset": 0,
-	"difficultyNames": [
-		"easy",
-		"normal",
-		"hard"
-	]
+	"difficulty": {
+		"names": [
+			"easy",
+			"normal",
+			"hard"
+		],
+		"needUpperCase": true
+	}
 }

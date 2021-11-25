@@ -56,7 +56,7 @@ class DownloadSubState extends MusicBeatSubstate
 		textBG.alpha = 0.6;
 		add(textBG);
 		delete = (FileSystem.isDirectory(Paths.modFolders('songs/${menuItems[curSelected]}')) || FileSystem.isDirectory(Paths.modFolders('data/${menuItems[curSelected]}')) ? true : false);
-		infoText = new FlxText(textBG.x, textBG.y + 4, FlxG.width, (delete ? 'Press DELETE to delete' : 'Press ACCEPT to download') + ' / Press RESET to update list', 18);
+		infoText = new FlxText(textBG.x, textBG.y + 4, FlxG.width, (delete ? 'Press DELETE to delete (hold ALT to delete all)' : 'Press ACCEPT to download') + ' / Press RESET to update list', 18);
 		infoText.setFormat(Paths.font("vcr.ttf"), 18, FlxColor.WHITE, RIGHT);
 		infoText.scrollFactor.set();
 		add(infoText);
@@ -107,12 +107,22 @@ class DownloadSubState extends MusicBeatSubstate
 
 		if (controls.RESET) changeCat(true);
 
-		if (FlxG.keys.justPressed.DELETE && delete) 
+		if (FlxG.keys.justPressed.DELETE && delete)
 		{
-			funnyText.text = 'Deleting a ' + cats[curCat][1].toLowerCase() + ' ${menuItems[curSelected]}...\nWhile you wait, look at this picture lol!';
-			FlxTween.tween(black, {alpha: 1}, 1, {ease: FlxEase.quartInOut, onComplete: function(twn:FlxTween){CoolUtil.deleteThing(menuItems[curSelected], curCat);}});
-			FlxTween.tween(funnyText, {alpha: 1}, 1, {ease: FlxEase.quartInOut});
-			FlxTween.tween(funnyPic, {alpha: 1}, 1, {ease: FlxEase.quartInOut});
+			if (FlxG.keys.pressed.ALT)
+			{
+				funnyText.text = 'Deleting all cache, game can be freezed...\nWhile you wait, look at this picture lol!';
+				FlxTween.tween(black, {alpha: 1}, 1, {ease: FlxEase.quartInOut, onComplete: function(twn:FlxTween){CoolUtil.deleteAll();}});
+				FlxTween.tween(funnyText, {alpha: 1}, 1, {ease: FlxEase.quartInOut});
+				FlxTween.tween(funnyPic, {alpha: 1}, 1, {ease: FlxEase.quartInOut});
+			}
+			else
+			{
+				funnyText.text = 'Deleting a ' + cats[curCat][1].toLowerCase() + ' ${menuItems[curSelected]}...\nWhile you wait, look at this picture lol!';
+				FlxTween.tween(black, {alpha: 1}, 1, {ease: FlxEase.quartInOut, onComplete: function(twn:FlxTween){CoolUtil.deleteThing(menuItems[curSelected], curCat);}});
+				FlxTween.tween(funnyText, {alpha: 1}, 1, {ease: FlxEase.quartInOut});
+				FlxTween.tween(funnyPic, {alpha: 1}, 1, {ease: FlxEase.quartInOut});
+			}
 		}
 		if (controls.ACCEPT && !delete)
 		{
@@ -156,7 +166,7 @@ class DownloadSubState extends MusicBeatSubstate
 					FileSystem.exists('mods/custom_notetypes/${menuItems[curSelected]}.lua')
 					? true : false);
 		}
-		infoText.text = (delete ? 'Press DELETE to delete' : 'Press ACCEPT to download') + ' / Press RESET to update list';
+		infoText.text = (delete ? 'Press DELETE to delete (hold ALT to delete all)' : 'Press ACCEPT to download') + ' / Press RESET to update list';
 
 		var bullShit:Int = 0;
 
