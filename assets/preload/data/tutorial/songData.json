@@ -1,7 +1,20 @@
 {
 	"offset": 0,
-	"usesModchart": false,
-	"usesEvents": true,
+	"uses": {
+		"modchart": false,
+		"events": false,
+		"characters": [],
+		"characters_necessary": [],
+		"stages": [],
+		"stages_necessary": [],
+		"notetypes": [],
+		"notetypes_necessary": [],
+		"existCharts": {
+			"without_characters": false,
+			"without_stages": false,
+			"without_notetypes": false
+		}
+	},
 	"difficulty": {
 		"names": [
 			"easy",

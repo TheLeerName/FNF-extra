@@ -313,8 +313,8 @@ class FreeplayState extends MusicBeatState
 
 		curDifficulty += change;
 		if (curDifficulty < 0)
-			curDifficulty = /*CoolUtil.difficultyStuff.length-1*/ difficultyCount;
-		if (curDifficulty > /*CoolUtil.difficultyStuff.length*/ difficultyCount)
+			curDifficulty = /*CoolUtil.difficultyStuff.length-1*/ difficultyCount - 1;
+		if (curDifficulty > /*CoolUtil.difficultyStuff.length*/ difficultyCount - 1)
 			curDifficulty = 0;
 
 		difficultyName = CoolUtil.parseDiffNames(Paths.formatToSongPath(songs[curSelected].songName), curDifficulty);
@@ -326,38 +326,23 @@ class FreeplayState extends MusicBeatState
 
 		PlayState.storyDifficulty = curDifficulty;
 		//diffText.text = '< ' + CoolUtil.difficultyString() + ' >';
-		trace("Change diff: " + (curDifficulty + 1) + "/" + (difficultyCount + 1));
-		diffText.text = difficultyName + " (" + (curDifficulty + 1) + "/" + (difficultyCount + 1) + ")";
+		trace("Change diff: " + (curDifficulty + 1) + "/" + (difficultyCount));
+
+		if (difficultyCount == 1)
+			diffText.text = difficultyName;
+		else
+			diffText.text = difficultyName + " (" + (curDifficulty + 1) + "/" + (difficultyCount) + ")";
 		positionHighscore();
 	}
 
 	function changeSelection(change:Int = 0)
 	{
 		FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
-
 		// error message
-		if (difficultyCount < 1 /*|| difficultyCount > 9*/)
+		if (difficultyCount < 1)
 		{
-			trace
-			(
-				"diff count is "
-				+ difficultyCount
-				//+ ", its " + (difficultyCount > 9 ? "more than 10" : "less than 1")
-				+ ", its less than 1"
-				+ " lol! starting error window..."
-			);
-			Application.current.window.alert
-			(
-				"Value of difficulty count is "
-				+ difficultyCount
-				//+ ", its " + (difficultyCount > 9 ? "more than 10!" : "less than 1!")
-				+ ", its less than 1!"
-				//+ " Try putting a value between 1 and 10."
-				+ " Try putting a value more than 1."
-
-				, "DIFFICULTY SYSTEM ERROR"
-			);
-
+			trace('diff count is ${difficultyCount}, its less than 1 lol! starting error window...');
+			Application.current.window.alert('Value of difficulty count is ${difficultyCount}, its less than 1! Try putting a value more than 1.', "DIFFICULTY SYSTEM ERROR");
 			FlxG.switchState(new MainMenuState());
 			return;
 		}
@@ -368,8 +353,8 @@ class FreeplayState extends MusicBeatState
 			difficultyCount = CoolUtil.parseDiffCount(Paths.formatToSongPath(songs[0].songName));
 		else
 			difficultyCount = CoolUtil.parseDiffCount(Paths.formatToSongPath(songs[curSelected + change].songName));
-		if (curDifficulty > difficultyCount)
-			curDifficulty = difficultyCount; // avoid crash due not finded song json file
+		if (curDifficulty > difficultyCount - 1)
+			curDifficulty = difficultyCount - 1; // avoid crash due not finded song json file
 
 		curSelected += change;
 		if (curSelected < 0)
@@ -384,7 +369,10 @@ class FreeplayState extends MusicBeatState
 
 		difficultyName = CoolUtil.parseDiffNames(Paths.formatToSongPath(songs[curSelected].songName), curDifficulty);
 
-		diffText.text = difficultyName + " (" + (curDifficulty + 1) + "/" + (difficultyCount + 1) + ")";
+		if (difficultyCount == 1)
+			diffText.text = difficultyName;
+		else
+			diffText.text = difficultyName + " (" + (curDifficulty + 1) + "/" + (difficultyCount) + ")";
 
 		var newColor:Int = songs[curSelected].color;
 		if(newColor != intendedColor) {

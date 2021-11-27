@@ -18,8 +18,10 @@ class DownloadSubState extends MusicBeatSubstate
 	var cats:Array<Dynamic>;
 	var curCat:Int = 0;
 	var curSelected:Int = 0;
+	var curChart:Int = 0;
 
 	var delete:Bool = false;
+	var infoText2:FlxText;
 	var infoText:FlxText;
 	var text:FlxText;
 	var black:FlxSprite;
@@ -30,6 +32,11 @@ class DownloadSubState extends MusicBeatSubstate
 	public function new()
 	{
 		super();
+
+		if (FlxG.save.data.curChart != null)
+			curChart = FlxG.save.data.curChart;
+		else
+			FlxG.save.data.curChart = curChart;
 
 		var bg:FlxSprite = new FlxSprite().loadGraphic(Paths.image('menuBGBlue'));
 		bg.antialiasing = ClientPrefs.globalAntialiasing;
@@ -53,15 +60,19 @@ class DownloadSubState extends MusicBeatSubstate
 			grpMenuShit.add(item);
 		}
 
-		var textBG:FlxSprite = new FlxSprite(0, FlxG.height - 46).makeGraphic(FlxG.width, 46, 0xFF000000);
+		var textBG:FlxSprite = new FlxSprite(0, FlxG.height - 70).makeGraphic(FlxG.width, 70, 0xFF000000);
 		textBG.alpha = 0.6;
 		add(textBG);
 		delete = (FileSystem.isDirectory(Paths.modFolders('songs/${menuItems[curSelected]}')) || FileSystem.isDirectory(Paths.modFolders('data/${menuItems[curSelected]}')) ? true : false);
-		infoText = new FlxText(textBG.x, textBG.y + 4, FlxG.width, (delete ? 'Press DELETE to delete (hold ALT to delete all)' : 'Press ACCEPT to download') + ' / Press RESET to update list', 18);
+		infoText2 = new FlxText(textBG.x, textBG.y + 4, FlxG.width, 'Press CTRL to switch type of chart (now ${(curChart == 0 ? 'all' : (curChart == 1 ? 'without characters' : (curChart == 2 ? 'without stages' : 'without notetypes')))})', 18);
+		infoText2.setFormat(Paths.font("vcr.ttf"), 18, FlxColor.WHITE, RIGHT);
+		infoText2.scrollFactor.set();
+		add(infoText2);
+		infoText = new FlxText(textBG.x, textBG.y + 25, FlxG.width, (delete ? 'Press DELETE to delete (hold ALT to delete all)' : 'Press ACCEPT to download') + ' / Press RESET to update list', 18);
 		infoText.setFormat(Paths.font("vcr.ttf"), 18, FlxColor.WHITE, RIGHT);
 		infoText.scrollFactor.set();
 		add(infoText);
-		text = new FlxText(textBG.x, textBG.y + 25, FlxG.width, 'Press TAB or BACK to close this menu / Press LEFT or RIGHT to switch list (now ${cats[curCat][1]}s)', 18);
+		text = new FlxText(textBG.x, textBG.y + 46, FlxG.width, 'Press TAB or BACK to close this menu / Press LEFT or RIGHT to switch list (now ${cats[curCat][1]}s)', 18);
 		text.setFormat(Paths.font("vcr.ttf"), 18, FlxColor.WHITE, RIGHT);
 		text.scrollFactor.set();
 		add(text);
@@ -96,6 +107,8 @@ class DownloadSubState extends MusicBeatSubstate
 		if (controls.UI_DOWN_P) changeSelection(1);
 		if (controls.UI_LEFT_P) changeCat(-1);
 		if (controls.UI_RIGHT_P) changeCat(1);
+
+		if (FlxG.keys.justPressed.CONTROL) changeChart();
 
 		/*if (FlxG.keys.justPressed.G) // for tests
 		{
@@ -190,6 +203,25 @@ class DownloadSubState extends MusicBeatSubstate
 		}
 	}
 
+	function changeChart()
+	{
+		curChart += 1;
+		if (curChart < 0)
+			curChart = 3;
+		if (curChart > 3)
+			curChart = 0;
+
+		FlxG.save.data.curChart = curChart;
+		FlxG.save.data.loadCharacter = (curChart == 1 ? true : false);
+		FlxG.save.data.loadStage = (curChart == 2 ? true : false);
+		FlxG.save.data.loadNotetype = (curChart == 3 ? true : false);
+		FlxG.save.flush();
+
+		infoText2.text = 'Press CTRL to switch type of chart (now ${(curChart == 0 ? 'all' : (curChart == 1 ? 'without characters' : (curChart == 2 ? 'without stages' : 'without notetypes')))})';
+
+		trace('loadCharacter: ${FlxG.save.data.loadCharacter} | loadStage: ${FlxG.save.data.loadStage} | loadNotetype: ${FlxG.save.data.loadNotetype}');
+	}
+
 	function changeCat(change:Int = 0, needUpdate:Bool = false):Void
 	{
 		curCat += change;
@@ -206,6 +238,11 @@ class DownloadSubState extends MusicBeatSubstate
 		menuItems = cats[curCat][0];
 		trace('MenuItems: ${menuItems} || ${cats[0][1]}s: ${cats[0][0]} | ${cats[1][1]}s: ${cats[1][0]} | ${cats[2][1]}s: ${cats[2][0]} | ${cats[3][1]}s: ${cats[3][0]}');
 		text.text = 'Press TAB or BACK to close this menu / Press LEFT or RIGHT to switch list (now ${cats[curCat][1]}s)';
+
+		if (curCat != 0)
+			infoText2.text = '';
+		else
+			infoText2.text = 'Press CTRL to switch type of chart (now ${(curChart == 0 ? 'all' : (curChart == 1 ? 'without characters' : (curChart == 2 ? 'without stages' : 'without notetypes')))})';
 
 		for (i in 0...grpMenuShit.members.length) {
 			this.grpMenuShit.remove(this.grpMenuShit.members[0], true);
