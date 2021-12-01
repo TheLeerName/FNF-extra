@@ -143,22 +143,32 @@ class CoolUtil
 		#end
 	}
 
-	#if MODS_ALLOWED
 	inline static public function isDir(path:String):Bool
 	{
+		#if MODS_ALLOWED
 		return sys.FileSystem.isDirectory(path);
+		#else
+		return null;
+		#end
 	}
-	inline static public function readDir(path:String)
+	inline static public function readDir(path:String):Array<Dynamic>
 	{
+		#if MODS_ALLOWED
 		return sys.FileSystem.readDirectory(path);
+		#else
+		return null;
+		#end
 	}
 	static public function createDir(path:String)
 	{
+		#if MODS_ALLOWED
 		sys.FileSystem.createDirectory(path);
+		#end
 	}
 	// function from https://ashes999.github.io/learnhaxe/recursively-delete-a-directory-in-haxe.html
 	public static function deleteDir(key:String, recursively:Bool = true):Void
 	{
+		#if MODS_ALLOWED
 		if (sys.FileSystem.exists(key) && sys.FileSystem.isDirectory(key) && recursively)
 		{
 			var entries = sys.FileSystem.readDirectory(key);
@@ -177,22 +187,35 @@ class CoolUtil
  		}
 		else if (!recursively)
 			sys.FileSystem.deleteDirectory(key);
+		#end
 	}
 
 	inline static public function exists(path:String):Bool
 	{
+		#if MODS_ALLOWED
 		return sys.FileSystem.exists(path);
+		#else
+		return null;
+		#end
 	}
-	inline static public function getContent(path:String)
+	inline static public function getContent(path:String):String
 	{
-		sys.io.File.getContent(path);
+		#if MODS_ALLOWED
+		if (sys.FileSystem.exists(path))
+			return sys.io.File.getContent(path);
+		else
+		#end
+		return null;
 	}
 	static public function deleteFile(path:String)
 	{
+		#if MODS_ALLOWED
 		sys.FileSystem.deleteFile(path);
+		#end
 	}
 	static public function saveFile(to_file:String, from_file:String, fromNet:Bool = false, isJson:Bool = false)
 	{
+		#if MODS_ALLOWED
 		if (fromNet)
 		{
 			if (isJson)
@@ -208,10 +231,12 @@ class CoolUtil
 		}
 		else
 			sys.io.File.saveContent(to_file, from_file);
+		#end
 	}
 
 	static public function loadingImages()
 	{
+		#if MODS_ALLOWED
 		trace('Starting checking images for loading screen...');
 
 		var ba:Array<String> = parseRepoFiles('loading_images/imageNames.txt').split('\n');
@@ -284,16 +309,22 @@ class CoolUtil
 		loadingCats();
 
 		trace('Checking is over! Enjoy your game :)');
+		#else
+		trace('Checking images terminated because MODS_ALLOWED is false!');
+		#end
 	}
 
 	static public function loadingCats() // i mean categories but not cats, of course
 	{
+		#if MODS_ALLOWED
 		File.saveContent(Paths.modFolders('images/loading/categoryList.json'), haxe.Json.stringify(haxe.Json.parse(parseRepoFiles('categoryList.json')), "\t"));
 		//trace('Category list was updated!');
+		#end
 	}
 
 	inline static public function getCats(which:Int)
 	{
+		#if MODS_ALLOWED
 		var man = haxe.Json.parse(File.getContent(Paths.modFolders('images/loading/categoryList.json')));
 		if (which == 0)
 			return man.songs;
@@ -308,10 +339,14 @@ class CoolUtil
 			trace('uh oh you using unexpected category! return 0...');
 			return 0;
 		}
+		#else
+		return null;
+		#end
 	}
 
 	static public function deleteAll()
 	{
+		#if MODS_ALLOWED
 		var folders:Array<String> = [
 			'characters',
 			'custom_notetypes',
@@ -337,8 +372,8 @@ class CoolUtil
 			}
 		}
 		MusicBeatState.resetState();
+		#end
 	}
-	#end
 
 	static public function deleteThing(thing:String, cat:Int, cycle:Bool = true)
 	{
@@ -524,6 +559,21 @@ class CoolUtil
 					trace('LUA of ${thing} is not exist! Skipping removing it');
 				}
 
+				if (cycle)
+				{
+					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}.json'))).neededFiles.images.length)
+						deleteThing('${thing}/${haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}.json'))).neededFiles.images[i]}', 6, false);
+					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}.json'))).neededFiles.imagesWithXml.length)
+					{
+						deleteThing('${thing}/${haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}.json'))).neededFiles.imagesWithXml[i]}', 6, false);
+						deleteThing('${thing}/${haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}.json'))).neededFiles.imagesWithXml[i]}', 7, false);
+					}
+					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}.json'))).neededFiles.sounds.length)
+						deleteThing(haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}.json'))).neededFiles.sounds[i], 4, false);
+					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}.json'))).neededFiles.music.length)
+						deleteThing(haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}.json'))).neededFiles.music[i], 5, false);
+				}
+
 				if (FileSystem.exists(Paths.modFolders('stages/${thing}.json')))
 				{
 					FileSystem.deleteFile(Paths.modFolders('stages/${thing}.json'));
@@ -532,31 +582,6 @@ class CoolUtil
 				else
 				{
 					trace('JSON of ${thing} is not exist! Skipping removing it');
-				}
-
-				if (cycle)
-				{
-					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}-needs.json'))).neededFiles.images.length)
-						deleteThing('${thing}/${haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}-needs.json'))).neededFiles.images[i]}', 6, false);
-					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}-needs.json'))).neededFiles.imagesWithXml.length)
-					{
-						deleteThing('${thing}/${haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}-needs.json'))).neededFiles.imagesWithXml[i]}', 6, false);
-						deleteThing('${thing}/${haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}-needs.json'))).neededFiles.imagesWithXml[i]}', 7, false);
-					}
-					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}-needs.json'))).neededFiles.sounds.length)
-						deleteThing(haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}-needs.json'))).neededFiles.sounds[i], 4, false);
-					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}-needs.json'))).neededFiles.music.length)
-						deleteThing(haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}-needs.json'))).neededFiles.music[i], 5, false);
-				}
-
-				if (FileSystem.exists(Paths.modFolders('stages/${thing}-needs.json')))
-				{
-					FileSystem.deleteFile(Paths.modFolders('stages/${thing}-needs.json'));
-					trace('JSON "needs" of ${thing} was removed');
-				}
-				else
-				{
-					trace('JSON "needs" of ${thing} is not exist! Skipping removing it');
 				}
 
 				trace('Stage ${thing} removed successfully!');
@@ -712,7 +737,7 @@ class CoolUtil
 
 				var songData:SongData = haxe.Json.parse(File.getContent(Paths.modFolders('data/${thing}/songData.json')));
 
-				if (FlxG.save.data.loadCharacter && songData.uses.existCharts.without_characters)
+				if (FlxG.save.data.curChart == 1 && songData.uses.existCharts.without_characters)
 				{
 					for (i in 1...parseDiffCount(thing, true) + 1)
 					{
@@ -727,7 +752,7 @@ class CoolUtil
 						}
 					}
 				}
-				else if (FlxG.save.data.loadStage && songData.uses.existCharts.without_stages)
+				else if (FlxG.save.data.curChart == 2 && songData.uses.existCharts.without_stages)
 				{
 					for (i in 1...parseDiffCount(thing, true) + 1)
 					{
@@ -742,7 +767,7 @@ class CoolUtil
 						}
 					}
 				}
-				else if (FlxG.save.data.loadNotetype && songData.uses.existCharts.without_notetypes)
+				else if (FlxG.save.data.curChart == 3 && songData.uses.existCharts.without_notetypes)
 				{
 					for (i in 1...parseDiffCount(thing, true) + 1)
 					{
@@ -853,7 +878,7 @@ class CoolUtil
 					for (i in 0...songData.uses.characters_necessary.length)
 						downloadThing(songData.uses.characters_necessary[i], 1);
 
-					if (FlxG.save.data.loadCharacter)
+					if (FlxG.save.data.curChart == 1)
 					{
 						if (songData.uses.characters.length == 0)
 							trace('Characters for ${thing} not needed! Skipping downloading it');
@@ -873,7 +898,7 @@ class CoolUtil
 					for (i in 0...songData.uses.stages_necessary.length)
 						downloadThing(songData.uses.stages_necessary[i], 2);
 
-					if (FlxG.save.data.loadStage)
+					if (FlxG.save.data.curChart == 2)
 					{
 						if (songData.uses.stages.length == 0)
 							trace('Stages for ${thing} not needed! Skipping downloading it');
@@ -893,7 +918,7 @@ class CoolUtil
 					for (i in 0...songData.uses.notetypes_necessary.length)
 						downloadThing(songData.uses.notetypes_necessary[i], 3);
 
-					if (FlxG.save.data.loadNotetype && songData.uses.existCharts.without_notetypes)
+					if (FlxG.save.data.curChart == 3 && songData.uses.existCharts.without_notetypes)
 					{
 						if (songData.uses.notetypes.length == 0)
 							trace('Notetypes for ${thing} not needed! Skipping downloading it');
@@ -999,32 +1024,22 @@ class CoolUtil
 					trace('JSON of ${thing} already exists! Skipping downloading it');
 				}
 
-				if (!FileSystem.exists(Paths.modFolders('stages/${thing}-needs.json')))
-				{
-					saveFile(Paths.modFolders('stages/${thing}-needs.json'), 'stages/${thing}/${thing}-needs.json', true, true);
-					trace('JSON "needs" of ${thing} was downloaded');
-				}
-				else
-				{
-					trace('JSON "needs" of ${thing} already exists! Skipping downloading it');
-				}
-
 				if (!isDir('mods/images/stages/${thing}'))
 					createDir('mods/images/stages/${thing}');
 
 				if (cycle)
 				{
-					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}-needs.json'))).neededFiles.images.length)
-						downloadThing('${thing}/${haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}-needs.json'))).neededFiles.images[i]}', 6, false);
-					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}-needs.json'))).neededFiles.imagesWithXml.length)
+					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}.json'))).neededFiles.images.length)
+						downloadThing('${thing}/${haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}.json'))).neededFiles.images[i]}', 6, false);
+					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}.json'))).neededFiles.imagesWithXml.length)
 					{
-						downloadThing('${thing}/${haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}-needs.json'))).neededFiles.imagesWithXml[i]}', 6, false);
-						downloadThing('${thing}/${haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}-needs.json'))).neededFiles.imagesWithXml[i]}', 7, false);
+						downloadThing('${thing}/${haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}.json'))).neededFiles.imagesWithXml[i]}', 6, false);
+						downloadThing('${thing}/${haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}.json'))).neededFiles.imagesWithXml[i]}', 7, false);
 					}
-					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}-needs.json'))).neededFiles.sounds.length)
-						downloadThing(haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}-needs.json'))).neededFiles.sounds[i], 4, false);
-					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}-needs.json'))).neededFiles.music.length)
-						downloadThing(haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}-needs.json'))).neededFiles.music[i], 5, false);
+					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}.json'))).neededFiles.sounds.length)
+						downloadThing(haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}.json'))).neededFiles.sounds[i], 4, false);
+					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}.json'))).neededFiles.music.length)
+						downloadThing(haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}.json'))).neededFiles.music[i], 5, false);
 				}
 
 				trace('Stage ${thing} downloaded successfully!');

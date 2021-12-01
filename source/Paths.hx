@@ -302,7 +302,7 @@ class Paths
 	inline static public function formatToSongPath(path:String) {
 		return path.toLowerCase().replace(' ', '-');
 	}
-	
+
 	#if MODS_ALLOWED
 	static public function addCustomGraphic(key:String):FlxGraphic {
 		if(FileSystem.exists(modsImages(key))) {
@@ -317,44 +317,82 @@ class Paths
 		}
 		return null;
 	}
+	#end
 
 	inline static public function mods(key:String = '') {
+		#if MODS_ALLOWED
 		return 'mods/' + key;
+		#else
+		return null;
+		#end
 	}
 
 	inline static public function modsJson(key:String) {
+		#if MODS_ALLOWED
 		return modFolders('data/' + key + '.json');
+		#else
+		return null;
+		#end
 	}
 
 	inline static public function modsVideo(key:String) {
+		#if MODS_ALLOWED
 		return modFolders('videos/' + key + '.' + VIDEO_EXT);
+		#else
+		return null;
+		#end
 	}
 
 	inline static public function modsMusic(key:String) {
+		#if MODS_ALLOWED
 		return modFolders('music/' + key + '.' + SOUND_EXT);
+		#else
+		return null;
+		#end
 	}
 
 	inline static public function modsSounds(key:String) {
+		#if MODS_ALLOWED
 		return modFolders('sounds/' + key + '.' + SOUND_EXT);
+		#else
+		return null;
+		#end
 	}
 
 	inline static public function modsSongs(key:String) {
+		#if MODS_ALLOWED
 		return modFolders('songs/' + key + '.' + SOUND_EXT);
+		#else
+		return null;
+		#end
 	}
 
 	inline static public function modsImages(key:String) {
+		#if MODS_ALLOWED
 		return modFolders('images/' + key + '.png');
+		#else
+		return null;
+		#end
 	}
 
 	inline static public function modsXml(key:String) {
+		#if MODS_ALLOWED
 		return modFolders('images/' + key + '.xml');
+		#else
+		return null;
+		#end
 	}
 
 	inline static public function modsTxt(key:String) {
+		#if MODS_ALLOWED
 		return modFolders('images/' + key + '.txt');
+		#else
+		return null;
+		#end
 	}
 
 	static public function modFolders(key:String) {
+		#if MODS_ALLOWED
 		if(currentModDirectory != null && currentModDirectory.length > 0) {
 			var fileToCheck:String = mods(currentModDirectory + '/' + key);
 			if(FileSystem.exists(fileToCheck)) {
@@ -362,6 +400,8 @@ class Paths
 			}
 		}
 		return 'mods/' + key;
+		#else
+		return null;
+		#end
 	}
-	#end
 }
