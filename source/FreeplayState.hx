@@ -322,7 +322,7 @@ class FreeplayState extends MusicBeatState
 
 		PlayState.storyDifficulty = curDifficulty;
 		//diffText.text = '< ' + CoolUtil.difficultyString() + ' >';
-		trace("Change diff: " + (curDifficulty + 1) + "/" + (difficultyCount));
+		//trace("Change diff: " + (curDifficulty + 1) + "/" + (difficultyCount));
 
 		if (difficultyCount == 1)
 			diffText.text = difficultyName;

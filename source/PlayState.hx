@@ -788,12 +788,9 @@ class PlayState extends MusicBeatState
 		laneunderlay.color = FlxColor.BLACK;
 		laneunderlay.scrollFactor.set();
 
-		if (ClientPrefs.laneUnderlay > 0)
-		{
-			if (!ClientPrefs.middleScroll)
-				add(laneunderlayOpponent);
-			add(laneunderlay);
-		}
+		if (!ClientPrefs.middleScroll)
+			add(laneunderlayOpponent);
+		add(laneunderlay);
 
 		timeTxt = new FlxText(STRUM_X + (FlxG.width / 2) - 248, 20, 400, "", 32);
 		timeTxt.setFormat(Paths.font("vcr.ttf"), 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);

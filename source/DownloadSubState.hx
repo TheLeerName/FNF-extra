@@ -21,11 +21,15 @@ class DownloadSubState extends MusicBeatSubstate
 
 	var delete:Bool = false;
 	var textBG:FlxSprite;
-	var text5:FlxText;
+	//var text5:FlxText;
 	var text4:FlxText;
 	var text3:FlxText;
 	var text2:FlxText;
 	var text1:FlxText;
+
+	var siteBG:FlxSprite;
+	var textSite:FlxText;
+
 	var black:FlxSprite;
 	var funnyPic:FlxSprite;
 	var funnyText:FlxText;
@@ -50,7 +54,7 @@ class DownloadSubState extends MusicBeatSubstate
 		[CoolUtil.getCats(0), 'Song'],
 		[CoolUtil.getCats(1), 'Character'],
 		[CoolUtil.getCats(2), 'Stage'],
-		[CoolUtil.getCats(3), 'NoteType']
+		[CoolUtil.getCats(3), 'Note Type']
 		];
 		menuItems = cats[curCat][0];
 		//trace('MenuItems: ${menuItems} || ${cats[0][1]}s: ${cats[0][0]} | ${cats[1][1]}s: ${cats[1][0]} | ${cats[2][1]}s: ${cats[2][0]} | ${cats[3][1]}s: ${cats[3][0]}');
@@ -66,7 +70,7 @@ class DownloadSubState extends MusicBeatSubstate
 		#end
 		var text_X:Float = -3;
 		var textspacing_Y:Float = 21;
-		textBG = new FlxSprite((FlxG.width / 2) + 110, FlxG.height - 3 - textspacing_Y * 5).makeGraphic(FlxG.width, Std.int(FlxG.height - 3 - textspacing_Y * 5), 0xFF000000);
+		textBG = new FlxSprite((FlxG.width / 2) + 210, FlxG.height - 3 - textspacing_Y * 4).makeGraphic(FlxG.width, Std.int(FlxG.height - 3 - textspacing_Y * 4), 0xFF000000);
 		textBG.alpha = 0.6;
 		add(textBG);
 		text1 = new FlxText(text_X, FlxG.height - textspacing_Y, FlxG.width, '', 18);
@@ -81,22 +85,29 @@ class DownloadSubState extends MusicBeatSubstate
 		text4 = new FlxText(text_X, text3.y - textspacing_Y, FlxG.width, '', 18);
 		text4.setFormat(Paths.font("vcr.ttf"), 18, FlxColor.WHITE, RIGHT);
 		add(text4);
-		text5 = new FlxText(text_X, text4.y - textspacing_Y, FlxG.width, '', 18);
+		/*text5 = new FlxText(text_X, text4.y - textspacing_Y, FlxG.width, '', 18);
 		text5.setFormat(Paths.font("vcr.ttf"), 18, FlxColor.WHITE, RIGHT);
-		add(text5);
+		add(text5);*/
+
+		textBG = new FlxSprite(0, 0).makeGraphic(FlxG.width, 24, 0xFF000000);
+		textBG.alpha = 0.6;
+		add(textBG);
+		textSite = new FlxText(text_X, 2, FlxG.width, CoolUtil.getContent('mods/downloadServer.txt').split('\n')[0], 18);
+		textSite.setFormat(Paths.font("vcr.ttf"), 18, FlxColor.WHITE, RIGHT);
+		add(textSite);
 
 		text1.text = 'TAB or BACK to close this menu';
 		text2.text = 'List: ${cats[curCat][1]}s (press LEFT or RIGHT)';
 		text3.text = 'RESET to update list';
 		#if MODS_ALLOWED
-		text4.text = (delete ? 'DELETE to delete (hold ALT to delete all cache)' : 'ACCEPT to download');
+		text4.text = (delete ? 'DELETE to delete (ALT to delete all)' : 'ACCEPT to download');
 		#else
 		text4.text = '';
 		#end
-		if (curCat == 0)
+		/*if (curCat == 0)
 			text5.text = 'Type of chart: ${(curChart == 0 ? 'default' : (curChart == 1 ? 'without characters' : (curChart == 2 ? 'without stages' : 'without notetypes')))} (press CTRL)';
 		else
-			text5.text = '';
+			text5.text = '';*/
 
 		black = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);
 		black.alpha = 0;
@@ -129,7 +140,7 @@ class DownloadSubState extends MusicBeatSubstate
 		if (controls.UI_LEFT_P) changeCat(-1);
 		if (controls.UI_RIGHT_P) changeCat(1);
 
-		if (FlxG.keys.justPressed.CONTROL && curCat == 0) changeChart();
+		//if (FlxG.keys.justPressed.CONTROL && curCat == 0) changeChart();
 
 		/*if (FlxG.keys.justPressed.G) // for tests
 		{
@@ -209,14 +220,15 @@ class DownloadSubState extends MusicBeatSubstate
 					CoolUtil.exists('mods/custom_notetypes/${menuItems[curSelected]}.lua')
 					? true : false);
 		}
-		text4.text = (delete ? 'DELETE to delete (hold ALT to delete all cache)' : 'ACCEPT to download');
+		text4.text = (delete ? 'DELETE to delete (ALT to delete all)' : 'ACCEPT to download');
 		#else
 		text4.text = '';
 		#end
-		if (curCat == 0)
+		textSite.text = CoolUtil.getContent('mods/downloadServer.txt').split('\n')[0];
+		/*if (curCat == 0)
 			text5.text = 'Type of chart: ${(curChart == 0 ? 'default' : (curChart == 1 ? 'without characters' : (curChart == 2 ? 'without stages' : 'without notetypes')))} (press CTRL)';
 		else
-			text5.text = '';
+			text5.text = '';*/
 
 		var bullShit:Int = 0;
 
@@ -234,11 +246,9 @@ class DownloadSubState extends MusicBeatSubstate
 		}
 	}
 
-	function changeChart()
+	/*function changeChart()
 	{
 		curChart += 1;
-		/*if (curChart < 0)
-			curChart = 3;*/
 		if (curChart > 3)
 			curChart = 0;
 
@@ -247,7 +257,7 @@ class DownloadSubState extends MusicBeatSubstate
 
 		//trace('Chart: ' + (FlxG.save.data.curChart == 3 ? 'without notetype' : (FlxG.save.data.curChart == 2 ? 'without stage' : (FlxG.save.data.curChart == 1 ? 'without character' : 'default'))));
 		text5.text = 'Type of chart: ${(curChart == 0 ? 'default' : (curChart == 1 ? 'without characters' : (curChart == 2 ? 'without stages' : 'without notetypes')))} (press CTRL)';
-	}
+	}*/
 
 	function changeCat(change:Int = 0, needUpdate:Bool = false):Void
 	{
@@ -265,10 +275,10 @@ class DownloadSubState extends MusicBeatSubstate
 		menuItems = cats[curCat][0];
 		//trace('MenuItems: ${menuItems} || ${cats[0][1]}s: ${cats[0][0]} | ${cats[1][1]}s: ${cats[1][0]} | ${cats[2][1]}s: ${cats[2][0]} | ${cats[3][1]}s: ${cats[3][0]}');
 		text2.text = 'List: ${cats[curCat][1]}s (press LEFT or RIGHT)';
-		if (curCat == 0)
+		/*if (curCat == 0)
 			text5.text = 'Type of chart: ${(curChart == 0 ? 'default' : (curChart == 1 ? 'without characters' : (curChart == 2 ? 'without stages' : 'without notetypes')))} (press CTRL)';
 		else
-			text5.text = '';
+			text5.text = '';*/
 
 		for (i in 0...grpMenuShit.members.length) {
 			this.grpMenuShit.remove(this.grpMenuShit.members[0], true);

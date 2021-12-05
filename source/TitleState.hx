@@ -27,6 +27,10 @@ import flixel.util.FlxColor;
 import flixel.util.FlxTimer;
 import lime.app.Application;
 import openfl.Assets;
+#if MODS_ALLOWED
+import flixel.tweens.FlxTween;
+import flixel.tweens.FlxEase;
+#end
 
 using StringTools;
 
@@ -43,6 +47,10 @@ class TitleState extends MusicBeatState
 	var credTextShit:Alphabet;
 	var textGroup:FlxGroup;
 	var logoSpr:FlxSprite;
+
+	#if MODS_ALLOWED
+	var loadingText:FlxText;
+	#end
 
 	var curWacky:Array<String> = [];
 
@@ -97,7 +105,10 @@ class TitleState extends MusicBeatState
 		#end
 
 		#if MODS_ALLOWED
-		CoolUtil.loadingImages();
+		loadingText = new FlxText(0, FlxG.height * 0.5, FlxG.width, 'Preloading files, please wait...', 30);
+		loadingText.setFormat(Paths.font("vcr.ttf"), 30, FlxColor.WHITE, CENTER, FlxColor.BLACK);
+		loadingText.alpha = 0;
+		add(loadingText);
 		#end
 
 		FlxG.game.focusLostFramerate = 60;
@@ -123,6 +134,14 @@ class TitleState extends MusicBeatState
 		{
 			StoryMenuState.weekCompleted = FlxG.save.data.weekCompleted;
 		}*/
+
+		#if MODS_ALLOWED
+		FlxTween.tween(loadingText, {alpha: 1}, 1, {ease: FlxEase.quartInOut,
+			onComplete: function(twn:FlxTween){
+				CoolUtil.loadingImages();
+				loadingText.alpha = 0;
+		}});
+		#end
 
 		FlxG.mouse.visible = false;
 		#if FREEPLAY

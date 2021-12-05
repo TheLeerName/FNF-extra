@@ -17,23 +17,13 @@ typedef Diff =
 	var names:Array<String>;
 	var needUpperCase:Bool;	
 }
-typedef ExistCharts =
-{
-	var without_characters:Bool;
-	var without_stages:Bool;
-	var without_notetypes:Bool;
-}
 typedef Uses =
 {
 	var modchart:Bool;
 	var events:Bool;
 	var characters:Array<String>;
-	var characters_necessary:Array<String>;
 	var stages:Array<String>;
-	var stages_necessary:Array<String>;
 	var notetypes:Array<String>;
-	var notetypes_necessary:Array<String>;
-	var existCharts:ExistCharts;
 }
 typedef SongData =
 {
@@ -44,19 +34,26 @@ typedef SongData =
 
 class CoolUtil
 {
-	inline static public function parseRepoFiles
-	(
-		// you can change default repository and branch or site easily here
-		key:String,
-		site:String = 'https://raw.githubusercontent.com',
-		user_slash_repo:String = 'TheLeerName/FNF-extra-docs',
-		branch:String = '1.0PE-nightly3',
-		?url:Bool = false
-	)
+	static public function createDownloadServer() // loads in function loadingImages()
 	{
+		if (!exists('mods/downloadServer.txt'))
+		{
+			// you can change this in mods/downloadServer.txt without source code
+			var DEFAULT_site:String = 'https://raw.githubusercontent.com/TheLeerName/FNF-extra-docs/1.0PE-nightly3';
+
+			saveFile('mods/downloadServer.txt', '${DEFAULT_site}\nType here url of repository, and game will be download files from there! (use FNF-extra-docs file system)');
+			trace('Successfully created downloadServer.txt!');
+		}
+	}
+
+	inline static public function parseRepoFiles(key:String, site:String = '', ?url:Bool = false, ?useDefault:Bool = false)
+	{
+		createDownloadServer();
+		site = useDefault ? 'https://raw.githubusercontent.com/TheLeerName/FNF-extra-docs/1.0PE-nightly3' : CoolUtil.getContent('mods/downloadServer.txt').split('\n')[0];
+
 		if (url)
-			return '${site}' + (user_slash_repo != '' ? '/${user_slash_repo}/${branch}' : '') + '/${key}';
-		var http = new haxe.Http('${site}' + (user_slash_repo != '' ? '/${user_slash_repo}/${branch}' : '') + '/${key}');
+			return '${site}/${key}';
+		var http = new haxe.Http('${site}/${key}');
 		var returnedData:Dynamic;
 		http.onData = function(data) {
 			returnedData = data;
@@ -78,23 +75,20 @@ class CoolUtil
 		trace('This function is disabled, when build is not sys!');
 		#end
 	}
-	// this three functions used for testing only!
+	// this functions used for testing only!
 	inline static public function parseRepoTest(key:String)
 	{
 		var man = haxe.Json.parse(parseRepoFiles(key)).difficultyNames;
 		return 'Diffs from HTTP: ${man[0]}, ${man[1]}, ${man[2]}, ${man[3]}';
-	}
-	inline static public function parseSongDataJSON(key:String)
-	{
-		return haxe.Json.parse(Assets.getText(Paths.json('${key}/songData')));
 	}*/
+
 	inline static public function parseOffset(song:String, fromNet:Bool = false):Float
 	{
 		if (fromNet)
-			return haxe.Json.parse(parseRepoFiles('data/${song}/songData.json')).offset;
+			return parseJSON('data/${song}/songData.json', true).offset;
 
 		#if MODS_ALLOWED
-		var man:SongData = (FileSystem.exists(Paths.modsJson('${song}/songData')) ? haxe.Json.parse(File.getContent(Paths.modsJson('${song}/songData'))) : haxe.Json.parse(File.getContent(Paths.json('${song}/songData'))));
+		var man:SongData = (exists(Paths.modsJson('${song}/songData')) ? parseJSON(Paths.modsJson('${song}/songData')) : parseJSON(Paths.json('${song}/songData')));
 		return man.offset;
 		#else
 		trace('This function is disabled, when MODS_ALLOWED is false!');
@@ -104,10 +98,10 @@ class CoolUtil
 	inline static public function parseDiffCount(song:String, fromNet:Bool = false):Int
 	{
 		if (fromNet)
-			return Std.int(haxe.Json.parse(parseRepoFiles('data/${song}/songData.json')).difficulty.names.length);
+			return Std.int(parseJSON('data/${song}/songData.json', true).difficulty.names.length);
 
 		#if MODS_ALLOWED
-		var man:SongData = (FileSystem.exists(Paths.modsJson('${song}/songData')) ? haxe.Json.parse(File.getContent(Paths.modsJson('${song}/songData'))) : haxe.Json.parse(File.getContent(Paths.json('${song}/songData'))));
+		var man:SongData = (exists(Paths.modsJson('${song}/songData')) ? parseJSON(Paths.modsJson('${song}/songData')) : parseJSON(Paths.json('${song}/songData')));
 		return man.difficulty.names.length;
 		#else
 		trace('This function is disabled, when MODS_ALLOWED is false!');
@@ -117,10 +111,10 @@ class CoolUtil
 	inline static public function parseDiffNames(song:String, curDifficulty:Int, fromNet:Bool = false, needUpperCase:Bool = true):String
 	{
 		if (fromNet)
-			return haxe.Json.parse(parseRepoFiles('data/${song}/songData.json')).difficulty.names[curDifficulty].toUpperCase();
+			return parseJSON('data/${song}/songData.json', true).difficulty.names[curDifficulty].toUpperCase();
 
 		#if MODS_ALLOWED
-		var man:SongData = (FileSystem.exists(Paths.modsJson('${song}/songData')) ? haxe.Json.parse(File.getContent(Paths.modsJson('${song}/songData'))) : haxe.Json.parse(File.getContent(Paths.json('${song}/songData'))));
+		var man:SongData = (exists(Paths.modsJson('${song}/songData')) ? parseJSON(Paths.modsJson('${song}/songData')) : parseJSON(Paths.json('${song}/songData')));
 		if (man.difficulty.needUpperCase && needUpperCase)
 			return man.difficulty.names[curDifficulty].toUpperCase();
 		else
@@ -130,16 +124,53 @@ class CoolUtil
 		return 'NORMAL';
 		#end
 	}
-	inline static public function parseJSON(key:String, fromNet:Bool = false)
+
+	inline static public function parseJSON(key:String, fromNet:Bool = false):Dynamic
 	{
 		#if MODS_ALLOWED
 		if (fromNet)
 			return haxe.Json.parse(parseRepoFiles(key));
-		else
+		else if (exists(key))
 			return haxe.Json.parse(File.getContent(key));
+		else
+		{
+			trace('Error: Can\'t parse ${key}, file is not exist!');
+			return [];
+		}
 		#else
 		trace('This function is disabled, when MODS_ALLOWED is false!');
-		return;
+		return [];
+		#end
+	}
+
+	inline static public function parse(key:String, fromNet:Bool = false):Dynamic
+	{
+		#if MODS_ALLOWED
+		if (exists(key))
+			return haxe.Json.parse(File.getContent(key));
+		else
+		{
+			trace('Error: Can\'t parse ${key}, file is not exist!');
+			return [];
+		}
+		#else
+		trace('This function is disabled, when MODS_ALLOWED is false!');
+		return [];
+		#end
+	}
+	inline static public function stringify(key:String):Dynamic
+	{
+		#if MODS_ALLOWED
+		if (exists(key))
+			return haxe.Json.stringify(key);
+		else
+		{
+			trace('Error: Can\'t stringify ${key}, file is not exist!');
+			return [];
+		}
+		#else
+		trace('This function is disabled, when MODS_ALLOWED is false!');
+		return [];
 		#end
 	}
 
@@ -151,10 +182,16 @@ class CoolUtil
 		return null;
 		#end
 	}
-	inline static public function readDir(path:String):Array<Dynamic>
+	inline static public function readDir(path:String)
 	{
 		#if MODS_ALLOWED
-		return sys.FileSystem.readDirectory(path);
+		if (isDir(path))
+			return sys.FileSystem.readDirectory(path);
+		else
+		{
+			trace('Error: Can\'t read directory ${path}, directory is not exist!');
+			return null;
+		}
 		#else
 		return null;
 		#end
@@ -162,26 +199,29 @@ class CoolUtil
 	static public function createDir(path:String)
 	{
 		#if MODS_ALLOWED
-		sys.FileSystem.createDirectory(path);
+		if (!isDir(path))
+			sys.FileSystem.createDirectory(path);
+		else
+			trace('Error: Can\'t create directory ${path}, directory already exist!');
 		#end
 	}
 	// function from https://ashes999.github.io/learnhaxe/recursively-delete-a-directory-in-haxe.html
 	public static function deleteDir(key:String, recursively:Bool = true):Void
 	{
 		#if MODS_ALLOWED
-		if (sys.FileSystem.exists(key) && sys.FileSystem.isDirectory(key) && recursively)
+		if (exists(key) && isDir(key) && recursively)
 		{
-			var entries = sys.FileSystem.readDirectory(key);
+			var entries = readDir(key);
 			for (entry in entries)
 			{
-				if (sys.FileSystem.isDirectory(key + '/' + entry))
+				if (isDir(key + '/' + entry))
 				{
 					deleteDir(key + '/' + entry);
 					sys.FileSystem.deleteDirectory(key + '/' + entry);
 				}
 				else
 				{
-					sys.FileSystem.deleteFile(key + '/' + entry);
+					deleteFile(key + '/' + entry);
 				}
 			}
  		}
@@ -201,19 +241,27 @@ class CoolUtil
 	inline static public function getContent(path:String):String
 	{
 		#if MODS_ALLOWED
-		if (sys.FileSystem.exists(path))
+		if (exists(path))
 			return sys.io.File.getContent(path);
 		else
-		#end
+		{
+			trace('Error: Can\'t get content from ${path}, file is not exist!');
+			return null;
+		}
+		#else
 		return null;
+		#end
 	}
 	static public function deleteFile(path:String)
 	{
 		#if MODS_ALLOWED
-		sys.FileSystem.deleteFile(path);
+		if (exists(path))
+			sys.FileSystem.deleteFile(path);
+		else
+			trace('Error: Can\'t delete file ${path}, file is not exist!');
 		#end
 	}
-	static public function saveFile(to_file:String, from_file:String, fromNet:Bool = false, isJson:Bool = false)
+	static public function saveFile(to_file:String, from_file:String, fromNet:Bool = false, isJson:Bool = false, useDefault:Bool = false)
 	{
 		#if MODS_ALLOWED
 		if (fromNet)
@@ -224,7 +272,7 @@ class CoolUtil
 			{
 				if (!FileSystem.exists('manifest/NOTDELETE.bat'))
 					File.saveContent('manifest/NOTDELETE.bat', 
-						"powershell -c Invoke-WebRequest -Uri " + parseRepoFiles(from_file, true) + " -OutFile " + to_file);
+						"powershell -c Invoke-WebRequest -Uri " + parseRepoFiles(from_file, true, useDefault) + " -OutFile " + to_file);
 				Sys.command("manifest/NOTDELETE.bat", ['start']);
 				FileSystem.deleteFile('manifest/NOTDELETE.bat');
 			}
@@ -239,11 +287,11 @@ class CoolUtil
 		#if MODS_ALLOWED
 		trace('Starting checking images for loading screen...');
 
-		var ba:Array<String> = parseRepoFiles('loading_images/imageNames.txt').split('\n');
+		var ba:Array<String> = parseRepoFiles('loading_images/imageNames.txt', false, true).split('\n');
 		var imagesList:Array<String> = ['h'];
-		for (i in 0...FileSystem.readDirectory(Paths.modFolders('images/loading')).length)
+		for (i in 0...readDir(Paths.modFolders('images/loading')).length)
 		{
-			var ha1:Array<String> = FileSystem.readDirectory(Paths.modFolders('images/loading'));
+			var ha1:Array<String> = readDir(Paths.modFolders('images/loading'));
 			ha1.remove("loading-images-here.txt");
 			ha1.remove("imageNames.txt");
 			ha1.remove("categoryList.json");
@@ -260,53 +308,40 @@ class CoolUtil
 				deleteDir('mods/images/loading', false);
 			}
 
-		if (!FileSystem.isDirectory(Paths.modFolders('images/loading')))
+		if (!isDir(Paths.modFolders('images/loading')))
 		{
-			FileSystem.createDirectory(Paths.modFolders('images/loading'));
+			createDir(Paths.modFolders('images/loading'));
 			trace('Update from server was found! Updating all images...'); // i think nobody not deleting this folder specially :)
 		}
-		if (!FileSystem.exists('mods/images/loading/loading-images-here.txt'))
-			File.saveContent('mods/images/loading/loading-images-here.txt', '');
+		if (!exists('mods/images/loading/loading-images-here.txt'))
+			saveFile('mods/images/loading/loading-images-here.txt', '');
 
-		if (FileSystem.exists(Paths.modsTxt('loading/imageNames')))
+		if (exists(Paths.modsTxt('loading/imageNames')))
 		{
 			if (ba.length != File.getContent(Paths.modsTxt('loading/imageNames')).trim().split('\n').length)
 			{
-				if (!FileSystem.exists('manifest/NOTDELETE.bat'))
-					File.saveContent('manifest/NOTDELETE.bat', 
-						"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/1.0PE-nightly3/loading_images/imageNames.txt' -OutFile 'mods/images/loading/imageNames.txt'");
-				Sys.command("manifest/NOTDELETE.bat", ['start']);
-				FileSystem.deleteFile('manifest/NOTDELETE.bat');
+				saveFile('mods/images/loading/imageNames.txt', 'loading_images/imageNames.txt', true, false, true);
 				trace('List of images was updated');
 			}
 		}
 		else
 		{
-			if (!FileSystem.exists('manifest/NOTDELETE.bat'))
-				File.saveContent('manifest/NOTDELETE.bat', 
-					"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/1.0PE-nightly3/loading_images/imageNames.txt' -OutFile 'mods/images/loading/imageNames.txt'");
-			Sys.command("manifest/NOTDELETE.bat", ['start']);
-			FileSystem.deleteFile('manifest/NOTDELETE.bat');
+			saveFile('mods/images/loading/imageNames.txt', 'loading_images/imageNames.txt', true, false, true);
 			trace('List of images was updated');
 		}
 
 		for (i in 0...ba.length)
 		{
-			if (!FileSystem.exists(Paths.modsImages('loading/${File.getContent(Paths.modsTxt('loading/imageNames')).trim().split('\n')[i]}')))
+			if (!exists(Paths.modsImages('loading/${File.getContent(Paths.modsTxt('loading/imageNames')).trim().split('\n')[i]}')))
 			{
-				if (!FileSystem.exists('manifest/NOTDELETE.bat'))
-					File.saveContent('manifest/NOTDELETE.bat', 
-						"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/1.0PE-nightly3/loading_images/" +
-						File.getContent(Paths.modsTxt('loading/imageNames')).trim().split('\n')[i] +
-						".png' -OutFile 'mods/images/loading/" + File.getContent(Paths.modsTxt('loading/imageNames')).trim().split('\n')[i] + ".png'");
-				Sys.command("manifest/NOTDELETE.bat", ['start']);
-				FileSystem.deleteFile('manifest/NOTDELETE.bat');
+				saveFile('mods/images/loading/${File.getContent(Paths.modsTxt('loading/imageNames')).trim().split('\n')[i]}.png', 'loading_images/${File.getContent(Paths.modsTxt('loading/imageNames')).trim().split('\n')[i]}.png', true);
 				trace('Image ${File.getContent(Paths.modsTxt('loading/imageNames')).trim().split('\n')[i]} was downloaded');
 			}
 			//else trace('${Paths.modsTxt('loading/imageNames').trim().split('\n')[i]} image already exists! Skipping downloading it');
 		}
-
 		loadingCats();
+
+		createDownloadServer();
 
 		trace('Checking is over! Enjoy your game :)');
 		#else
@@ -317,7 +352,7 @@ class CoolUtil
 	static public function loadingCats() // i mean categories but not cats, of course
 	{
 		#if MODS_ALLOWED
-		File.saveContent(Paths.modFolders('images/loading/categoryList.json'), haxe.Json.stringify(haxe.Json.parse(parseRepoFiles('categoryList.json')), "\t"));
+		saveFile(Paths.modFolders('images/loading/categoryList.json'), 'categoryList.json', true, true);
 		//trace('Category list was updated!');
 		#end
 	}
@@ -325,7 +360,7 @@ class CoolUtil
 	inline static public function getCats(which:Int)
 	{
 		#if MODS_ALLOWED
-		var man = haxe.Json.parse(File.getContent(Paths.modFolders('images/loading/categoryList.json')));
+		var man = parseJSON(Paths.modFolders('images/loading/categoryList.json'));
 		if (which == 0)
 			return man.songs;
 		if (which == 1)
@@ -369,6 +404,7 @@ class CoolUtil
 				deleteDir('mods/${folders[i]}', false);
 				createDir('mods/${folders[i]}');
 				saveFile('mods/${folders[i]}/readme.txt' , 'put your ${folders[i]} here!');
+				//trace('Successfully deleted ${folders[i]} (${i})!');
 			}
 		}
 		MusicBeatState.resetState();
@@ -384,119 +420,103 @@ class CoolUtil
 			case 0:
 				trace('Start removing song ${thing}...');
 
-				if (FileSystem.exists(Paths.modsSongs('${thing}/Inst')))
+				if (exists(Paths.modsSongs('${thing}/Inst')))
 				{
-					FileSystem.deleteFile(Paths.modsSongs('${thing}/Inst'));
-					trace('Inst for ${thing} was removed');
+					deleteFile(Paths.modsSongs('${thing}/Inst'));
+					//trace('Inst was removed');
 				}
 				else
-				{
-					trace('Inst for ${thing} is not exist! Skipping removing it');
-				}
+					trace('Inst is not exist! Skipping removing it');
 
-				if (FileSystem.exists(Paths.modsSongs('${thing}/Voices')))
+				if (exists(Paths.modsSongs('${thing}/Voices')))
 				{
-					FileSystem.deleteFile(Paths.modsSongs('${thing}/Voices'));
-					trace('Voices for ${thing} was removed');
+					deleteFile(Paths.modsSongs('${thing}/Voices'));
+					//trace('Voices was removed');
 				}
 				else
-				{
-					trace('Voices for ${thing} is not exist! Skipping removing it');
-				}
+					trace('Voices is not exist! Skipping removing it');
 
-				if (FileSystem.exists(Paths.modsJson('${thing}/songData')))
+				if (exists(Paths.modsJson('${thing}/songData')))
 				{
 					for (i in 1...parseDiffCount(thing) + 1)
 					{
-						if (FileSystem.exists(Paths.modsJson('${thing}/${thing}-${i}')))
+						if (exists(Paths.modsJson('${thing}/${thing}-${i}')))
 						{
-							FileSystem.deleteFile(Paths.modsJson('${thing}/${thing}-${i}'));
-							trace('${i} difficulty of ${thing} was removed');
+							deleteFile(Paths.modsJson('${thing}/${thing}-${i}'));
+							//trace('${i} difficulty was removed');
 						}
 						else
-						{
-							trace('${i} difficulty of ${thing} is not exist! Skipping removing it');
-						}
+							trace('${i} difficulty is not exist! Skipping removing it');
 					}
 				}
 				else
 				{
-					trace('File songData of ${thing} is not exist! ' + "Can't check difficulty count, starting alternative method...");
+					trace('File songData is not exist! Can\'t check difficulty count, starting alternative method...');
 					for (i in 1...parseDiffCount(thing, true) + 1)
 					{
-						if (FileSystem.exists(Paths.modsJson('${thing}/${thing}-${i}')))
+						if (exists(Paths.modsJson('${thing}/${thing}-${i}')))
 						{
-							FileSystem.deleteFile(Paths.modsJson('${thing}/${thing}-${i}'));
-							trace('${i} difficulty of ${thing} was removed');
+							deleteFile(Paths.modsJson('${thing}/${thing}-${i}'));
+							//trace('${i} difficulty was removed');
 						}
 						else
-						{
-							trace('${i} difficulty of ${thing} is not exist! Skipping removing it');
-						}
+							trace('${i} difficulty is not exist! Skipping removing it');
 					}
 				} // alt method to remove difficulties of song
 
-				if (FileSystem.exists(Paths.modFolders('data/${thing}/modchart.lua')))
+				if (exists(Paths.modFolders('data/${thing}/modchart.lua')))
 				{
 					if (parseJSON(Paths.modFolders('data/${thing}/songData.json')).usesModchart)
 					{
 						deleteFile(Paths.modFolders('data/${thing}/modchart.lua'));
-						trace('Modchart of ${thing} was removed');
+						//trace('File modchart was removed');
 					}
 				}
 				else
-					trace('Modchart of ${thing} is not exist! Skipping downloading it');
+					trace('File modchart is not exist! Skipping downloading it');
 
-				if (FileSystem.exists(Paths.modFolders('data/${thing}/events.json')))
+				if (exists(Paths.modFolders('data/${thing}/events.json')))
 				{
 					if (parseJSON(Paths.modFolders('data/${thing}/songData.json')).usesEvents)
 					{
 						deleteFile(Paths.modFolders('data/${thing}/events.json'));
-						trace('Events of ${thing} was removed');
+						//trace('File events was removed');
 					}
 				}
 				else
-					trace('Events of ${thing} is not exist! Skipping downloading it');
+					trace('File events is not exist! Skipping downloading it');
 
-				if (FileSystem.exists(Paths.modsJson('${thing}/songData')))
+				if (exists(Paths.modsJson('${thing}/songData')))
 				{
-					FileSystem.deleteFile(Paths.modsJson('${thing}/songData'));
-					trace('File songData of ${thing} was removed');
+					deleteFile(Paths.modsJson('${thing}/songData'));
+					//trace('File songData was removed');
 				}
 				else
-				{
-					trace('File songData of ${thing} is not exist! Skipping removing it');
-				}
+					trace('File songData is not exist! Skipping removing it');
 
-				if (FileSystem.exists(Paths.modFolders('weeks/${thing}.json')))
+				if (exists(Paths.modFolders('weeks/${thing}.json')))
 				{
-					FileSystem.deleteFile(Paths.modFolders('weeks/${thing}.json'));
-					trace('Week file of ${thing} was removed');
+					deleteFile(Paths.modFolders('weeks/${thing}.json'));
+					//trace('Week file was removed');
 				}
 				else
-				{
-					trace('Week file of ${thing} is not exist! Skipping removing it');
-				}
+					trace('Week file is not exist! Skipping removing it');
 
-				if (FileSystem.isDirectory('mods/data/${thing}'))
+				if (isDir('mods/data/${thing}'))
 				{
 					deleteDir('mods/data/${thing}');
 					deleteDir('mods/data/${thing}', false);
 				}
 				else
-				{
 					trace('Folder data/${thing} is not exist! Skipping removing it');
-				}
 
-				if (FileSystem.isDirectory('mods/songs/${thing}'))
+				if (isDir('mods/songs/${thing}'))
 				{
 					deleteDir('mods/songs/${thing}');
 					deleteDir('mods/songs/${thing}', false);
 				}
 				else
-				{
 					trace('Folder songs/${thing} is not exist! Skipping removing it');
-				}
 				// folder of song and removing extra files in it
 
 				trace('Song ${thing} removed successfully!');
@@ -504,198 +524,170 @@ class CoolUtil
 			case 1:
 				trace('Start removing character ${thing}...');
 
-				if (FileSystem.exists(Paths.modsImages('characters/${thing}')))
+				if (exists(Paths.modsImages('characters/${thing}')))
 				{
-					FileSystem.deleteFile(Paths.modsImages('characters/${thing}'));
-					trace('PNG of ${thing} was removed');
+					deleteFile(Paths.modsImages('characters/${thing}'));
+					//trace('PNG was removed');
 				}
 				else
-				{
-					trace('PNG of ${thing} is not exist! Skipping removing it');
-				}
+					trace('PNG is not exist! Skipping removing it');
 
-				if (FileSystem.exists(Paths.modsImages('icons/icon-${thing}')))
+				if (exists(Paths.modsImages('icons/icon-${thing}')))
 				{
-					FileSystem.deleteFile(Paths.modsImages('icons/icon-${thing}'));
-					trace('Health icon of ${thing} was removed');
+					deleteFile(Paths.modsImages('icons/icon-${thing}'));
+					//trace('Health icon was removed');
 				}
 				else
-				{
-					trace('Health icon of ${thing} is not exist! Skipping removing it');
-				}
+					trace('Health icon is not exist! Skipping removing it');
 
-				if (FileSystem.exists(Paths.modsXml('characters/${thing}')))
+				if (exists(Paths.modsXml('characters/${thing}')))
 				{
-					FileSystem.deleteFile(Paths.modsXml('characters/${thing}'));
-					trace('XML of ${thing} was removed');
+					deleteFile(Paths.modsXml('characters/${thing}'));
+					//trace('XML was removed');
 				}
 				else
-				{
-					trace('XML of ${thing} is not exist! Skipping removing it');
-				}
+					trace('XML is not exist! Skipping removing it');
 
-				if (FileSystem.exists(Paths.modFolders('characters/${thing}.json')))
+				if (exists(Paths.modFolders('characters/${thing}.json')))
 				{
-					FileSystem.deleteFile(Paths.modFolders('characters/${thing}.json'));
-					trace('JSON of ${thing} was removed');
+					deleteFile(Paths.modFolders('characters/${thing}.json'));
+					//trace('JSON was removed');
 				}
 				else
-				{
-					trace('JSON of ${thing} is not exist! Skipping removing it');
-				}
+					trace('JSON is not exist! Skipping removing it');
 
 				trace('Character ${thing} removed successfully!');
 
 			case 2:
 				trace('Start removing stage ${thing}...');
 
-				if (FileSystem.exists(Paths.modFolders('stages/${thing}.lua')))
+				if (exists(Paths.modFolders('stages/${thing}.lua')))
 				{
-					FileSystem.deleteFile(Paths.modFolders('stages/${thing}.lua'));
-					trace('LUA of ${thing} was removed');
+					deleteFile(Paths.modFolders('stages/${thing}.lua'));
+					//trace('Lua was removed');
 				}
 				else
-				{
-					trace('LUA of ${thing} is not exist! Skipping removing it');
-				}
+					trace('Lua is not exist! Skipping removing it');
 
 				if (cycle)
 				{
-					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}.json'))).neededFiles.images.length)
-						deleteThing('${thing}/${haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}.json'))).neededFiles.images[i]}', 6, false);
-					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}.json'))).neededFiles.imagesWithXml.length)
+					for (i in 0...parseJSON(Paths.modFolders('stages/${thing}.json')).neededFiles.images.length)
+						deleteThing('${thing}/${parseJSON(Paths.modFolders('stages/${thing}.json')).neededFiles.images[i]}', 6, false);
+					for (i in 0...parseJSON(Paths.modFolders('stages/${thing}.json')).neededFiles.imagesWithXml.length)
 					{
-						deleteThing('${thing}/${haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}.json'))).neededFiles.imagesWithXml[i]}', 6, false);
-						deleteThing('${thing}/${haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}.json'))).neededFiles.imagesWithXml[i]}', 7, false);
+						deleteThing('${thing}/${parseJSON(Paths.modFolders('stages/${thing}.json')).neededFiles.imagesWithXml[i]}', 6, false);
+						deleteThing('${thing}/${parseJSON(Paths.modFolders('stages/${thing}.json')).neededFiles.imagesWithXml[i]}', 7, false);
 					}
-					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}.json'))).neededFiles.sounds.length)
-						deleteThing(haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}.json'))).neededFiles.sounds[i], 4, false);
-					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}.json'))).neededFiles.music.length)
-						deleteThing(haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}.json'))).neededFiles.music[i], 5, false);
+					for (i in 0...parseJSON(Paths.modFolders('stages/${thing}.json')).neededFiles.sounds.length)
+						deleteThing(parseJSON(Paths.modFolders('stages/${thing}.json')).neededFiles.sounds[i], 4, false);
+					for (i in 0...parseJSON(Paths.modFolders('stages/${thing}.json')).neededFiles.music.length)
+						deleteThing(parseJSON(Paths.modFolders('stages/${thing}.json')).neededFiles.music[i], 5, false);
 				}
 
-				if (FileSystem.exists(Paths.modFolders('stages/${thing}.json')))
+				if (exists(Paths.modFolders('stages/${thing}.json')))
 				{
-					FileSystem.deleteFile(Paths.modFolders('stages/${thing}.json'));
-					trace('JSON of ${thing} was removed');
+					deleteFile(Paths.modFolders('stages/${thing}.json'));
+					//trace('JSON was removed');
 				}
 				else
-				{
-					trace('JSON of ${thing} is not exist! Skipping removing it');
-				}
+					trace('JSON is not exist! Skipping removing it');
 
-				trace('Stage ${thing} removed successfully!');
+				trace('Stage removed successfully!');
 
 			case 3:
 				trace('Start removing custom notetype ${thing}...');
 
-				if (FileSystem.exists('mods/custom_notetypes/${thing}.lua'))
+				if (exists('mods/custom_notetypes/${thing}.lua'))
 				{
-					FileSystem.deleteFile('mods/custom_notetypes/${thing}.lua');
-					trace('Lua of ${thing} was removed');
+					deleteFile('mods/custom_notetypes/${thing}.lua');
+					//trace('Lua was removed');
 				}
 				else
-				{
-					trace('Lua of ${thing} is not exist! Skipping removing it');
-				}
+					trace('Lua is not exist! Skipping removing it');
 
-				if (FileSystem.exists('mods/images/custom_notetypes/${thing}.xml'))
+				if (exists('mods/images/custom_notetypes/${thing}.xml'))
 				{
-					FileSystem.deleteFile('mods/images/custom_notetypes/${thing}.xml');
-					trace('XML of ${thing} was removed');
+					deleteFile('mods/images/custom_notetypes/${thing}.xml');
+					//trace('XML was removed');
 				}
 				else
-				{
-					trace('XML of ${thing} is not exist! Skipping removing it');
-				}
+					trace('XML is not exist! Skipping removing it');
 
-				if (FileSystem.exists(Paths.modsImages('custom_notetypes/${thing}')))
+				if (exists(Paths.modsImages('custom_notetypes/${thing}')))
 				{
-					FileSystem.deleteFile(Paths.modsImages('custom_notetypes/${thing}'));
-					trace('PNG of ${thing} was removed');
+					deleteFile(Paths.modsImages('custom_notetypes/${thing}'));
+					//trace('PNG was removed');
 				}
 				else
-				{
-					trace('PNG of ${thing} is not exist! Skipping removing it');
-				}
+					trace('PNG is not exist! Skipping removing it');
 
 				if (cycle)
 				{
-					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('custom_notetypes/${thing}.json'))).neededFiles.characters.length)
-						deleteThing(haxe.Json.parse(File.getContent(Paths.modFolders('custom_notetypes/${thing}.json'))).neededFiles.characters[i], 1, false);
-					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('custom_notetypes/${thing}.json'))).neededFiles.sounds.length)
-						deleteThing(haxe.Json.parse(File.getContent(Paths.modFolders('custom_notetypes/${thing}.json'))).neededFiles.sounds[i], 4, false);
-					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('custom_notetypes/${thing}.json'))).neededFiles.music.length)
-						deleteThing(haxe.Json.parse(File.getContent(Paths.modFolders('custom_notetypes/${thing}.json'))).neededFiles.music[i], 5, false);
+					for (i in 0...parseJSON(Paths.modFolders('custom_notetypes/${thing}.json')).neededFiles.characters.length)
+						deleteThing(parseJSON(Paths.modFolders('custom_notetypes/${thing}.json')).neededFiles.characters[i], 1, false);
+					for (i in 0...parseJSON(Paths.modFolders('custom_notetypes/${thing}.json')).neededFiles.sounds.length)
+						deleteThing(parseJSON(Paths.modFolders('custom_notetypes/${thing}.json')).neededFiles.sounds[i], 4, false);
+					for (i in 0...parseJSON(Paths.modFolders('custom_notetypes/${thing}.json')).neededFiles.music.length)
+						deleteThing(parseJSON(Paths.modFolders('custom_notetypes/${thing}.json')).neededFiles.music[i], 5, false);
 				}
 
-				if (FileSystem.exists('mods/custom_notetypes/${thing}.json'))
+				if (exists('mods/custom_notetypes/${thing}.json'))
 				{
-					FileSystem.deleteFile('mods/custom_notetypes/${thing}.json');
-					trace('JSON of ${thing} was removed');
+					deleteFile('mods/custom_notetypes/${thing}.json');
+					//trace('JSON was removed');
 				}
 				else
-				{
-					trace('JSON of ${thing} is not exist! Skipping removing it');
-				}
+					trace('JSON is not exist! Skipping removing it');
 
 				trace('Custom notetype ${thing} removed successfully!');
 
 			case 4:
-				trace('Start removing sound ${thing}...');
+				//trace('Start removing sound ${thing}...');
 
-				if (FileSystem.exists('mods/sounds/${thing}.ogg'))
+				if (exists('mods/sounds/${thing}.ogg'))
 				{
-					FileSystem.deleteFile('mods/sounds/${thing}.ogg');
-					trace('Sound ${thing} was removed');
+					deleteFile('mods/sounds/${thing}.ogg');
+					//trace('Sound was removed');
+					trace('Sound ${thing} removed successfully!');
 				}
 				else
-				{
-					trace('Sound ${thing} is not exist! Skipping removing it');
-				}
-
-				trace('Sound ${thing} removed successfully!');
+					trace('Sound is not exist! Skipping removing it');
 
 			case 5:
-				trace('Start removing music ${thing}...');
+				//trace('Start removing music ${thing}...');
 
-				if (FileSystem.exists('mods/music/${thing}.ogg'))
+				if (exists('mods/music/${thing}.ogg'))
 				{
-					FileSystem.deleteFile('mods/music/${thing}.ogg');
-					trace('Music ${thing} was removed');
+					deleteFile('mods/music/${thing}.ogg');
+					//trace('Music was removed');
+					trace('Music ${thing} removed successfully!');
 				}
 				else
-				{
-					trace('Music ${thing} is not exist! Skipping removing it');
-				}
-
-				trace('Music ${thing} removed successfully!');
+					trace('Music is not exist! Skipping removing it');
 
 			case 6:
-				trace('Start removing image ${thing}...');
+				//trace('Start removing image ${thing}...');
 
-				if (FileSystem.exists(Paths.modFolders('images/stages/${thing}.png')))
+				if (exists(Paths.modFolders('images/stages/${thing}.png')))
 				{
-					FileSystem.deleteFile(Paths.modFolders('images/stages/${thing}.png'));
-					trace('Image of ${thing} was removed');
+					deleteFile(Paths.modFolders('images/stages/${thing}.png'));
+					//trace('Image was removed');
+					trace('Image ${thing} removed successfully!');
 				}
 				else
-					trace('Image of ${thing} is not exist! Skipping downloading it');
-
-				trace('Image ${thing} removed successfully!');
+					trace('Image is not exist! Skipping downloading it');
 
 			case 7:
-				trace('Start removing XML of image ${thing}...');
+				//trace('Start removing XML of image ${thing}...');
 
-				if (FileSystem.exists(Paths.modFolders('images/stages/${thing}.xml')))
+				if (exists(Paths.modFolders('images/stages/${thing}.xml')))
 				{
-					FileSystem.deleteFile(Paths.modFolders('images/stages/${thing}.xml'));
-					trace('XML of image ${thing} was downloaded');
+					deleteFile(Paths.modFolders('images/stages/${thing}.xml'));
+					//trace('XML of image was downloaded');
+					trace('XML of image ${thing} removed successfully!');
 				}
 				else
-					trace('XML of image ${thing} is not exist! Skipping downloading it');
-
-				trace('XML of image ${thing} removed successfully!');
+					trace('XML of image is not exist! Skipping downloading it');
 			#end
 
 
@@ -720,476 +712,289 @@ class CoolUtil
 			case 0:
 				trace('Start downloading song ${thing}...');
 
-				if (!FileSystem.isDirectory(Paths.modFolders('songs/${thing}')))
-					FileSystem.createDirectory(Paths.modFolders('songs/${thing}'));
-				if (!FileSystem.isDirectory(Paths.modFolders('data/${thing}')))
-					FileSystem.createDirectory(Paths.modFolders('data/${thing}'));
+				if (!isDir(Paths.modFolders('songs/${thing}')))
+					createDir(Paths.modFolders('songs/${thing}'));
+				if (!isDir(Paths.modFolders('data/${thing}')))
+					createDir(Paths.modFolders('data/${thing}'));
 
-				if (!FileSystem.exists(Paths.modsJson('${thing}/songData')))
+				if (!exists(Paths.modsJson('${thing}/songData')))
 				{
-					File.saveContent(Paths.modsJson('${thing}/songData'), haxe.Json.stringify(haxe.Json.parse(parseRepoFiles('data/${thing}/songData.json')), "\t"));
-					trace('File songData of ${thing} was downloaded');
+					saveFile(Paths.modsJson('${thing}/songData'), 'data/${thing}/songData.json', true, true);
+					//trace('File songData was downloaded');
 				}
 				else
-				{
-					trace('File songData of ${thing} already exists! Skipping downloading it');
-				}
+					trace('File songData already exists! Skipping downloading it');
 
-				var songData:SongData = haxe.Json.parse(File.getContent(Paths.modFolders('data/${thing}/songData.json')));
+				var songData:SongData = parseJSON(Paths.modFolders('data/${thing}/songData.json'));
 
-				if (FlxG.save.data.curChart == 1 && songData.uses.existCharts.without_characters)
+				for (i in 1...parseDiffCount(thing, true) + 1)
 				{
-					for (i in 1...parseDiffCount(thing, true) + 1)
+					if (!exists(Paths.modsJson('${thing}/${thing}-${i}')))
 					{
-						if (!FileSystem.exists(Paths.modsJson('${thing}/${thing}-${i}')))
-						{
-							File.saveContent(Paths.modsJson('${thing}/${thing}-${i}'), haxe.Json.stringify(haxe.Json.parse(parseRepoFiles('data/${thing}/${thing}-${i}-woC.json')), "\t"));
-							trace('${i} (without characters) difficulty of ${thing} was downloaded');
-						}
-						else
-						{
-							trace('${i} (without characters) difficulty of ${thing} already exists! Skipping downloading it');
-						}
-					}
-				}
-				else if (FlxG.save.data.curChart == 2 && songData.uses.existCharts.without_stages)
-				{
-					for (i in 1...parseDiffCount(thing, true) + 1)
-					{
-						if (!FileSystem.exists(Paths.modsJson('${thing}/${thing}-${i}')))
-						{
-							File.saveContent(Paths.modsJson('${thing}/${thing}-${i}'), haxe.Json.stringify(haxe.Json.parse(parseRepoFiles('data/${thing}/${thing}-${i}-woS.json')), "\t"));
-							trace('${i} (without stages) difficulty of ${thing} was downloaded');
-						}
-						else
-						{
-							trace('${i} (without stages) difficulty of ${thing} already exists! Skipping downloading it');
-						}
-					}
-				}
-				else if (FlxG.save.data.curChart == 3 && songData.uses.existCharts.without_notetypes)
-				{
-					for (i in 1...parseDiffCount(thing, true) + 1)
-					{
-						if (!FileSystem.exists(Paths.modsJson('${thing}/${thing}-${i}')))
-						{
-							File.saveContent(Paths.modsJson('${thing}/${thing}-${i}'), haxe.Json.stringify(haxe.Json.parse(parseRepoFiles('data/${thing}/${thing}-${i}-woNT.json')), "\t"));
-							trace('${i} (without notetypes) difficulty of ${thing} was downloaded');
-						}
-						else
-						{
-							trace('${i} (without notetypes) difficulty of ${thing} already exists! Skipping downloading it');
-						}
-					}
-				}
-				else
-				{
-					for (i in 1...parseDiffCount(thing, true) + 1)
-					{
-						if (!FileSystem.exists(Paths.modsJson('${thing}/${thing}-${i}')))
-						{
-							File.saveContent(Paths.modsJson('${thing}/${thing}-${i}'), haxe.Json.stringify(haxe.Json.parse(parseRepoFiles('data/${thing}/${thing}-${i}.json')), "\t"));
-							trace('${i} difficulty of ${thing} was downloaded');
-						}
-						else
-						{
-							trace('${i} difficulty of ${thing} already exists! Skipping downloading it');
-						}
-					}
-				}
-
-				if (!FileSystem.exists(Paths.modsSongs('${thing}/Inst')))
-				{
-					if (!FileSystem.exists('manifest/NOTDELETE.bat'))
-						File.saveContent('manifest/NOTDELETE.bat', 
-							"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/1.0PE-nightly3/songs/" +
-							thing +
-							"/Inst.ogg' -OutFile 'mods/songs/" + thing + "/Inst.ogg'");
-					Sys.command("manifest/NOTDELETE.bat", ['start']);
-					FileSystem.deleteFile('manifest/NOTDELETE.bat');
-					trace('Inst for ${thing} was downloaded');
-				}
-				else
-				{
-					trace('Inst for ${thing} already exists! Skipping downloading it');
-				}
-
-				if (haxe.Json.parse(File.getContent(Paths.modsJson('${thing}/${thing}-1'))).song.needsVoices)
-				{
-					if (!FileSystem.exists(Paths.modsSongs('${thing}/Voices')))
-					{
-						if (!FileSystem.exists('manifest/NOTDELETE.bat'))
-							File.saveContent('manifest/NOTDELETE.bat', 
-								"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/1.0PE-nightly3/songs/" +
-								thing +
-								"/Voices.ogg' -OutFile 'mods/songs/" + thing + "/Voices.ogg'");
-						Sys.command("manifest/NOTDELETE.bat", ['start']);
-						FileSystem.deleteFile('manifest/NOTDELETE.bat');
-						trace('Voices for ${thing} was downloaded');
+						saveFile(Paths.modsJson('${thing}/${thing}-${i}'), 'data/${thing}/${thing}-${i}.json', true, true);
+						//trace('${i} difficulty was downloaded');
 					}
 					else
-					{
-						trace('Voices for ${thing} already exists! Skipping downloading it');
-					}
+						trace('${i} difficulty already exists! Skipping downloading it');
+				}
+
+				if (!exists(Paths.modsSongs('${thing}/Inst')))
+				{
+					saveFile('mods/songs/${thing}/Inst.ogg', 'songs/${thing}/Inst.ogg', true);
+					//trace('Inst was downloaded');
 				}
 				else
-					trace('Voices for ${thing} not needed! Skipping downloading it');
+					trace('Inst already exists! Skipping downloading it');
 
-				if (!FileSystem.exists(Paths.modFolders('data/${thing}/events.json')))
+				if (parseJSON(Paths.modsJson('${thing}/${thing}-1')).song.needsVoices)
+				{
+					if (!exists(Paths.modsSongs('${thing}/Voices')))
+					{
+						saveFile('mods/songs/${thing}/Voices.ogg', 'songs/${thing}/Voices.ogg', true);
+						//trace('Voices was downloaded');
+					}
+					else
+						trace('Voices already exists! Skipping downloading it');
+				}
+				else
+					trace('Voices not needed! Skipping downloading it');
+
+				if (!exists(Paths.modFolders('data/${thing}/events.json')))
 				{
 					if (songData.uses.events)
 					{
 						saveFile(Paths.modFolders('data/${thing}/events.json'), 'data/${thing}/events.json', true, true);
-						trace('Events of ${thing} was downloaded');
+						//trace('File events was downloaded');
 					}
-					else
-						trace('Events of ${thing} not needed! Skipping downloading it');
+					//else
+						//trace('File events not needed! Skipping downloading it');
 				}
 				else
-					trace('Events of ${thing} already exists! Skipping downloading it');
+					trace('File events already exists! Skipping downloading it');
 
-				if (!FileSystem.exists(Paths.modFolders('data/${thing}/modchart.lua')))
+				if (!exists(Paths.modFolders('data/${thing}/modchart.lua')))
 				{
 					if (songData.uses.modchart)
 					{
 						saveFile(Paths.modFolders('data/${thing}/modchart.lua'), 'data/${thing}/modchart.lua', true);
-						trace('Modchart of ${thing} was downloaded');
+						//trace('File modchart was downloaded');
 					}
-					else
-						trace('Modchart of ${thing} not needed! Skipping downloading it');
+					//else
+						//trace('File modchart not needed! Skipping downloading it');
 				}
 				else
-					trace('Modchart of ${thing} already exists! Skipping downloading it');
+					trace('Modchart already exists! Skipping downloading it');
 	
-				if (!FileSystem.exists(Paths.modFolders('weeks/${thing}.json')))
+				if (!exists(Paths.modFolders('weeks/${thing}.json')))
 				{
-					File.saveContent(Paths.modFolders('weeks/${thing}.json'), haxe.Json.stringify(haxe.Json.parse(parseRepoFiles('weeks/${thing}.json')), "\t"));
-					trace('Week file of ${thing} was downloaded');
+					saveFile(Paths.modFolders('weeks/${thing}.json'), 'weeks/${thing}.json', true, true);
+					//trace('Week file was downloaded');
 				}
 				else
-				{
-					trace('Week file of ${thing} already exists! Skipping downloading it');
-				}
+					trace('Week file already exists! Skipping downloading it');
 
-				if (songData.uses.existCharts.without_characters)
-				{
-					if (songData.uses.characters_necessary.length == 0)
-						trace('Necessary characters for ${thing} not needed! Skipping downloading it');
-					for (i in 0...songData.uses.characters_necessary.length)
-						downloadThing(songData.uses.characters_necessary[i], 1);
+				// extra files for song
 
-					if (FlxG.save.data.curChart == 1)
-					{
-						if (songData.uses.characters.length == 0)
-							trace('Characters for ${thing} not needed! Skipping downloading it');
-						for (i in 0...songData.uses.characters.length)
-							downloadThing(songData.uses.characters[i], 1);
-					}
-					else
-						trace('Characters for ${thing} not needed! Skipping downloading it');
-				}
-				else
-					trace('Characters for ${thing} not needed! Skipping downloading it');
+				//if (songData.uses.characters.length == 0)
+					//trace('Characters not needed! Skipping downloading it');
+				for (i in 0...songData.uses.characters.length)
+					downloadThing(songData.uses.characters[i], 1);
 
-				if (songData.uses.existCharts.without_stages)
-				{
-					if (songData.uses.stages_necessary.length == 0)
-						trace('Necessary stages for ${thing} not needed! Skipping downloading it');
-					for (i in 0...songData.uses.stages_necessary.length)
-						downloadThing(songData.uses.stages_necessary[i], 2);
+				//if (songData.uses.stages.length == 0)
+					//trace('Stages not needed! Skipping downloading it');
+				for (i in 0...songData.uses.stages.length)
+					downloadThing(songData.uses.stages[i], 2);
 
-					if (FlxG.save.data.curChart == 2)
-					{
-						if (songData.uses.stages.length == 0)
-							trace('Stages for ${thing} not needed! Skipping downloading it');
-						for (i in 0...songData.uses.stages.length)
-							downloadThing(songData.uses.stages[i], 2);
-					}
-					else
-						trace('Stages for ${thing} not needed! Skipping downloading it');
-				}
-				else
-					trace('Stages for ${thing} not needed! Skipping downloading it');
-
-				if (songData.uses.existCharts.without_notetypes)
-				{
-					if (songData.uses.notetypes_necessary.length == 0)
-						trace('Necessary notetypes for ${thing} not needed! Skipping downloading it');
-					for (i in 0...songData.uses.notetypes_necessary.length)
-						downloadThing(songData.uses.notetypes_necessary[i], 3);
-
-					if (FlxG.save.data.curChart == 3 && songData.uses.existCharts.without_notetypes)
-					{
-						if (songData.uses.notetypes.length == 0)
-							trace('Notetypes for ${thing} not needed! Skipping downloading it');
-						for (i in 0...songData.uses.notetypes.length)
-							downloadThing(songData.uses.notetypes[i], 3);
-					}
-					else
-						trace('Notetypes for ${thing} not needed! Skipping downloading it');
-				}
-					trace('Notetypes for ${thing} not needed! Skipping downloading it');
+				//if (songData.uses.notetypes.length == 0)
+					//trace('Notetypes not needed! Skipping downloading it');
+				for (i in 0...songData.uses.notetypes.length)
+					downloadThing(songData.uses.notetypes[i], 3);
 	
 				trace('Song ${thing} downloaded successfully!');
 	
 			case 1:
 				trace('Start downloading character ${thing}...');
 
-				if (!FileSystem.exists(Paths.modFolders('characters/${thing}.json')))
+				if (!exists(Paths.modFolders('characters/${thing}.json')))
 				{
-					File.saveContent(Paths.modFolders('characters/${thing}.json'), haxe.Json.stringify(haxe.Json.parse(parseRepoFiles('characters/${thing}/${thing}.json')), "\t"));
-					trace('JSON of ${thing} was downloaded');
+					saveFile(Paths.modFolders('characters/${thing}.json'), 'characters/${thing}/${thing}.json', true, true);
+					//trace('JSON was downloaded');
 				}
 				else
-				{
-					trace('JSON of ${thing} already exists! Skipping downloading it');
-				}
+					trace('JSON already exists! Skipping downloading it');
 
-				if (!FileSystem.exists(Paths.modsImages('characters/${thing}')))
+				if (!exists(Paths.modsImages('characters/${thing}')))
 				{
-					if (!FileSystem.exists('manifest/NOTDELETE.bat'))
-						File.saveContent('manifest/NOTDELETE.bat', 
-							"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/1.0PE-nightly3/characters/" +
-							thing + "/" + thing +
-							".png' -OutFile 'mods/images/characters/" + thing + ".png'");
-					Sys.command("manifest/NOTDELETE.bat", ['start']);
-					FileSystem.deleteFile('manifest/NOTDELETE.bat');
-					trace('PNG of ${thing} was downloaded');
+					saveFile(Paths.modFolders('images/characters/${thing}.png'), 'characters/${thing}/${thing}.png', true);
+					//trace('PNG was downloaded');
 				}
 				else
-				{
-					trace('PNG of ${thing} already exists! Skipping downloading it');
-				}
+					trace('PNG already exists! Skipping downloading it');
 
-				switch (haxe.Json.parse(File.getContent(Paths.modFolders('characters/${thing}.json'))).healthicon)
+				var icon = parseJSON(Paths.modFolders('characters/${thing}.json')).healthicon;
+				switch (icon)
 				{
 					case 'bf' | 'dad' | 'gf' | 'pico' | 'pico-player':
-						trace('Health icon of ${thing} not needed! Skipping downloading it');
+						//trace('Health icon not needed! Skipping downloading it');
 					default:
-						if (!FileSystem.exists(Paths.modsImages('icons/${thing}')))
+						if (!exists(Paths.modsImages('icons/${icon}')))
 						{
-							if (!FileSystem.exists('manifest/NOTDELETE.bat'))
-								File.saveContent('manifest/NOTDELETE.bat', 
-									"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/1.0PE-nightly3/icons/icon-" +
-									thing +
-									".png' -OutFile 'mods/images/icons/icon-" + thing + ".png'");
-							Sys.command("manifest/NOTDELETE.bat", ['start']);
-							FileSystem.deleteFile('manifest/NOTDELETE.bat');
-							trace('Health icon of ${thing} was downloaded');
+							saveFile(Paths.modFolders('images/icons/icon-${icon}.png'), 'icons/icon-${icon}.png', true);
+							//trace('Health icon was downloaded');
 						}
 						else
-						{
-							trace('Health icon of ${thing} already exists! Skipping downloading it');
-						}
+							trace('Health icon already exists! Skipping downloading it');
 				}
 
-				if (!FileSystem.exists(Paths.modsXml('characters/${thing}')))
+				if (!exists(Paths.modsXml('characters/${thing}')))
 				{
-					if (!FileSystem.exists('manifest/NOTDELETE.bat'))
-						File.saveContent('manifest/NOTDELETE.bat', 
-							"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/1.0PE-nightly3/characters/" +
-							thing + "/" + thing +
-							".xml' -OutFile 'mods/images/characters/" + thing + ".xml'");
-					Sys.command("manifest/NOTDELETE.bat", ['start']);
-					FileSystem.deleteFile('manifest/NOTDELETE.bat');
-					trace('XML of ${thing} was downloaded');
+					saveFile(Paths.modFolders('images/characters/${thing}.xml'), 'characters/${thing}/${thing}.xml', true);
+					//trace('XML was downloaded');
 				}
 				else
-				{
-					trace('XML of ${thing} already exists! Skipping downloading it');
-				}
+					trace('XML already exists! Skipping downloading it');
 
 				trace('Character ${thing} downloaded successfully!');
 
 			case 2:
 				trace('Start downloading stage ${thing}...');
 
-				if (!FileSystem.exists(Paths.modFolders('stages/${thing}.lua')))
+				if (!exists(Paths.modFolders('stages/${thing}.lua')))
 				{
 					saveFile(Paths.modFolders('stages/${thing}.lua'), 'stages/${thing}/${thing}.lua', true);
-					trace('LUA of ${thing} was downloaded');
+					//trace('Lua was downloaded');
 				}
 				else
-				{
-					trace('LUA of ${thing} already exists! Skipping downloading it');
-				}
+					trace('Lua already exists! Skipping downloading it');
 
-				if (!FileSystem.exists(Paths.modFolders('stages/${thing}.json')))
+				if (!exists(Paths.modFolders('stages/${thing}.json')))
 				{
 					saveFile(Paths.modFolders('stages/${thing}.json'), 'stages/${thing}/${thing}.json', true, true);
-					trace('JSON of ${thing} was downloaded');
+					//trace('JSON was downloaded');
 				}
 				else
-				{
-					trace('JSON of ${thing} already exists! Skipping downloading it');
-				}
+					trace('JSON already exists! Skipping downloading it');
 
 				if (!isDir('mods/images/stages/${thing}'))
 					createDir('mods/images/stages/${thing}');
 
 				if (cycle)
 				{
-					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}.json'))).neededFiles.images.length)
-						downloadThing('${thing}/${haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}.json'))).neededFiles.images[i]}', 6, false);
-					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}.json'))).neededFiles.imagesWithXml.length)
+					for (i in 0...parseJSON(Paths.modFolders('stages/${thing}.json')).neededFiles.images.length)
+						downloadThing('${thing}/${parseJSON(Paths.modFolders('stages/${thing}.json')).neededFiles.images[i]}', 6, false);
+					for (i in 0...parseJSON(Paths.modFolders('stages/${thing}.json')).neededFiles.imagesWithXml.length)
 					{
-						downloadThing('${thing}/${haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}.json'))).neededFiles.imagesWithXml[i]}', 6, false);
-						downloadThing('${thing}/${haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}.json'))).neededFiles.imagesWithXml[i]}', 7, false);
+						downloadThing('${thing}/${parseJSON(Paths.modFolders('stages/${thing}.json')).neededFiles.imagesWithXml[i]}', 6, false);
+						downloadThing('${thing}/${parseJSON(Paths.modFolders('stages/${thing}.json')).neededFiles.imagesWithXml[i]}', 7, false);
 					}
-					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}.json'))).neededFiles.sounds.length)
-						downloadThing(haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}.json'))).neededFiles.sounds[i], 4, false);
-					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}.json'))).neededFiles.music.length)
-						downloadThing(haxe.Json.parse(File.getContent(Paths.modFolders('stages/${thing}.json'))).neededFiles.music[i], 5, false);
+					for (i in 0...parseJSON(Paths.modFolders('stages/${thing}.json')).neededFiles.sounds.length)
+						downloadThing(parseJSON(Paths.modFolders('stages/${thing}.json')).neededFiles.sounds[i], 4, false);
+					for (i in 0...parseJSON(Paths.modFolders('stages/${thing}.json')).neededFiles.music.length)
+						downloadThing(parseJSON(Paths.modFolders('stages/${thing}.json')).neededFiles.music[i], 5, false);
 				}
 
 				trace('Stage ${thing} downloaded successfully!');
 
 			case 3:
-				trace('Start downloading custom notetype ${thing}...');
+				//trace('Start downloading custom notetype ${thing}...');
 
-				if (!FileSystem.exists(Paths.modsImages('custom_notetypes/${thing}')))
+				if (!exists(Paths.modsImages('custom_notetypes/${thing}')))
 				{
-					if (!FileSystem.exists('manifest/NOTDELETE.bat'))
-						File.saveContent('manifest/NOTDELETE.bat', 
-							"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/1.0PE-nightly3/custom_notetypes/" +
-							thing + "/" + thing +
-							".png' -OutFile 'mods/images/custom_notetypes/" + thing + ".png'");
-					Sys.command("manifest/NOTDELETE.bat", ['start']);
-					FileSystem.deleteFile('manifest/NOTDELETE.bat');
-					trace('PNG of ${thing} was downloaded');
+					saveFile('mods/images/custom_notetypes/${thing}.png', 'custom_notetypes/${thing}/${thing}.png', true);
+					//trace('PNG was downloaded');
 				}
 				else
-				{
-					trace('PNG of ${thing} already exists! Skipping downloading it');
-				}
+					trace('PNG already exists! Skipping downloading it');
 	
-				if (!FileSystem.exists(Paths.modFolders('images/custom_notetypes/${thing}')))
+				if (!exists(Paths.modFolders('images/custom_notetypes/${thing}')))
 				{
-					if (!FileSystem.exists('manifest/NOTDELETE.bat'))
-						File.saveContent('manifest/NOTDELETE.bat', 
-							"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/1.0PE-nightly3/custom_notetypes/" +
-							thing + "/" + thing +
-							".xml' -OutFile 'mods/images/custom_notetypes/" + thing + ".xml'");
-					Sys.command("manifest/NOTDELETE.bat", ['start']);
-					FileSystem.deleteFile('manifest/NOTDELETE.bat');
-					trace('XML of ${thing} was downloaded');
+					saveFile('mods/images/custom_notetypes/${thing}.xml', 'custom_notetypes/${thing}/${thing}.xml', true);
+					//trace('XML was downloaded');
 				}
 				else
-				{
-					trace('XML of ${thing} already exists! Skipping downloading it');
-				}
+					trace('XML already exists! Skipping downloading it');
 
-				if (!FileSystem.exists(Paths.modFolders('custom_notetypes/${thing}.lua')))
+				if (!exists(Paths.modFolders('custom_notetypes/${thing}.lua')))
 				{
-					if (!FileSystem.exists('manifest/NOTDELETE.bat'))
-						File.saveContent('manifest/NOTDELETE.bat', 
-							"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/1.0PE-nightly3/custom_notetypes/" +
-							thing + "/" + thing +
-							".lua' -OutFile 'mods/custom_notetypes/" + thing + ".lua'");
-					Sys.command("manifest/NOTDELETE.bat", ['start']);
-					FileSystem.deleteFile('manifest/NOTDELETE.bat');
-					trace('LUA of ${thing} was downloaded');
+					saveFile('mods/custom_notetypes/${thing}.lua', 'custom_notetypes/${thing}/${thing}.lua', true);
+					//trace('Lua was downloaded');
 				}
 				else
-				{
-					trace('LUA of ${thing} already exists! Skipping downloading it');
-				}
+					trace('Lua already exists! Skipping downloading it');
 
-				if (!FileSystem.exists(Paths.modFolders('custom_notetypes/${thing}.json')))
+				if (!exists(Paths.modFolders('custom_notetypes/${thing}.json')))
 				{
-					File.saveContent(Paths.modFolders('custom_notetypes/${thing}.json'), haxe.Json.stringify(haxe.Json.parse(parseRepoFiles('custom_notetypes/${thing}/${thing}.json')), "\t"));
-					trace('JSON of ${thing} was downloaded');
+					saveFile(Paths.modFolders('custom_notetypes/${thing}.json'), 'custom_notetypes/${thing}/${thing}.json', true, true);
+					//trace('JSON was downloaded');
 				}
 				else
-				{
-					trace('JSON of ${thing} already exists! Skipping downloading it');
-				}
+					trace('JSON already exists! Skipping downloading it');
 
 				if (cycle)
 				{
-					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('custom_notetypes/${thing}.json'))).neededFiles.characters.length)
-						downloadThing(haxe.Json.parse(File.getContent(Paths.modFolders('custom_notetypes/${thing}.json'))).neededFiles.characters[i], 1, false);
-					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('custom_notetypes/${thing}.json'))).neededFiles.sounds.length)
-						downloadThing(haxe.Json.parse(File.getContent(Paths.modFolders('custom_notetypes/${thing}.json'))).neededFiles.sounds[i], 4, false);
-					for (i in 0...haxe.Json.parse(File.getContent(Paths.modFolders('custom_notetypes/${thing}.json'))).neededFiles.music.length)
-						downloadThing(haxe.Json.parse(File.getContent(Paths.modFolders('custom_notetypes/${thing}.json'))).neededFiles.music[i], 5, false);
+					for (i in 0...parseJSON(Paths.modFolders('custom_notetypes/${thing}.json')).neededFiles.characters.length)
+						downloadThing(parseJSON(Paths.modFolders('custom_notetypes/${thing}.json')).neededFiles.characters[i], 1, false);
+					for (i in 0...parseJSON(Paths.modFolders('custom_notetypes/${thing}.json')).neededFiles.sounds.length)
+						downloadThing(parseJSON(Paths.modFolders('custom_notetypes/${thing}.json')).neededFiles.sounds[i], 4, false);
+					for (i in 0...parseJSON(Paths.modFolders('custom_notetypes/${thing}.json')).neededFiles.music.length)
+						downloadThing(parseJSON(Paths.modFolders('custom_notetypes/${thing}.json')).neededFiles.music[i], 5, false);
 				}
 
 				trace('Custom notetype ${thing} downloaded successfully!');
 
 			case 4:
-				trace('Start downloading sound ${thing}...');
+				//trace('Start downloading sound ${thing}...');
 
-				if (!FileSystem.isDirectory(Paths.modFolders('sounds')))
-					FileSystem.createDirectory(Paths.modFolders('sounds'));
+				if (!isDir(Paths.modFolders('sounds')))
+					createDir(Paths.modFolders('sounds'));
 
-				if (!FileSystem.exists(Paths.modsSounds('${thing}')))
+				if (!exists(Paths.modsSounds('${thing}')))
 				{
-					if (!FileSystem.exists('manifest/NOTDELETE.bat'))
-						File.saveContent('manifest/NOTDELETE.bat', 
-							"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/1.0PE-nightly3/sounds/" +
-							thing +
-							".ogg' -OutFile 'mods/sounds/" + thing + ".ogg'");
-					Sys.command("manifest/NOTDELETE.bat", ['start']);
-					FileSystem.deleteFile('manifest/NOTDELETE.bat');
-					trace('Sound ${thing} was downloaded');
+					saveFile('mods/sounds/${thing}.ogg', 'sounds/${thing}.ogg', true);
+					//trace('Sound was downloaded');
+					trace ('Sound ${thing} downloaded successfully!');
 				}
 				else
-				{
-					trace('Sound ${thing} already exists! Skipping downloading it');
-				}
-
-				trace ('Sound ${thing} downloaded successfully!');
+					trace('Sound already exists! Skipping downloading it');
 
 			case 5:
-				trace('Start downloading music ${thing}...');
+				//trace('Start downloading music ${thing}...');
 
-				if (!FileSystem.isDirectory(Paths.modFolders('music')))
-					FileSystem.createDirectory(Paths.modFolders('music'));
+				if (!isDir(Paths.modFolders('music')))
+					createDir(Paths.modFolders('music'));
 
-				if (!FileSystem.exists(Paths.modsMusic('${thing}')))
+				if (!exists(Paths.modsMusic('${thing}')))
 				{
-					if (!FileSystem.exists('manifest/NOTDELETE.bat'))
-						File.saveContent('manifest/NOTDELETE.bat', 
-							"powershell -c Invoke-WebRequest -Uri 'https://raw.github.com/TheLeerName/FNF-extra-docs/1.0PE-nightly3/music/" +
-							thing +
-							".ogg' -OutFile 'mods/music/" + thing + ".ogg'");
-					Sys.command("manifest/NOTDELETE.bat", ['start']);
-					FileSystem.deleteFile('manifest/NOTDELETE.bat');
-					trace('Music ${thing} was downloaded');
+					saveFile('mods/music/${thing}.ogg', 'music/${thing}.ogg', true);
+					//trace('Music was downloaded');
+					trace ('Music ${thing} downloaded successfully!');
 				}
 				else
-				{
-					trace('Music ${thing} already exists! Skipping downloading it');
-				}
-
-				trace ('Music ${thing} downloaded successfully!');
+					trace('Music already exists! Skipping downloading it');
 
 			case 6:
-				trace('Start downloading image ${thing}...');
+				//trace('Start downloading image ${thing}...');
 
-				if (!FileSystem.exists(Paths.modFolders('images/stages/${thing}.png')))
+				if (!exists(Paths.modFolders('images/stages/${thing}.png')))
 				{
 					saveFile(Paths.modFolders('images/stages/${thing}.png'), 'stages/${thing}.png', true);
-					trace('Image of ${thing} was downloaded');
+					//trace('Image was downloaded');
+					trace('Image ${thing} downloaded successfully!');
 				}
 				else
-					trace('Image of ${thing} already exists! Skipping downloading it');
-
-				trace('Image ${thing} downloaded successfully!');
+					trace('Image already exists! Skipping downloading it');
 
 			case 7:
-				trace('Start downloading XML of image ${thing}...');
+				//trace('Start downloading XML of image ${thing}...');
 
-				if (!FileSystem.exists(Paths.modFolders('images/stages/${thing}.xml')))
+				if (!exists(Paths.modFolders('images/stages/${thing}.xml')))
 				{
 					saveFile(Paths.modFolders('images/stages/${thing}.xml'), 'stages/${thing}.xml', true);
-					trace('XML of image ${thing} was downloaded');
+					//trace('XML of image was downloaded');
+					trace('XML of image ${thing} downloaded successfully!');
 				}
 				else
-					trace('XML of image ${thing} already exists! Skipping downloading it');
-
-				trace('XML of image ${thing} downloaded successfully!');
+					trace('XML of image already exists! Skipping downloading it');
 			#end
 
 

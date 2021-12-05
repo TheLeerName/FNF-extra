@@ -40,7 +40,7 @@ class PauseSubState extends MusicBeatSubstate
 			var diff:String = '' + CoolUtil.difficultyStuff[i][0];
 			difficultyChoices.push(diff);
 		}*/
-		for (i in 0...(FreeplayState.difficultyCount + 1)) {
+		for (i in 0...FreeplayState.difficultyCount) {
 			var diff:String = '' + CoolUtil.parseDiffNames(Paths.formatToSongPath(PlayState.SONG.song), i);
 			difficultyChoices.push(diff);
 		}
