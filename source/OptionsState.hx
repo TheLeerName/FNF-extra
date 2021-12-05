@@ -733,7 +733,7 @@ class PreferencesSubstate extends MusicBeatSubstate
 		'Ghost Tapping',
 		'Note Delay',
 		'Note Splashes',
-		'Note Size',
+		//'Note Size', im try fix this in 1.0.1 or 1.1
 		'Scroll Speed',
 		'Hide HUD',
 		'Hide Song Length',
@@ -955,10 +955,10 @@ class PreferencesSubstate extends MusicBeatSubstate
 						if(ClientPrefs.speed < 0.01) ClientPrefs.speed = 0.01;
 						else if(ClientPrefs.speed > 5) ClientPrefs.speed = 5;
 
-					case 'Note Size':
+					/*case 'Note Size':
 						ClientPrefs.noteSize += add;
 						if(ClientPrefs.noteSize < 31) ClientPrefs.noteSize = 31;
-						else if(ClientPrefs.noteSize > 150) ClientPrefs.noteSize = 150;
+						else if(ClientPrefs.noteSize > 150) ClientPrefs.noteSize = 150;*/
 
 					case 'Note Delay':
 						var mult:Int = 1;
@@ -1039,8 +1039,8 @@ class PreferencesSubstate extends MusicBeatSubstate
 				daText = "If unchecked, you won't get disgusted as frequently.";
 			case 'Scroll Speed'://for Joseph -bbpanzu
 				daText = "Changes arrow speed, 1 = chart-dependent.";
-			case 'Note Size':
-				daText = "Changes size of notes.";
+			/*case 'Note Size':
+				daText = "Changes size of notes.";*/
 			case 'Note Splashes':
 				daText = "If unchecked, hitting \"Sick!\" notes won't show particles.";
 			case 'Flashing Lights':
@@ -1138,8 +1138,8 @@ class PreferencesSubstate extends MusicBeatSubstate
 						daText = '' + ClientPrefs.framerate;
 					case 'Note Delay':
 						daText = ClientPrefs.noteOffset + 'ms';
-					case 'Note Size':
-						daText = ClientPrefs.noteSize + '%';
+					/*case 'Note Size':
+						daText = ClientPrefs.noteSize + '%';*/
 					case 'Scroll Speed':
 						daText = '' + CoolUtil.format0dot00(ClientPrefs.speed);
 					case 'Lane Underlay':
