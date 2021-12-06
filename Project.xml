@@ -8,7 +8,7 @@
 	<!-- Better change this -->
 	<app unless="mobile" title="Friday Night Funkin' Extra"/>
 	<app if="mobile" title="FNF Extra"/>
-	<app package="com.shadowmario.psychengine" version="1.0PE-nightly3" file="FNFExtra"/>
+	<app package="com.shadowmario.psychengine" version="1.0" file="FNFExtra"/>
 
 
 	<!--Switch Export with Unique ApplicationID and Icon-->
