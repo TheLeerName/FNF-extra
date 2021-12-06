@@ -917,7 +917,7 @@ class PlayState extends MusicBeatState
 
 		optionsWatermark = new FlxText(4, (ClientPrefs.ghostTapping ? "GhosTap | " : "") + (ClientPrefs.kadeInput ? "KadeInput | " : "") + (CoolUtil.format0dot00(ClientPrefs.speed) == 1 ? "Speed " + SONG.speed : "Speed " + CoolUtil.format0dot00(ClientPrefs.speed) + " (" + SONG.speed + ")"));
 		versionWatermark = new FlxText(4, "FNF Extra v" + MainMenuState.modVersion, 16);
-		songWatermark = new FlxText(4,healthBarBG.y + 50,0,SONG.song + " [" + CoolUtil.parseDiffNames(Paths.formatToSongPath(PlayState.SONG.song), PlayState.storyDifficulty) + "]", 16);
+		songWatermark = new FlxText(4,healthBarBG.y + 50,0,SONG.song + (CoolUtil.parseDiffNames(Paths.formatToSongPath(PlayState.SONG.song), storyDifficulty) != '' ? " - " + CoolUtil.parseDiffNames(Paths.formatToSongPath(PlayState.SONG.song), storyDifficulty) : ''), 16);
 
 		optionsWatermark.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, RIGHT, FlxTextBorderStyle.OUTLINE,FlxColor.BLACK);
 		versionWatermark.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, RIGHT, FlxTextBorderStyle.OUTLINE,FlxColor.BLACK);

@@ -270,14 +270,15 @@ class FreeplayState extends MusicBeatState
 				curDifficulty = 1;
 				trace('Couldnt find file');
 			}
-			trace(poop);
+			//trace(poop);
+			trace('Loading ' + (curDifficulty + 1) + ' difficulty of ' + songLowercase + '...');
 
 			PlayState.SONG = Song.loadFromJson(poop, songLowercase);
 			PlayState.isStoryMode = false;
 			PlayState.storyDifficulty = curDifficulty;
 
 			PlayState.storyWeek = songs[curSelected].week;
-			trace('CURRENT WEEK: ' + WeekData.getWeekFileName());
+			//trace('CURRENT WEEK: ' + WeekData.getWeekFileName());
 			if(colorTween != null) {
 				colorTween.cancel();
 			}
@@ -327,7 +328,12 @@ class FreeplayState extends MusicBeatState
 		if (difficultyCount == 1)
 			diffText.text = difficultyName;
 		else
-			diffText.text = difficultyName + " (" + (curDifficulty + 1) + "/" + (difficultyCount) + ")";
+		{
+			if (difficultyName == '')
+				diffText.text = "(" + (curDifficulty + 1) + "/" + (difficultyCount) + ")";
+			else
+				diffText.text = difficultyName + " (" + (curDifficulty + 1) + "/" + (difficultyCount) + ")";
+		}
 		positionHighscore();
 	}
 

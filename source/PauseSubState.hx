@@ -19,9 +19,10 @@ class PauseSubState extends MusicBeatSubstate
 	var grpMenuShit:FlxTypedGroup<Alphabet>;
 
 	var menuItems:Array<String> = [];
-	var menuItemsOG:Array<String> = ['Resume', 'Restart Song', 'Change Difficulty', 'Toggle Practice Mode', 'Botplay', 'Exit to menu'];
+	var menuItemsOG:Array<String> = [];
 	var difficultyChoices = [];
 	var curSelected:Int = 0;
+	var nullDiff:Bool = CoolUtil.parseDiffNames(Paths.formatToSongPath(PlayState.SONG.song), PlayState.storyDifficulty) == '' ? true : false;
 
 	var pauseMusic:FlxSound;
 	var practiceText:FlxText;
@@ -34,13 +35,19 @@ class PauseSubState extends MusicBeatSubstate
 	public function new(x:Float, y:Float)
 	{
 		super();
+
+		if (nullDiff)
+			menuItemsOG = ['Resume', 'Restart Song', 'Toggle Practice Mode', 'Botplay', 'Exit to menu'];
+		else
+			menuItemsOG = ['Resume', 'Restart Song', 'Change Difficulty', 'Toggle Practice Mode', 'Botplay', 'Exit to menu'];
+
 		menuItems = menuItemsOG;
 
 		/*for (i in 0...CoolUtil.difficultyStuff.length) {
 			var diff:String = '' + CoolUtil.difficultyStuff[i][0];
 			difficultyChoices.push(diff);
 		}*/
-		for (i in 0...FreeplayState.difficultyCount) {
+		for (i in 0...CoolUtil.parseDiffCount(Paths.formatToSongPath(PlayState.SONG.song))) {
 			var diff:String = '' + CoolUtil.parseDiffNames(Paths.formatToSongPath(PlayState.SONG.song), i);
 			difficultyChoices.push(diff);
 		}
@@ -102,10 +109,22 @@ class PauseSubState extends MusicBeatSubstate
 		levelDifficulty.x = FlxG.width - (levelDifficulty.width + 20);
 		blueballedTxt.x = FlxG.width - (blueballedTxt.width + 20);
 
-		FlxTween.tween(bg, {alpha: 0.6}, 0.4, {ease: FlxEase.quartInOut});
-		FlxTween.tween(levelInfo, {alpha: 1, y: 20}, 0.4, {ease: FlxEase.quartInOut, startDelay: 0.3});
-		FlxTween.tween(levelDifficulty, {alpha: 1, y: levelDifficulty.y + 5}, 0.4, {ease: FlxEase.quartInOut, startDelay: 0.5});
-		FlxTween.tween(blueballedTxt, {alpha: 1, y: blueballedTxt.y + 5}, 0.4, {ease: FlxEase.quartInOut, startDelay: 0.7});
+		if (nullDiff)
+		{
+			blueballedTxt.y = 15 + 32;
+			practiceText.y = 15 + 69;
+
+			FlxTween.tween(bg, {alpha: 0.6}, 0.4, {ease: FlxEase.quartInOut});
+			FlxTween.tween(levelInfo, {alpha: 1, y: 20}, 0.4, {ease: FlxEase.quartInOut, startDelay: 0.3});
+			FlxTween.tween(blueballedTxt, {alpha: 1, y: blueballedTxt.y + 5}, 0.4, {ease: FlxEase.quartInOut, startDelay: 0.5});
+		}
+		else
+		{
+			FlxTween.tween(bg, {alpha: 0.6}, 0.4, {ease: FlxEase.quartInOut});
+			FlxTween.tween(levelInfo, {alpha: 1, y: 20}, 0.4, {ease: FlxEase.quartInOut, startDelay: 0.3});
+			FlxTween.tween(levelDifficulty, {alpha: 1, y: levelDifficulty.y + 5}, 0.4, {ease: FlxEase.quartInOut, startDelay: 0.5});
+			FlxTween.tween(blueballedTxt, {alpha: 1, y: blueballedTxt.y + 5}, 0.4, {ease: FlxEase.quartInOut, startDelay: 0.7});
+		}
 
 		grpMenuShit = new FlxTypedGroup<Alphabet>();
 		add(grpMenuShit);
@@ -152,10 +171,11 @@ class PauseSubState extends MusicBeatSubstate
 			if(holdTime > 0.5 || controls.UI_LEFT_P || controls.UI_RIGHT_P)
 			{
 				var mult:Int = 1;
-				if(holdTime > 1.5) mult = 5; // x5 speed after 1.5 seconds holding
 
 				if (FlxG.keys.pressed.SHIFT)
 				{
+					if(holdTime > 1.5) mult = 5; // x5 speed after 1.5 seconds holding
+
 					ClientPrefs.laneUnderlay += add * mult;
 
 					if (ClientPrefs.laneUnderlay < 0) ClientPrefs.laneUnderlay = 0;
@@ -166,6 +186,8 @@ class PauseSubState extends MusicBeatSubstate
 				}
 				else if (FlxG.keys.pressed.CONTROL)
 				{
+					if(holdTime > 1.5) mult = 10; // x10 speed after 1.5 seconds holding
+
 					ClientPrefs.speed += add/100;
 
 					if(ClientPrefs.speed < 0.01) ClientPrefs.speed = 0.01;
@@ -208,6 +230,7 @@ class PauseSubState extends MusicBeatSubstate
 			{
 				case "Resume":
 					close();
+					ClientPrefs.saveSettings();
 				case 'Change Difficulty':
 					menuItems = difficultyChoices;
 					regenMenu();

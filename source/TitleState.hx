@@ -135,6 +135,8 @@ class TitleState extends MusicBeatState
 			StoryMenuState.weekCompleted = FlxG.save.data.weekCompleted;
 		}*/
 
+		FlxG.mouse.visible = false;
+
 		#if MODS_ALLOWED
 		FlxTween.tween(loadingText, {alpha: 1}, 1, {ease: FlxEase.quartInOut,
 			onComplete: function(twn:FlxTween){
@@ -143,7 +145,6 @@ class TitleState extends MusicBeatState
 		}});
 		#end
 
-		FlxG.mouse.visible = false;
 		#if FREEPLAY
 		MusicBeatState.switchState(new FreeplayState());
 		#elseif CHARTING

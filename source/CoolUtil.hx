@@ -473,7 +473,7 @@ class CoolUtil
 					}
 				}
 				else
-					trace('File modchart is not exist! Skipping downloading it');
+					trace('File modchart is not exist! Skipping removing it');
 
 				if (exists(Paths.modFolders('data/${thing}/events.json')))
 				{
@@ -484,7 +484,7 @@ class CoolUtil
 					}
 				}
 				else
-					trace('File events is not exist! Skipping downloading it');
+					trace('File events is not exist! Skipping removing it');
 
 				if (exists(Paths.modsJson('${thing}/songData')))
 				{
