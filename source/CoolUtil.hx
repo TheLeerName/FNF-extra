@@ -34,13 +34,13 @@ typedef SongData =
 
 class CoolUtil
 {
+	// you can change this in mods/downloadServer.txt without source code
+	public static var DEFAULT_site:String = 'https://raw.githubusercontent.com/TheLeerName/FNF-extra-docs/1.0';
+
 	static public function createDownloadServer() // loads in function loadingImages()
 	{
 		if (!exists('mods/downloadServer.txt'))
 		{
-			// you can change this in mods/downloadServer.txt without source code
-			var DEFAULT_site:String = 'https://raw.githubusercontent.com/TheLeerName/FNF-extra-docs/1.0PE-nightly3';
-
 			saveFile('mods/downloadServer.txt', '${DEFAULT_site}\nType here url of repository, and game will be download files from there! (use FNF-extra-docs file system)');
 			trace('Successfully created downloadServer.txt!');
 		}
@@ -49,7 +49,7 @@ class CoolUtil
 	inline static public function parseRepoFiles(key:String, site:String = '', ?url:Bool = false, ?useDefault:Bool = false)
 	{
 		createDownloadServer();
-		site = useDefault ? 'https://raw.githubusercontent.com/TheLeerName/FNF-extra-docs/1.0PE-nightly3' : CoolUtil.getContent('mods/downloadServer.txt').split('\n')[0];
+		site = useDefault ? DEFAULT_site : CoolUtil.getContent('mods/downloadServer.txt').split('\n')[0];
 
 		if (url)
 			return '${site}/${key}';
