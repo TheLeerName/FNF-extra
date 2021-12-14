@@ -1,5 +1,7 @@
 # Friday Night Funkin' Extra
 FNF Modification in which there will be mod loader via **in-game** download! And more improvements... Now on **Psych Engine**!
+
+### To request new songs in official download menu, create issue or pull request in [this repository](https://github.com/TheLeerName/FNF-extra-docs)
 ## Tutorials: [Build instructions](art/docs/building.md) - [New difficulty system](art/docs/songs.md) - [Modcharts](https://github.com/ShadowMario/FNF-PsychEngine/wiki/Lua-Script-API)
 
 ## Friday Night Funkin' - Psych Engine
