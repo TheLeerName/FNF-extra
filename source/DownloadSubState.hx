@@ -39,10 +39,10 @@ class DownloadSubState extends MusicBeatSubstate
 	{
 		super();
 
-		if (FlxG.save.data.curChart != null)
+		/*if (FlxG.save.data.curChart != null)
 			curChart = FlxG.save.data.curChart;
 		else
-			FlxG.save.data.curChart = curChart;
+			FlxG.save.data.curChart = curChart;*/
 
 		var bg:FlxSprite = new FlxSprite().loadGraphic(Paths.image('menuBGBlue'));
 		bg.antialiasing = ClientPrefs.globalAntialiasing;
@@ -51,10 +51,11 @@ class DownloadSubState extends MusicBeatSubstate
 		grpMenuShit = new FlxTypedGroup<Alphabet>();
 		add(grpMenuShit);
 		cats = [ // "things in categories", "name"
-		[CoolUtil.getCats(0), 'Song'],
-		[CoolUtil.getCats(1), 'Character'],
-		[CoolUtil.getCats(2), 'Stage'],
-		[CoolUtil.getCats(3), 'Note Type']
+		[getCats(0), 'Song'],
+		[getCats(1), 'Character'],
+		[getCats(2), 'Stage'],
+		[getCats(3), 'Note Type'],
+		[getCats(4), 'Event']
 		];
 		menuItems = cats[curCat][0];
 		//trace('MenuItems: ${menuItems} || ${cats[0][1]}s: ${cats[0][0]} | ${cats[1][1]}s: ${cats[1][0]} | ${cats[2][1]}s: ${cats[2][0]} | ${cats[3][1]}s: ${cats[3][0]}');
@@ -129,6 +130,26 @@ class DownloadSubState extends MusicBeatSubstate
 		changeSelection();
 	}
 
+	inline function getCats(which:Int)
+	{
+		var man = CoolUtil.parseJSON('mods/images/loading/categoryList.json');
+		if (which == 0)
+			return man.songs;
+		if (which == 1)
+			return man.characters;
+		if (which == 2)
+			return man.stages;
+		if (which == 3)
+			return man.custom_notetypes;
+		if (which == 4)
+			return man.custom_events;
+		else
+		{
+			trace('uh oh you using unexpected category! return 0...');
+			return 0;
+		}
+	}
+
 	override function update(elapsed:Float)
 	{
 		super.update(elapsed);
@@ -159,7 +180,7 @@ class DownloadSubState extends MusicBeatSubstate
 			if (FlxG.keys.pressed.ALT)
 			{
 				funnyText.text = 'Deleting all cache, game can be freezed...\nWhile you wait, look at this picture lol!';
-				FlxTween.tween(black, {alpha: 1}, 1, {ease: FlxEase.quartInOut, onComplete: function(twn:FlxTween){CoolUtil.deleteAll();}});
+				FlxTween.tween(black, {alpha: 1}, 1, {ease: FlxEase.quartInOut, onComplete: function(twn:FlxTween){CoolUtil.modCache(true);}});
 				FlxTween.tween(funnyText, {alpha: 1}, 1, {ease: FlxEase.quartInOut});
 				FlxTween.tween(funnyPic, {alpha: 1}, 1, {ease: FlxEase.quartInOut});
 			}
@@ -203,21 +224,27 @@ class DownloadSubState extends MusicBeatSubstate
 			case 1:
 				delete = (
 					CoolUtil.exists(Paths.modsImages('characters/${menuItems[curSelected]}')) ||
-					CoolUtil.exists(Paths.modsImages('icons/${menuItems[curSelected]}')) ||
+					CoolUtil.exists(Paths.modsImages('icons/icon-${menuItems[curSelected]}')) ||
 					CoolUtil.exists(Paths.modsXml('characters/${menuItems[curSelected]}')) ||
 					CoolUtil.exists(Paths.modFolders('characters/${menuItems[curSelected]}.json'))
 					? true : false);
 			case 2:
 				delete = (
-					CoolUtil.exists('mods/stages/${menuItems[curSelected]}.json') ||
+					CoolUtil.exists(Paths.modFolders('stages/${menuItems[curSelected]}.json')) ||
+					CoolUtil.exists(Paths.modFolders('stages/${menuItems[curSelected]}.lua')) ||
 					CoolUtil.isDir(Paths.modFolders('images/stages/${menuItems[curSelected]}'))
 					? true : false);
 			case 3:
 				delete = (
-					CoolUtil.exists('mods/custom_notetypes/${menuItems[curSelected]}.json') ||
+					CoolUtil.exists(Paths.modFolders('custom_notetypes/${menuItems[curSelected]}.json')) ||
 					CoolUtil.exists(Paths.modsImages('custom_notetypes/${menuItems[curSelected]}')) ||
-					CoolUtil.exists('mods/custom_notetypes/${menuItems[curSelected]}.xml') ||
-					CoolUtil.exists('mods/custom_notetypes/${menuItems[curSelected]}.lua')
+					CoolUtil.exists(Paths.modFolders('custom_notetypes/${menuItems[curSelected]}.xml')) ||
+					CoolUtil.exists(Paths.modFolders('custom_notetypes/${menuItems[curSelected]}.lua'))
+					? true : false);
+			case 4:
+				delete = (
+					CoolUtil.exists(Paths.modFolders('custom_events/${menuItems[curSelected]}.lua')) ||
+					CoolUtil.exists(Paths.modFolders('custom_events/${menuItems[curSelected]}.txt'))
 					? true : false);
 		}
 		text4.text = (delete ? 'DELETE to delete (ALT to delete all)' : 'ACCEPT to download');
@@ -251,10 +278,8 @@ class DownloadSubState extends MusicBeatSubstate
 		curChart += 1;
 		if (curChart > 3)
 			curChart = 0;
-
 		FlxG.save.data.curChart = curChart;
 		FlxG.save.flush();
-
 		//trace('Chart: ' + (FlxG.save.data.curChart == 3 ? 'without notetype' : (FlxG.save.data.curChart == 2 ? 'without stage' : (FlxG.save.data.curChart == 1 ? 'without character' : 'default'))));
 		text5.text = 'Type of chart: ${(curChart == 0 ? 'default' : (curChart == 1 ? 'without characters' : (curChart == 2 ? 'without stages' : 'without notetypes')))} (press CTRL)';
 	}*/
@@ -263,14 +288,14 @@ class DownloadSubState extends MusicBeatSubstate
 	{
 		curCat += change;
 		if (curCat < 0)
-			curCat = 3;
-		if (curCat > 3)
+			curCat = 4;
+		if (curCat > 4)
 			curCat = 0;
 
 		if (needUpdate)
 		{
 			CoolUtil.loadingCats();
-			cats = [[CoolUtil.getCats(0), cats[0][1]], [CoolUtil.getCats(1), cats[1][1]], [CoolUtil.getCats(2), cats[2][1]], [CoolUtil.getCats(3), cats[3][1]]];
+			cats = [[getCats(0), cats[0][1]], [getCats(1), cats[1][1]], [getCats(2), cats[2][1]], [getCats(3), cats[3][1]], [getCats(4), cats[4][1]]];
 		}
 		menuItems = cats[curCat][0];
 		//trace('MenuItems: ${menuItems} || ${cats[0][1]}s: ${cats[0][0]} | ${cats[1][1]}s: ${cats[1][0]} | ${cats[2][1]}s: ${cats[2][0]} | ${cats[3][1]}s: ${cats[3][0]}');

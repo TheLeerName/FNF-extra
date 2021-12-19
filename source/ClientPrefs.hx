@@ -7,8 +7,6 @@ import flixel.graphics.FlxGraphic;
 import Controls;
 
 class ClientPrefs {
-	public static var kadeInput:Bool = false;
-	public static var laneUnderlay:Int = 10;
 	public static var downScroll:Bool = false;
 	public static var middleScroll:Bool = false;
 	public static var showFPS:Bool = true;
@@ -22,42 +20,131 @@ class ClientPrefs {
 	public static var camZooms:Bool = true;
 	public static var hideHud:Bool = false;
 	public static var noteOffset:Int = 0;
-	public static var speed:Float = 1;
-	public static var noteSize:Int = 100;
-	public static var arrowHSV:Array<Array<Int>> = [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]];
+	public static var arrowHSV:Array<Array<Int>> = [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]];
 	public static var imagesPersist:Bool = false;
 	public static var ghostTapping:Bool = true;
-	public static var hideTime:Bool = false;
+	public static var timeBarType:String = 'Time Left';
+	public static var scoreZoom:Bool = true;
+	public static var noReset:Bool = false;
+	public static var healthBarAlpha:Float = 1;
+	public static var controllerMode:Bool = false;
+	public static var gameplaySettings:Map<String, Dynamic> = [
+		'scrollspeed' => 1.0,
+		'songspeed' => 1.0,
+		'healthgain' => 1.0,
+		'healthloss' => 1.0,
+		'instakill' => false,
+		'practice' => false,
+		'botplay' => false,
+		'opponentplay' => false
+	];
 
-	//Every key has two binds, these binds are defined on defaultKeys! If you want your control to be changeable, you have to add it on ControlsSubState (inside OptionsState.hx)'s list
-	public static var keyBinds:Map<String, Dynamic> = new Map<String, Dynamic>();
-	public static var defaultKeys:Map<String, Dynamic>;
+	public static var kadeInput:Bool = false;
+	public static var laneUnderlay:Int = 10;
+	public static var speed:Float = 0;
 
-	public static function startControls() {
+	public static var comboOffset:Array<Int> = [0, 0, 0, 0];
+	public static var keSustains:Bool = false; //i was bored, okay?
+	public static var sonicExeShaders:Bool = false;
+	public static var ratingOffset:Int = 0;
+	public static var sickWindow:Int = 45;
+	public static var goodWindow:Int = 90;
+	public static var badWindow:Int = 135;
+	public static var safeFrames:Float = 10;
+
+	//Every key has two binds, add your key bind down here and then add your control on options/ControlsSubState.hx and Controls.hx
+	public static var keyBinds:Map<String, Array<FlxKey>> = [
 		//Key Bind, Name for ControlsSubState
-		keyBinds.set('note_left', [A, LEFT]);
-		keyBinds.set('note_down', [S, DOWN]);
-		keyBinds.set('note_up', [W, UP]);
-		keyBinds.set('note_right', [D, RIGHT]);
-		
-		keyBinds.set('ui_left', [A, LEFT]);
-		keyBinds.set('ui_down', [S, DOWN]);
-		keyBinds.set('ui_up', [W, UP]);
-		keyBinds.set('ui_right', [D, RIGHT]);
-		
-		keyBinds.set('accept', [SPACE, ENTER]);
-		keyBinds.set('back', [BACKSPACE, ESCAPE]);
-		keyBinds.set('pause', [ENTER, ESCAPE]);
-		keyBinds.set('reset', [R, NONE]);
+		'note_one1'		=> [SPACE, NONE],
 
+		'note_two1'		=> [D, NONE],
+		'note_two2'		=> [K, NONE],
 
-		// Don't delete this
+		'note_three1'	=> [D, NONE],
+		'note_three2'	=> [SPACE, NONE],
+		'note_three3'	=> [K, NONE],
+
+		'note_left'		=> [A, LEFT],
+		'note_down'		=> [S, DOWN],
+		'note_up'		=> [W, UP],
+		'note_right'	=> [D, RIGHT],
+
+		'note_five1'	=> [D, NONE],
+		'note_five2'	=> [F, NONE],
+		'note_five3'	=> [SPACE, NONE],
+		'note_five4'	=> [J, NONE],
+		'note_five5'	=> [K, NONE],
+
+		'note_six1'		=> [S, NONE],
+		'note_six2'		=> [D, NONE],
+		'note_six3'		=> [F, NONE],
+		'note_six4'		=> [J, NONE],
+		'note_six5'		=> [K, NONE],
+		'note_six6'		=> [L, NONE],
+
+		'note_seven1'	=> [S, NONE],
+		'note_seven2'	=> [D, NONE],
+		'note_seven3'	=> [F, NONE],
+		'note_seven4'	=> [SPACE, NONE],
+		'note_seven5'	=> [J, NONE],
+		'note_seven6'	=> [K, NONE],
+		'note_seven7'	=> [L, NONE],
+
+		'note_eight1'	=> [A, NONE],
+		'note_eight2'	=> [S, NONE],
+		'note_eight3'	=> [D, NONE],
+		'note_eight4'	=> [F, NONE],
+		'note_eight5'	=> [H, NONE],
+		'note_eight6'	=> [J, NONE],
+		'note_eight7'	=> [K, NONE],
+		'note_eight8'	=> [L, NONE],
+
+		'note_nine1'	=> [A, NONE],
+		'note_nine2'	=> [S, NONE],
+		'note_nine3'	=> [D, NONE],
+		'note_nine4'	=> [F, NONE],
+		'note_nine5'	=> [SPACE, NONE],
+		'note_nine6'	=> [H, NONE],
+		'note_nine7'	=> [J, NONE],
+		'note_nine8'	=> [K, NONE],
+		'note_nine9'	=> [L, NONE],
+
+		/*'note_ten1'		=> [A, NONE],
+		'note_ten2'		=> [S, NONE],
+		'note_ten3'		=> [D, NONE],
+		'note_ten4'		=> [F, NONE],
+		'note_ten5'		=> [G, NONE],
+		'note_ten6'		=> [SPACE, NONE],
+		'note_ten7'		=> [H, NONE],
+		'note_ten8'     => [J, NONE],
+		'note_ten9'		=> [K, NONE],
+		'note_ten10'	=> [L, NONE],*/
+		
+		'ui_left'		=> [A, LEFT],
+		'ui_down'		=> [S, DOWN],
+		'ui_up'			=> [W, UP],
+		'ui_right'		=> [D, RIGHT],
+		
+		'accept'		=> [SPACE, ENTER],
+		'back'			=> [BACKSPACE, ESCAPE],
+		'pause'			=> [ENTER, ESCAPE],
+		'reset'			=> [R, NONE],
+		
+		'volume_mute'	=> [ZERO, NONE],
+		'volume_up'		=> [NUMPADPLUS, PLUS],
+		'volume_down'	=> [NUMPADMINUS, MINUS],
+		
+		'debug_1'		=> [SEVEN, NONE],
+		'debug_2'		=> [EIGHT, NONE]
+	];
+	public static var defaultKeys:Map<String, Array<FlxKey>> = null;
+
+	public static function loadDefaultKeys() {
 		defaultKeys = keyBinds.copy();
+		//trace(defaultKeys);
 	}
 
 	public static function saveSettings() {
-		FlxG.save.data.kadeInput = kadeInput;
-		FlxG.save.data.laneUnderlay = laneUnderlay;
 		FlxG.save.data.downScroll = downScroll;
 		FlxG.save.data.middleScroll = middleScroll;
 		FlxG.save.data.showFPS = showFPS;
@@ -66,8 +153,6 @@ class ClientPrefs {
 		FlxG.save.data.noteSplashes = noteSplashes;
 		FlxG.save.data.lowQuality = lowQuality;
 		FlxG.save.data.framerate = framerate;
-		FlxG.save.data.speed = speed;
-		FlxG.save.data.noteSize = noteSize;
 		//FlxG.save.data.cursing = cursing;
 		//FlxG.save.data.violence = violence;
 		FlxG.save.data.camZooms = camZooms;
@@ -76,25 +161,36 @@ class ClientPrefs {
 		FlxG.save.data.arrowHSV = arrowHSV;
 		FlxG.save.data.imagesPersist = imagesPersist;
 		FlxG.save.data.ghostTapping = ghostTapping;
-		FlxG.save.data.hideTime = hideTime;
+		FlxG.save.data.timeBarType = timeBarType;
+		FlxG.save.data.scoreZoom = scoreZoom;
+		FlxG.save.data.noReset = noReset;
+		FlxG.save.data.healthBarAlpha = healthBarAlpha;
+		FlxG.save.data.comboOffset = comboOffset;
 		FlxG.save.data.achievementsMap = Achievements.achievementsMap;
 		FlxG.save.data.henchmenDeath = Achievements.henchmenDeath;
+		FlxG.save.data.sonicExeShaders = sonicExeShaders;
+		FlxG.save.data.ratingOffset = ratingOffset;
+		FlxG.save.data.sickWindow = sickWindow;
+		FlxG.save.data.goodWindow = goodWindow;
+		FlxG.save.data.badWindow = badWindow;
+		FlxG.save.data.safeFrames = safeFrames;
+		FlxG.save.data.gameplaySettings = gameplaySettings;
+		FlxG.save.data.controllerMode = controllerMode;
+
+		FlxG.save.data.kadeInput = kadeInput;
+		FlxG.save.data.laneUnderlay = laneUnderlay;
+		FlxG.save.data.speed = speed;
+
 		FlxG.save.flush();
 
 		var save:FlxSave = new FlxSave();
-		save.bind('controls_v2', 'ninjamuffin99'); //Placing this in a separate save so that it can be manually deleted without removing your Score and stuff
+		save.bind('controls_v2', 'ninjamuffin99');
 		save.data.customControls = keyBinds;
 		save.flush();
 		FlxG.log.add("Settings saved!");
 	}
 
 	public static function loadPrefs() {
-		if(FlxG.save.data.kadeInput != null) {
-			kadeInput = FlxG.save.data.kadeInput;
-		}
-		if(FlxG.save.data.laneUnderlay != null) {
-			laneUnderlay = FlxG.save.data.laneUnderlay;
-		}
 		if(FlxG.save.data.downScroll != null) {
 			downScroll = FlxG.save.data.downScroll;
 		}
@@ -147,12 +243,6 @@ class ClientPrefs {
 		if(FlxG.save.data.arrowHSV != null) {
 			arrowHSV = FlxG.save.data.arrowHSV;
 		}
-		if(FlxG.save.data.speed != null) {
-			speed = FlxG.save.data.speed;
-		}
-		if(FlxG.save.data.noteSize != null) {
-			noteSize = FlxG.save.data.noteSize;
-		}
 		if(FlxG.save.data.imagesPersist != null) {
 			imagesPersist = FlxG.save.data.imagesPersist;
 			FlxGraphic.defaultPersist = ClientPrefs.imagesPersist;
@@ -160,19 +250,75 @@ class ClientPrefs {
 		if(FlxG.save.data.ghostTapping != null) {
 			ghostTapping = FlxG.save.data.ghostTapping;
 		}
-		if(FlxG.save.data.hideTime != null) {
-			hideTime = FlxG.save.data.hideTime;
+		if(FlxG.save.data.timeBarType != null) {
+			timeBarType = FlxG.save.data.timeBarType;
+		}
+		if(FlxG.save.data.scoreZoom != null) {
+			scoreZoom = FlxG.save.data.scoreZoom;
+		}
+		if(FlxG.save.data.noReset != null) {
+			noReset = FlxG.save.data.noReset;
+		}
+		if(FlxG.save.data.healthBarAlpha != null) {
+			healthBarAlpha = FlxG.save.data.healthBarAlpha;
+		}
+		if(FlxG.save.data.comboOffset != null) {
+			comboOffset = FlxG.save.data.comboOffset;
+		}
+		
+		if(FlxG.save.data.ratingOffset != null) {
+			ratingOffset = FlxG.save.data.ratingOffset;
+		}
+		if(FlxG.save.data.sickWindow != null) {
+			sickWindow = FlxG.save.data.sickWindow;
+		}
+		if(FlxG.save.data.goodWindow != null) {
+			goodWindow = FlxG.save.data.goodWindow;
+		}
+		if(FlxG.save.data.badWindow != null) {
+			badWindow = FlxG.save.data.badWindow;
+		}
+		if(FlxG.save.data.safeFrames != null) {
+			safeFrames = FlxG.save.data.safeFrames;
+		}
+		if(FlxG.save.data.controllerMode != null) {
+			controllerMode = FlxG.save.data.controllerMode;
+		}
+		if(FlxG.save.data.gameplaySettings != null)
+		{
+			var savedMap:Map<String, Dynamic> = FlxG.save.data.gameplaySettings;
+			for (name => value in savedMap)
+			{
+				gameplaySettings.set(name, value);
+			}
 		}
 		
 		// flixel automatically saves your volume!
-		if(FlxG.save.data.volume != null) {
+		if(FlxG.save.data.volume != null)
+		{
 			FlxG.sound.volume = FlxG.save.data.volume;
 		}
+		if (FlxG.save.data.mute != null)
+		{
+			FlxG.sound.muted = FlxG.save.data.mute;
+		}
+
+		if (FlxG.save.data.sonicExeShaders != null)
+			{
+				sonicExeShaders = FlxG.save.data.sonicExeShaders;
+			}
+		
+		if(FlxG.save.data.kadeInput != null)
+			kadeInput = FlxG.save.data.kadeInput;
+		if(FlxG.save.data.laneUnderlay != null)
+			laneUnderlay = FlxG.save.data.laneUnderlay;
+		if(FlxG.save.data.speed != null)
+			speed = FlxG.save.data.speed;
 
 		var save:FlxSave = new FlxSave();
 		save.bind('controls_v2', 'ninjamuffin99');
 		if(save != null && save.data.customControls != null) {
-			var loadedControls:Map<String, Dynamic> = save.data.customControls;
+			var loadedControls:Map<String, Array<FlxKey>> = save.data.customControls;
 			for (control => keys in loadedControls) {
 				keyBinds.set(control, keys);
 			}
@@ -180,7 +326,34 @@ class ClientPrefs {
 		}
 	}
 
+	inline public static function getGameplaySetting(name:String, defaultValue:Dynamic):Dynamic {
+		return /*PlayState.isStoryMode ? defaultValue : */ (gameplaySettings.exists(name) ? gameplaySettings.get(name) : defaultValue);
+	}
+
 	public static function reloadControls() {
 		PlayerSettings.player1.controls.setKeyboardScheme(KeyboardScheme.Solo);
+
+		TitleState.muteKeys = copyKey(keyBinds.get('volume_mute'));
+		TitleState.volumeDownKeys = copyKey(keyBinds.get('volume_down'));
+		TitleState.volumeUpKeys = copyKey(keyBinds.get('volume_up'));
+		FlxG.sound.muteKeys = TitleState.muteKeys;
+		FlxG.sound.volumeDownKeys = TitleState.volumeDownKeys;
+		FlxG.sound.volumeUpKeys = TitleState.volumeUpKeys;
+	}
+
+	public static function copyKey(arrayToCopy:Array<FlxKey>):Array<FlxKey> {
+		var copiedArray:Array<FlxKey> = arrayToCopy.copy();
+		var i:Int = 0;
+		var len:Int = copiedArray.length;
+
+		while (i < len) {
+			if(copiedArray[i] == NONE) {
+				copiedArray.remove(NONE);
+				--i;
+			}
+			i++;
+			len = copiedArray.length;
+		}
+		return copiedArray;
 	}
 }

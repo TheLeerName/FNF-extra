@@ -2,7 +2,6 @@ package;
 
 import flixel.FlxG;
 import flixel.FlxSprite;
-import flixel.graphics.frames.FlxAtlasFrames;
 
 using StringTools;
 
@@ -11,8 +10,22 @@ class StrumNote extends FlxSprite
 	private var colorSwap:ColorSwap;
 	public var resetAnim:Float = 0;
 	private var noteData:Int = 0;
+	public var direction:Float = 30;//plan on doing scroll directions soon -bb
+
+	public var mania:Int = 1;
 
 	private var player:Int;
+
+	private var skinThing:Array<String> = ['static', 'pressed'];
+	
+	public var texture(default, set):String = null;
+	private function set_texture(value:String):String {
+		if(texture != value) {
+			texture = value;
+			reloadNote();
+		}
+		return value;
+	}
 
 	public function new(x:Float, y:Float, leData:Int, player:Int) {
 		colorSwap = new ColorSwap();
@@ -22,85 +35,67 @@ class StrumNote extends FlxSprite
 		this.noteData = leData;
 		super(x, y);
 
+		var stat:String = Note.NoteData.getAnimation(Note.NoteData.getKeyMap(PlayState.mania, leData, 1), 0);
+		var pres:String = Note.NoteData.getLetter(Note.NoteData.getKeyMap(PlayState.mania, leData, 0));
+		skinThing[0] = stat;
+		skinThing[1] = pres;
+
 		var skin:String = 'NOTE_assets';
+		if(PlayState.isPixelStage) skin = 'PIXEL_' + skin;
 		if(PlayState.SONG.arrowSkin != null && PlayState.SONG.arrowSkin.length > 1) skin = PlayState.SONG.arrowSkin;
+		texture = skin; //Load texture and anims
 
-		if(PlayState.isPixelStage)
-		{
-			loadGraphic(Paths.image('pixelUI/' + skin));
-			width = width / 4;
-			height = height / 5;
-			loadGraphic(Paths.image('pixelUI/' + skin), true, Math.floor(width), Math.floor(height));
-			animation.add('green', [6]);
-			animation.add('red', [7]);
-			animation.add('blue', [5]);
-			animation.add('purple', [4]);
+		scrollFactor.set();
+	}
 
-			antialiasing = false;
-			setGraphicSize(Std.int(width * ((ClientPrefs.noteSize - 30) / 100) * PlayState.daPixelZoom));
+	public function reloadNote()
+	{
+		var lastAnim:String = null;
+		if(animation.curAnim != null) lastAnim = animation.curAnim.name;
 
-			switch (Math.abs(leData))
-			{
-				case 0:
-					animation.add('static', [0]);
-					animation.add('pressed', [4, 8], 12, false);
-					animation.add('confirm', [12, 16], 24, false);
-				case 1:
-					animation.add('static', [1]);
-					animation.add('pressed', [5, 9], 12, false);
-					animation.add('confirm', [13, 17], 24, false);
-				case 2:
-					animation.add('static', [2]);
-					animation.add('pressed', [6, 10], 12, false);
-					animation.add('confirm', [14, 18], 12, false);
-				case 3:
-					animation.add('static', [3]);
-					animation.add('pressed', [7, 11], 12, false);
-					animation.add('confirm', [15, 19], 24, false);
-			}
-		}
-		else
-		{
-			frames = Paths.getSparrowAtlas(skin);
-			animation.addByPrefix('green', 'arrowUP');
-			animation.addByPrefix('blue', 'arrowDOWN');
-			animation.addByPrefix('purple', 'arrowLEFT');
-			animation.addByPrefix('red', 'arrowRIGHT');
+		frames = Paths.getSparrowAtlas(texture);
 
-			antialiasing = ClientPrefs.globalAntialiasing;
-			setGraphicSize(Std.int(width * ((ClientPrefs.noteSize - 30) / 100)));
+		antialiasing = ClientPrefs.globalAntialiasing;
 
-			switch (Math.abs(leData))
-			{
-				case 0:
-					animation.addByPrefix('static', 'arrowLEFT');
-					animation.addByPrefix('pressed', 'left press', 24, false);
-					animation.addByPrefix('confirm', 'left confirm', 24, false);
-				case 1:
-					animation.addByPrefix('static', 'arrowDOWN');
-					animation.addByPrefix('pressed', 'down press', 24, false);
-					animation.addByPrefix('confirm', 'down confirm', 24, false);
-				case 2:
-					animation.addByPrefix('static', 'arrowUP');
-					animation.addByPrefix('pressed', 'up press', 24, false);
-					animation.addByPrefix('confirm', 'up confirm', 24, false);
-				case 3:
-					animation.addByPrefix('static', 'arrowRIGHT');
-					animation.addByPrefix('pressed', 'right press', 24, false);
-					animation.addByPrefix('confirm', 'right confirm', 24, false);
-			}
-		}
+		setGraphicSize(Std.int(width * Note.NoteData.getScale(PlayState.mania)));
+
+		animation.addByPrefix('static', 'arrow' + skinThing[0]);
+		animation.addByPrefix('pressed', skinThing[1] + ' press', 24, false);
+		animation.addByPrefix('confirm', skinThing[1] + ' confirm', 24, false);
 
 		updateHitbox();
-		scrollFactor.set();
+
+		if(lastAnim != null)
+		{
+			playAnim(lastAnim, true);
+		}
 	}
 
 	public function postAddedToGroup() {
 		playAnim('static');
-		x += Note.swagWidth * noteData;
+		switch (PlayState.mania)
+		{
+			case 1 | 2 | 3:
+				x += width * noteData;
+			case 4:
+				x += (Note.swagWidth * noteData);
+			default:
+				x += ((width - Note.NoteData.getLessXStrumNote(PlayState.mania)) * noteData);
+		}
+
+		x += Note.NoteData.getXtraX(PlayState.mania);
+	
+		//trace((width * Note.NoteData.getScale(PlayState.SONG.mania)) * noteData);
 		x += 50;
 		x += ((FlxG.width / 2) * player);
 		ID = noteData;
+		
+		//trace(width);
+	
+		x -= Note.NoteData.getRestPosition(PlayState.mania);
+	
+		//if (PlayState.mania == 8 || PlayState.mania == 7 || PlayState.mania == 6)
+		//	x -= 25;
 	}
 
 	override function update(elapsed:Float) {
@@ -111,10 +106,11 @@ class StrumNote extends FlxSprite
 				resetAnim = 0;
 			}
 		}
-		
-		/*if(animation.curAnim.name == 'confirm' && !PlayState.isPixelStage) {
-			updateConfirmOffset();
-		}*/
+		if(animation.curAnim != null){ //my bad i was upset
+			if(animation.curAnim.name == 'confirm' && !PlayState.isPixelStage) {
+				centerOrigin();
+			}
+		}
 
 		super.update(elapsed);
 	}
@@ -128,23 +124,13 @@ class StrumNote extends FlxSprite
 			colorSwap.saturation = 0;
 			colorSwap.brightness = 0;
 		} else {
-			colorSwap.hue = ClientPrefs.arrowHSV[noteData % 4][0] / 360;
-			colorSwap.saturation = ClientPrefs.arrowHSV[noteData % 4][1] / 100;
-			colorSwap.brightness = ClientPrefs.arrowHSV[noteData % 4][2] / 100;
+			colorSwap.hue = ClientPrefs.arrowHSV[Note.NoteData.getKeyMap(PlayState.mania, noteData, 0) % Note.NoteData.getAmmo(PlayState.mania)][0] / 360;
+			colorSwap.saturation = ClientPrefs.arrowHSV[Note.NoteData.getKeyMap(PlayState.mania, noteData, 0) % Note.NoteData.getAmmo(PlayState.mania)][1] / 100;
+			colorSwap.brightness = ClientPrefs.arrowHSV[Note.NoteData.getKeyMap(PlayState.mania, noteData, 0) % Note.NoteData.getAmmo(PlayState.mania)][2] / 100;
 
 			if(animation.curAnim.name == 'confirm' && !PlayState.isPixelStage) {
-				updateConfirmOffset();
+				centerOrigin();
 			}
 		}
-	}
-
-	function updateConfirmOffset() { //TO DO: Find a calc to make the offset work fine on other angles
-		//centerOffsets();
-		//offset.x -= 13*((ClientPrefs.noteSize/100)/0.4);
-		//offset.y -= 13*((ClientPrefs.noteSize/100)/0.4);
-
-		//like wtf was this ^^^
-
-		centerOrigin();
 	}
 }

@@ -1,5 +1,6 @@
 package;
 
+import flixel.input.keyboard.FlxKey;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.graphics.frames.FlxAtlasFrames;
@@ -29,6 +30,7 @@ class Note extends FlxSprite
 	public var noteType(default, set):String = null;
 
 	public var eventName:String = '';
+	public var eventLength:Int = 0;
 	public var eventVal1:String = '';
 	public var eventVal2:String = '';
 
@@ -66,6 +68,15 @@ class Note extends FlxSprite
 
 	public var noAnimation:Bool = false;
 	public var hitCausesMiss:Bool = false;
+	public var distance:Float = 2000;//plan on doing scroll directions soon -bb
+
+	public var mania:Int = 1;
+
+	var ogW:Float;
+	var ogH:Float;
+
+	var defaultWidth:Float = 0;
+	var defaultHeight:Float = 0;
 
 	private function set_texture(value:String):String {
 		if(texture != value) {
@@ -77,9 +88,9 @@ class Note extends FlxSprite
 
 	private function set_noteType(value:String):String {
 		noteSplashTexture = PlayState.SONG.splashSkin;
-		colorSwap.hue = ClientPrefs.arrowHSV[noteData % 4][0] / 360;
-		colorSwap.saturation = ClientPrefs.arrowHSV[noteData % 4][1] / 100;
-		colorSwap.brightness = ClientPrefs.arrowHSV[noteData % 4][2] / 100;
+		colorSwap.hue = ClientPrefs.arrowHSV[Note.NoteData.getKeyMap(PlayState.mania, noteData, 0) % Note.NoteData.getAmmo(PlayState.mania)][0] / 360;
+		colorSwap.saturation = ClientPrefs.arrowHSV[Note.NoteData.getKeyMap(PlayState.mania, noteData, 0) % Note.NoteData.getAmmo(PlayState.mania)][1] / 100;
+		colorSwap.brightness = ClientPrefs.arrowHSV[Note.NoteData.getKeyMap(PlayState.mania, noteData, 0) % Note.NoteData.getAmmo(PlayState.mania)][2] / 100;
 
 		if(noteData > -1 && noteType != value) {
 			switch(value) {
@@ -134,18 +145,8 @@ class Note extends FlxSprite
 			x += swagWidth * (noteData % 4);
 			if(!isSustainNote) { //Doing this 'if' check to fix the warnings on Senpai songs
 				var animToPlay:String = '';
-				switch (noteData % 4)
-				{
-					case 0:
-						animToPlay = 'purple';
-					case 1:
-						animToPlay = 'blue';
-					case 2:
-						animToPlay = 'green';
-					case 3:
-						animToPlay = 'red';
-				}
-				animation.play(animToPlay + 'Scroll');
+				animToPlay = Note.NoteData.getLetter(Note.NoteData.getKeyMap(PlayState.mania, noteData, 0));
+				animation.play(animToPlay);
 			}
 		}
 
@@ -160,49 +161,34 @@ class Note extends FlxSprite
 			offsetX += width / 2;
 			copyAngle = false;
 
-			switch (noteData)
-			{
-				case 0:
-					animation.play('purpleholdend');
-				case 1:
-					animation.play('blueholdend');
-				case 2:
-					animation.play('greenholdend');
-				case 3:
-					animation.play('redholdend');
-			}
+			animation.play(Note.NoteData.getLetter(Note.NoteData.getKeyMap(PlayState.mania, noteData, 0)) + ' tail');
 
 			updateHitbox();
 
 			offsetX -= width / 2;
 
-			if (PlayState.isPixelStage)
-				offsetX += 30;
+			//if (PlayState.isPixelStage)
+				//offsetX += 30;
 
 			if (prevNote.isSustainNote)
 			{
-				switch (prevNote.noteData)
+				prevNote.animation.play(Note.NoteData.getLetter(Note.NoteData.getKeyMap(PlayState.mania, noteData, 0)) + ' hold');
+
+				prevNote.scale.y *= Conductor.stepCrochet / 100 * 1.05;
+				if(PlayState.instance != null)
 				{
-					case 0:
-						prevNote.animation.play('purplehold');
-					case 1:
-						prevNote.animation.play('bluehold');
-					case 2:
-						prevNote.animation.play('greenhold');
-					case 3:
-						prevNote.animation.play('redhold');
+					prevNote.scale.y *= PlayState.instance.songSpeed;
 				}
 
-				prevNote.scale.y *= Conductor.stepCrochet / 100 * 1.05 * PlayState.songSpeed;
-				if(PlayState.isPixelStage) {
-					prevNote.scale.y *= 1.19;
-				}
+				//if(PlayState.isPixelStage) { no.
+				//	prevNote.scale.y *= 1.19;
+				//}
 				prevNote.updateHitbox();
 				// prevNote.setGraphicSize();
 			}
 
 			if(PlayState.isPixelStage) {
-				scale.y *= PlayState.daPixelZoom;
+				//scale.y *= PlayState.daPixelZoom;
 				updateHitbox();
 			}
 		} else if(!isSustainNote) {
@@ -222,6 +208,9 @@ class Note extends FlxSprite
 			if(skin == null || skin.length < 1) {
 				skin = 'NOTE_assets';
 			}
+			if(PlayState.isPixelStage) {
+				skin = 'PIXEL_'+skin;
+			}
 		}
 
 		var animName:String = null;
@@ -234,28 +223,18 @@ class Note extends FlxSprite
 
 		var lastScaleY:Float = scale.y;
 		var blahblah:String = arraySkin.join('/');
-		if(PlayState.isPixelStage) {
-			if(isSustainNote) {
-				loadGraphic(Paths.image('pixelUI/' + blahblah + 'ENDS'));
-				width = width / 4;
-				height = height / 2;
-				loadGraphic(Paths.image('pixelUI/' + blahblah + 'ENDS'), true, Math.floor(width), Math.floor(height));
-			} else {
-				loadGraphic(Paths.image('pixelUI/' + blahblah));
-				width = width / 4;
-				height = height / 5;
-				loadGraphic(Paths.image('pixelUI/' + blahblah), true, Math.floor(width), Math.floor(height));
-			}
-			setGraphicSize(Std.int(width * ((ClientPrefs.noteSize - 30) / 100) * PlayState.daPixelZoom));
-			loadPixelNoteAnims();
-			antialiasing = false;
-		} else {
-			frames = Paths.getSparrowAtlas(blahblah);
-			loadNoteAnims();
-			antialiasing = ClientPrefs.globalAntialiasing;
-		}
+		frames = Paths.getSparrowAtlas(blahblah);
+
+		defaultWidth = 157;
+		defaultHeight = 154;
+
+		loadNoteAnims();
+		antialiasing = ClientPrefs.globalAntialiasing;
 		if(isSustainNote) {
 			scale.y = lastScaleY;
+			if(ClientPrefs.keSustains) {
+				scale.y *= 0.75;
+			}
 		}
 		updateHitbox();
 
@@ -269,27 +248,24 @@ class Note extends FlxSprite
 	}
 
 	function loadNoteAnims() {
-		animation.addByPrefix('greenScroll', 'green0');
-		animation.addByPrefix('redScroll', 'red0');
-		animation.addByPrefix('blueScroll', 'blue0');
-		animation.addByPrefix('purpleScroll', 'purple0');
-
-		if (isSustainNote)
-		{
-			animation.addByPrefix('purpleholdend', 'pruple end hold');
-			animation.addByPrefix('greenholdend', 'green hold end');
-			animation.addByPrefix('redholdend', 'red hold end');
-			animation.addByPrefix('blueholdend', 'blue hold end');
-
-			animation.addByPrefix('purplehold', 'purple hold piece');
-			animation.addByPrefix('greenhold', 'green hold piece');
-			animation.addByPrefix('redhold', 'red hold piece');
-			animation.addByPrefix('bluehold', 'blue hold piece');
-		}
-
-
-		setGraphicSize(Std.int(width * ((ClientPrefs.noteSize - 30) / 100)));
-		updateHitbox();
+		for (i in 0...9)
+			{
+				animation.addByPrefix(Note.NoteData.getLetter(i), Note.NoteData.getLetter(i) + '0');
+	
+				if (isSustainNote)
+				{
+					animation.addByPrefix(Note.NoteData.getLetter(i) + ' hold', Note.NoteData.getLetter(i) + ' hold');
+					animation.addByPrefix(Note.NoteData.getLetter(i) + ' tail', Note.NoteData.getLetter(i) + ' tail');
+				}
+			}
+				
+			ogW = width;
+			ogH = height;
+			if (!isSustainNote)
+				setGraphicSize(Std.int(defaultWidth * Note.NoteData.getScale(PlayState.mania)));
+			else
+				setGraphicSize(Std.int(defaultWidth * Note.NoteData.getScale(PlayState.mania)), Std.int(defaultHeight * Note.NoteData.getScale(0)));
+			updateHitbox();
 	}
 
 	function loadPixelNoteAnims() {
@@ -309,6 +285,29 @@ class Note extends FlxSprite
 			animation.add('blueScroll', [BLUE_NOTE + 4]);
 			animation.add('purpleScroll', [PURP_NOTE + 4]);
 		}
+	}
+
+	public function applyManiaChange()
+	{
+		loadNoteAnims();
+		if (!isSustainNote)
+		{
+			var animToPlay:String = '';
+			animToPlay = Note.NoteData.getLetter(Note.NoteData.getKeyMap(PlayState.mania, noteData, 0));
+			animation.play(animToPlay);
+		}
+
+		if (isSustainNote && prevNote != null)
+		{
+			animation.play(Note.NoteData.getLetter(Note.NoteData.getKeyMap(PlayState.mania, noteData, 0)) + ' tail');
+			if (prevNote.isSustainNote)
+			{
+				prevNote.animation.play(Note.NoteData.getLetter(Note.NoteData.getKeyMap(PlayState.mania, noteData, 0)) + ' hold');
+				prevNote.updateHitbox();
+			}
+		}
+
+		updateHitbox();
 	}
 
 	override function update(elapsed:Float)
@@ -335,10 +334,109 @@ class Note extends FlxSprite
 				wasGoodHit = true;
 		}
 
-		if (tooLate)
+		if (tooLate && !inEditor)
 		{
 			if (alpha > 0.3)
 				alpha = 0.3;
 		}
+	}
+}
+
+class NoteData
+{
+    public static var keyMaps:Map<Int, Array<Dynamic>> = [
+        1       =>      [[4], [4]],
+        2       =>      [[0, 3], [0, 3]],
+        3       =>      [[0, 4, 3], [0, 4, 3]],
+        4       =>      [[0, 1, 2, 3], [0, 1, 2, 3]],
+        5       =>      [[0, 1, 4, 2, 3], [0, 1, 4, 2, 3]],
+        6       =>      [[0, 2, 3, 5, 1, 8], [0, 2, 3, 0, 1, 3]],
+        7       =>      [[0, 2, 3, 4, 5, 1, 8], [0, 2, 3, 4, 0, 1, 3]],
+        8       =>      [[0, 1, 2, 3, 5, 6, 7, 8], [0, 1, 2, 3, 0, 1, 2, 3]],
+        9       =>      [[0, 1, 2, 3, 4, 5, 6, 7, 8], [0, 1, 2, 3, 4, 0, 1, 2, 3]]
+    ];
+
+    public static function getKeyMap(mania:Int, key:Int, type:Int):Int
+    {
+        return keyMaps.get(mania)[type][key];
+    }
+
+    public static function getAmmo(mania:Int)
+    {
+		mania--;
+        var ammo:Array<Int> = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+		return ammo[mania];
+    }
+
+	public static function getAnimation(data:Int, type:Int) {
+		var gfxDir:Array<String> = ['LEFT', 'DOWN', 'UP', 'RIGHT', 'SPACE'];
+		var charDir:Array<String> = ['LEFT', 'DOWN', 'UP', 'RIGHT', 'UP'];
+
+		var str:String = '';
+		switch(type)
+		{
+			case 0:
+				str = gfxDir[data];
+			case 1:
+				str = charDir[data];
+		}
+
+		return str;
+	}
+
+	public static function getLetter(data:Int) {
+		var gfxLetter:Array<String> = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
+
+		return gfxLetter[data];
+	}
+
+	public static function getScale(mania:Int) {
+		mania--;
+		var scales:Array<Float> = [0.9, 0.85, 0.8, 0.7, 0.66, 0.6, 0.55, 0.50, 0.46, 0.39];
+
+		return scales[mania];
+	}
+
+	public static function getSwagWidth(mania:Int) {
+		mania--;
+		var swidths:Array<Float> = [141, 124, 116, 108, 102, 93, 85, 77, 71, 60];
+
+		return swidths[mania];
+	}
+
+	public static function getRestPosition(mania:Int) {
+		mania--;
+		var posRest:Array<Int> = [0, 0, 0, 0, 25, 32, 46, 52, 60, 65];
+
+		return posRest[mania];
+	}
+
+	public static function getLessXStrumNote(mania:Int) {
+		mania--;
+		var lessX:Array<Int> = [0, 0, 0, 0, 0, 8, 7, 8, 8, 7];
+
+		return lessX[mania];
+	}
+
+	public static function getXtraX(mania:Int) {
+		mania--;
+		var xtra:Array<Int> = [150, 89, 0, 0, 0, 0, 0, 0, 0, 0];
+
+		return xtra[mania];
+	}
+
+	public static function getMiddleScrollSeparator(mania:Int) {
+		mania--;
+		var separator:Array<Int> = [0, 0, 1, 1, 2, 2, 2, 3, 3, 4];
+
+		return separator[mania];
+	}
+
+	public static function getGridSize(mania:Int) {
+		mania--;
+		var gridSizes:Array<Int> = [40, 40, 40, 40, 40, 40, 40, 40, 40, 35];
+
+		return gridSizes[mania];
 	}
 }

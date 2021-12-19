@@ -3,7 +3,7 @@
 **Also note**: you should be familiar with the commandline. If not, read this [quick guide by ninjamuffin](https://ninjamuffin99.newgrounds.com/news/post/1090480).
 **Also also note**: To build for *Windows*, you need to be on *Windows*. To build for *Linux*, you need to be on *Linux*. Same goes for macOS. You can build for html5/browsers on any platform.
 ## Dependencies
- 1. [Install Haxe 4.2.3](https://haxe.org/download/). You can use 4.1.5 anyway, but 4.2.3 works!
+ 1. [Install Haxe 4.2.4](https://haxe.org/download/version/4.2.4/). You must use the latest version, seriously, delete version 4.1.5.
  2. After installing Haxe, [Install HaxeFlixel](https://haxeflixel.com/documentation/install-haxeflixel/).
  3. Install `git`.
 	 - Windows: install from the [git-scm](https://git-scm.com/downloads) website.
@@ -22,8 +22,6 @@
 	 - `haxelib git linc_luajit https://github.com/nebulazorua/linc_luajit.git`
 	 - `haxelib git faxe https://github.com/uhrobots/faxe`
 	 - `haxelib git discord_rpc https://github.com/Aidan63/linc_discord-rpc`
-	 - `haxelib install actuate`
-	 - `haxelib git extension-webm https://github.com/KadeDev/extension-webm`
 ### Windows-only dependencies (only for building *to* Windows. Building html5 on Windows does not require this)
 If you are planning to build for Windows, you also need to install **Visual Studio 2019**. While installing it, *don't click on any of the options to install workloads*. Instead, go to the **individual components** tab and choose the following:
 -   MSVC v142 - VS 2019 C++ x64/x86 build tools

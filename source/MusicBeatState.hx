@@ -22,6 +22,7 @@ class MusicBeatState extends FlxUIState
 	private var curStep:Int = 0;
 	private var curBeat:Int = 0;
 	private var controls(get, never):Controls;
+	public static var canFullScreen:Bool = true;
 
 	inline function get_controls():Controls
 		return PlayerSettings.player1.controls;
@@ -53,7 +54,7 @@ class MusicBeatState extends FlxUIState
 
 	override function update(elapsed:Float)
 	{
-		if (FlxG.keys.justPressed.F)
+		if (FlxG.keys.justPressed.F && canFullScreen)
 			FlxG.fullscreen = !FlxG.fullscreen;
 
 		//everyStep();

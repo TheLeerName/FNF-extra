@@ -65,6 +65,8 @@ class Character extends FlxSprite
 	public var positionArray:Array<Float> = [0, 0];
 	public var cameraPosition:Array<Float> = [0, 0];
 
+	public var hasMissAnimations:Bool = false;
+
 	//Used on Character Editor
 	public var imageFile:String = '';
 	public var jsonScale:Float = 1;
@@ -73,8 +75,8 @@ class Character extends FlxSprite
 	public var healthColorArray:Array<Int> = [255, 0, 0];
 	public var alreadyLoaded:Bool = true; //Used by "Change Character" event
 
-	public static var DEFAULT_CHARACTER:String = 'pico'; //In case a character is missing, it will use BF on its place
-	public function new(x:Float, y:Float, ?character:String = 'pico', ?isPlayer:Bool = false)
+	public static var DEFAULT_CHARACTER:String = 'bf'; //In case a character is missing, it will use BF on its place
+	public function new(x:Float, y:Float, ?character:String = 'bf', ?isPlayer:Bool = false)
 	{
 		super(x, y);
 
@@ -116,9 +118,18 @@ class Character extends FlxSprite
 				#end
 
 				var json:CharacterFile = cast Json.parse(rawJson);
-				if(Assets.exists(Paths.getPath('images/' + json.image + '.txt', TEXT))) {
+				#if MODS_ALLOWED
+				var txtToFind:String = Paths.getPath('images/' + json.image + '.txt', TEXT);
+				if(FileSystem.exists(txtToFind) || Assets.exists(txtToFind))
+				#else
+				if(Assets.exists(Paths.getPath('images/' + json.image + '.txt', TEXT)))
+				#end
+				{
+				//bozo forgot about the packer shits : P
 					frames = Paths.getPackerAtlas(json.image);
-				} else {
+				}
+				else
+				{
 					frames = Paths.getSparrowAtlas(json.image);
 				}
 				imageFile = json.image;
@@ -171,6 +182,7 @@ class Character extends FlxSprite
 		}
 		originalFlipX = flipX;
 
+		if(animOffsets.exists('singLEFTmiss') || animOffsets.exists('singDOWNmiss') || animOffsets.exists('singUPmiss') || animOffsets.exists('singRIGHTmiss')) hasMissAnimations = true;
 		recalculateDanceIdle();
 		dance();
 

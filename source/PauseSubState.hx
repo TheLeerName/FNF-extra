@@ -13,6 +13,7 @@ import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxColor;
 import flixel.FlxCamera;
+import flixel.math.FlxMath;
 
 class PauseSubState extends MusicBeatSubstate
 {
@@ -26,7 +27,7 @@ class PauseSubState extends MusicBeatSubstate
 
 	var pauseMusic:FlxSound;
 	var practiceText:FlxText;
-	var botplayText:FlxText;
+	//var botplayText:FlxText;
 	var laneunderlayThing:FlxText;
 	var scrollspeedThing:FlxText;
 
@@ -37,16 +38,11 @@ class PauseSubState extends MusicBeatSubstate
 		super();
 
 		if (nullDiff)
-			menuItemsOG = ['Resume', 'Restart Song', 'Toggle Practice Mode', 'Botplay', 'Exit to menu'];
+			menuItemsOG = ['Resume', 'Restart Song', /*'Toggle Practice Mode', 'Botplay',*/ 'Exit to menu'];
 		else
-			menuItemsOG = ['Resume', 'Restart Song', 'Change Difficulty', 'Toggle Practice Mode', 'Botplay', 'Exit to menu'];
-
+			menuItemsOG = ['Resume', 'Restart Song', 'Change Difficulty', /*'Toggle Practice Mode', 'Botplay',*/ 'Exit to menu'];
 		menuItems = menuItemsOG;
 
-		/*for (i in 0...CoolUtil.difficultyStuff.length) {
-			var diff:String = '' + CoolUtil.difficultyStuff[i][0];
-			difficultyChoices.push(diff);
-		}*/
 		for (i in 0...CoolUtil.parseDiffCount(Paths.formatToSongPath(PlayState.SONG.song))) {
 			var diff:String = '' + CoolUtil.parseDiffNames(Paths.formatToSongPath(PlayState.SONG.song), i);
 			difficultyChoices.push(diff);
@@ -72,7 +68,7 @@ class PauseSubState extends MusicBeatSubstate
 		add(levelInfo);
 
 		var levelDifficulty:FlxText = new FlxText(20, 15 + 32, 0, "", 32);
-		levelDifficulty.text += /*CoolUtil.difficultyString()*/ CoolUtil.parseDiffNames(Paths.formatToSongPath(PlayState.SONG.song), PlayState.storyDifficulty);
+		levelDifficulty.text += CoolUtil.parseDiffNames(Paths.formatToSongPath(PlayState.SONG.song), PlayState.storyDifficulty);
 		levelDifficulty.scrollFactor.set();
 		levelDifficulty.setFormat(Paths.font('vcr.ttf'), 32);
 		levelDifficulty.updateHitbox();
@@ -90,16 +86,16 @@ class PauseSubState extends MusicBeatSubstate
 		practiceText.setFormat(Paths.font('vcr.ttf'), 32);
 		practiceText.x = FlxG.width - (practiceText.width + 20);
 		practiceText.updateHitbox();
-		practiceText.visible = PlayState.practiceMode;
+		practiceText.visible = PlayState.instance.practiceMode;
 		add(practiceText);
 
-		botplayText = new FlxText(20, FlxG.height - 40, 0, "BOTPLAY", 32);
+		/*botplayText = new FlxText(20, FlxG.height - 40, 0, "BOTPLAY", 32);
 		botplayText.scrollFactor.set();
 		botplayText.setFormat(Paths.font('vcr.ttf'), 32);
 		botplayText.x = FlxG.width - (botplayText.width + 20);
 		botplayText.updateHitbox();
 		botplayText.visible = PlayState.cpuControlled;
-		add(botplayText);
+		add(botplayText);*/
 
 		blueballedTxt.alpha = 0;
 		levelDifficulty.alpha = 0;
@@ -126,6 +122,11 @@ class PauseSubState extends MusicBeatSubstate
 			FlxTween.tween(blueballedTxt, {alpha: 1, y: blueballedTxt.y + 5}, 0.4, {ease: FlxEase.quartInOut, startDelay: 0.7});
 		}
 
+		FlxTween.tween(bg, {alpha: 0.6}, 0.4, {ease: FlxEase.quartInOut});
+		FlxTween.tween(levelInfo, {alpha: 1, y: 20}, 0.4, {ease: FlxEase.quartInOut, startDelay: 0.3});
+		FlxTween.tween(levelDifficulty, {alpha: 1, y: levelDifficulty.y + 5}, 0.4, {ease: FlxEase.quartInOut, startDelay: 0.5});
+		FlxTween.tween(blueballedTxt, {alpha: 1, y: blueballedTxt.y + 5}, 0.4, {ease: FlxEase.quartInOut, startDelay: 0.7});
+
 		grpMenuShit = new FlxTypedGroup<Alphabet>();
 		add(grpMenuShit);
 
@@ -139,7 +140,7 @@ class PauseSubState extends MusicBeatSubstate
 		laneunderlayThing.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		add(laneunderlayThing);
 
-		scrollspeedThing = new FlxText(5, 58, 0, "Scroll Speed (Press Ctrl and Left or Right): " + CoolUtil.format0dot00(ClientPrefs.speed), 12);
+		scrollspeedThing = new FlxText(5, 58, 0, "Scroll Speed (Press Ctrl and Left or Right): " + FlxMath.roundDecimal(ClientPrefs.speed, 2), 12);
 		scrollspeedThing.scrollFactor.set();
 		scrollspeedThing.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		add(scrollspeedThing);
@@ -153,6 +154,8 @@ class PauseSubState extends MusicBeatSubstate
 		}
 
 		changeSelection();
+
+		ClientPrefs.speed = FlxMath.roundDecimal(PlayState.instance.songSpeed, 2);
 
 		cameras = [FlxG.cameras.list[FlxG.cameras.list.length - 1]];
 	}
@@ -174,39 +177,38 @@ class PauseSubState extends MusicBeatSubstate
 
 				if (FlxG.keys.pressed.SHIFT)
 				{
-					if(holdTime > 1.5) mult = 5; // x5 speed after 1.5 seconds holding
-
+					if(holdTime > 1) mult = 2; // x2 speed after 1 second holding
 					ClientPrefs.laneUnderlay += add * mult;
-
 					if (ClientPrefs.laneUnderlay < 0) ClientPrefs.laneUnderlay = 0;
 					else if (ClientPrefs.laneUnderlay > 100) ClientPrefs.laneUnderlay = 100;
+
 					PlayState.laneunderlayOpponent.alpha = ClientPrefs.laneUnderlay / 100;
 					PlayState.laneunderlay.alpha = ClientPrefs.laneUnderlay / 100;
+					FlxG.save.data.laneUnderlay = ClientPrefs.laneUnderlay;
+					FlxG.save.flush();
 					laneunderlayThing.text = "Lane Underlay (Press Shift and Left or Right): " + ClientPrefs.laneUnderlay + "%";
 				}
 				else if (FlxG.keys.pressed.CONTROL)
 				{
-					if(holdTime > 1.5) mult = 10; // x10 speed after 1.5 seconds holding
+					if(holdTime > 1) mult = 4; // x4 speed after 1 second holding
+					ClientPrefs.speed += (add * mult)/100;
+					if (ClientPrefs.speed < 0.01) ClientPrefs.speed = 0.01;
+					else if (ClientPrefs.speed > 10) ClientPrefs.speed = 10;
 
-					ClientPrefs.speed += add/100;
-
-					if(ClientPrefs.speed < 0.01) ClientPrefs.speed = 0.01;
-					else if(ClientPrefs.speed > 5) ClientPrefs.speed = 5;
-					PlayState.optionsWatermark.text = (ClientPrefs.ghostTapping ? "GhosTap | " : "") + (ClientPrefs.kadeInput ? "KadeInput | " : "") + (CoolUtil.format0dot00(ClientPrefs.speed) == 1 ? "Speed " + PlayState.SONG.speed : "Speed " + CoolUtil.format0dot00(ClientPrefs.speed) + " (" + PlayState.SONG.speed + ")");
-					if (CoolUtil.format0dot00(ClientPrefs.speed) == 1)
-						PlayState.songSpeed = PlayState.SONG.speed;
-					else
-						PlayState.songSpeed = CoolUtil.format0dot00(ClientPrefs.speed);
-					scrollspeedThing.text = "Scroll Speed (Press Ctrl and Left or Right): " + CoolUtil.format0dot00(ClientPrefs.speed);
+					PlayState.instance.songSpeed = FlxMath.roundDecimal(ClientPrefs.speed, 2);
+					PlayState.instance.optionsWatermark.text =
+						  (ClientPrefs.ghostTapping ? "GhosTap | " : "")
+						+ (ClientPrefs.kadeInput ? "KadeInput | " : "")
+						+ (FlxMath.roundDecimal(ClientPrefs.speed, 2) == FlxMath.roundDecimal(PlayState.instance.songSpeed_stat, 2) ? "Speed " + FlxMath.roundDecimal(PlayState.instance.songSpeed_stat, 2)
+						: "Speed " + FlxMath.roundDecimal(ClientPrefs.speed, 2) + " (" + FlxMath.roundDecimal(PlayState.instance.songSpeed_stat, 2) + ")");
+					scrollspeedThing.text = "Scroll Speed (Press Ctrl and Left or Right): " + FlxMath.roundDecimal(ClientPrefs.speed, 2);
 				}
 			}
 			holdTime += elapsed;
 		} else holdTime = 0;
 
-		if (controls.UI_UP_P)
-			changeSelection(-1);
-		if (controls.UI_DOWN_P)
-			changeSelection(1);
+		if (controls.UI_UP_P) changeSelection(-1);
+		if (controls.UI_DOWN_P) changeSelection(1);
 
 		if (controls.ACCEPT)
 		{
@@ -220,8 +222,8 @@ class PauseSubState extends MusicBeatSubstate
 					CustomFadeTransition.nextCamera = transCamera;
 					MusicBeatState.resetState();
 					FlxG.sound.music.volume = 0;
-					PlayState.changedDifficulty = true;
-					PlayState.cpuControlled = false;
+					//PlayState.changedDifficulty = true;
+					//PlayState.cpuControlled = false;
 					return;
 				}
 			} 
@@ -230,22 +232,23 @@ class PauseSubState extends MusicBeatSubstate
 			{
 				case "Resume":
 					close();
-					ClientPrefs.saveSettings();
+					MusicBeatState.canFullScreen = false;
 				case 'Change Difficulty':
 					menuItems = difficultyChoices;
 					regenMenu();
-				case 'Toggle Practice Mode':
+				/*case 'Toggle Practice Mode':
 					PlayState.practiceMode = !PlayState.practiceMode;
 					PlayState.usedPractice = true;
-					practiceText.visible = PlayState.practiceMode;
+					practiceText.visible = PlayState.practiceMode;*/
 				case "Restart Song":
 					CustomFadeTransition.nextCamera = transCamera;
 					MusicBeatState.resetState();
 					FlxG.sound.music.volume = 0;
-				case 'Botplay':
+					MusicBeatState.canFullScreen = false;
+				/*case 'Botplay':
 					PlayState.cpuControlled = !PlayState.cpuControlled;
 					PlayState.usedPractice = true;
-					botplayText.visible = PlayState.cpuControlled;
+					botplayText.visible = PlayState.cpuControlled;*/
 				case "Exit to menu":
 					PlayState.deathCounter = 0;
 					PlayState.seenCutscene = false;
@@ -255,9 +258,10 @@ class PauseSubState extends MusicBeatSubstate
 					else*/
 						MusicBeatState.switchState(new FreeplayState());
 					FlxG.sound.playMusic(Paths.music('freakyMenu'));
-					PlayState.usedPractice = false;
+					MusicBeatState.canFullScreen = true;
+					/*PlayState.usedPractice = false;
 					PlayState.changedDifficulty = false;
-					PlayState.cpuControlled = false;
+					PlayState.cpuControlled = false;*/
 
 				case 'BACK':
 					menuItems = menuItemsOG;

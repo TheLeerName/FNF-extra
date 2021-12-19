@@ -1,19 +1,16 @@
 {
 	"offset": 0,
+	"description": "by KawaiSprite, ninjamuffin99, PhantomArcade and Evilsk8r",
+	"colors": [165, 0, 77],
+	"healthicon": "gf",
+	"songName": "Tutorial",
 	"uses": {
 		"modchart": false,
-		"events": false,
+		"events": true,
+		"custom_events": [],
+		"custom_notetypes": [],
 		"characters": [],
-		"characters_necessary": [],
-		"stages": [],
-		"stages_necessary": [],
-		"notetypes": [],
-		"notetypes_necessary": [],
-		"existCharts": {
-			"without_characters": false,
-			"without_stages": false,
-			"without_notetypes": false
-		}
+		"stages": []
 	},
 	"difficulty": {
 		"names": [

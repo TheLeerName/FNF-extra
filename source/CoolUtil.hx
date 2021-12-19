@@ -4,7 +4,8 @@ import haxe.Json;
 import haxe.format.JsonParser;
 import flixel.FlxG;
 import openfl.utils.Assets;
-import flixel.util.FlxStringUtil;
+import lime.app.Application;
+import flixel.addons.transition.FlxTransitionableState;
 #if MODS_ALLOWED
 import sys.io.File;
 import sys.FileSystem;
@@ -21,13 +22,18 @@ typedef Uses =
 {
 	var modchart:Bool;
 	var events:Bool;
+	var custom_events:Array<String>;
+	var custom_notetypes:Array<String>;
 	var characters:Array<String>;
 	var stages:Array<String>;
-	var notetypes:Array<String>;
 }
 typedef SongData =
 {
 	var offset:Float;
+	var description:String;
+	var colors:Array<Int>;
+	var healthicon:String;
+	var songName:String;
 	var uses:Uses;
 	var difficulty:Diff;
 }
@@ -35,7 +41,7 @@ typedef SongData =
 class CoolUtil
 {
 	// you can change this in mods/downloadServer.txt without source code
-	public static var DEFAULT_site:String = 'https://raw.githubusercontent.com/TheLeerName/FNF-extra-docs/1.0';
+	public static var DEFAULT_site:String = 'https://raw.githubusercontent.com/TheLeerName/FNF-extra-docs/1.1';
 
 	static public function createDownloadServer() // loads in function loadingImages()
 	{
@@ -49,7 +55,7 @@ class CoolUtil
 	inline static public function parseRepoFiles(key:String, site:String = '', ?url:Bool = false, ?useDefault:Bool = false)
 	{
 		createDownloadServer();
-		site = useDefault ? DEFAULT_site : CoolUtil.getContent('mods/downloadServer.txt').split('\n')[0];
+		site = useDefault ? DEFAULT_site : getContent('mods/downloadServer.txt').split('\n')[0];
 
 		if (url)
 			return '${site}/${key}';
@@ -61,6 +67,11 @@ class CoolUtil
 		}
 		http.onError = function(error) {
 			trace('Error with parsing repo files (check your internet connection): $error');
+			Application.current.window.alert('Error with parsing repo files, check your internet connection. ($error)', "NO CONNECTION ERROR");
+			FlxTransitionableState.skipNextTransIn = true;
+			FlxTransitionableState.skipNextTransOut = true;
+			MusicBeatState.switchState(new MainMenuState());
+			return;
 		}
 		http.request();
 		return returnedData;
@@ -129,7 +140,11 @@ class CoolUtil
 	{
 		#if MODS_ALLOWED
 		if (fromNet)
+		{
+			if (key.startsWith('mods/'))
+				key = key.replace('mods/', '');
 			return haxe.Json.parse(parseRepoFiles(key));
+		}
 		else if (exists(key))
 			return haxe.Json.parse(File.getContent(key));
 		else
@@ -143,21 +158,6 @@ class CoolUtil
 		#end
 	}
 
-	inline static public function parse(key:String, fromNet:Bool = false):Dynamic
-	{
-		#if MODS_ALLOWED
-		if (exists(key))
-			return haxe.Json.parse(File.getContent(key));
-		else
-		{
-			trace('Error: Can\'t parse ${key}, file is not exist!');
-			return [];
-		}
-		#else
-		trace('This function is disabled, when MODS_ALLOWED is false!');
-		return [];
-		#end
-	}
 	inline static public function stringify(key:String):Dynamic
 	{
 		#if MODS_ALLOWED
@@ -238,7 +238,7 @@ class CoolUtil
 		return null;
 		#end
 	}
-	inline static public function getContent(path:String):String
+	inline static public function getContent(path:String)
 	{
 		#if MODS_ALLOWED
 		if (exists(path))
@@ -287,38 +287,43 @@ class CoolUtil
 		#if MODS_ALLOWED
 		trace('Starting checking images for loading screen...');
 
+		modCache();
+
+		var disabledFiles:Array<String> = [
+			'imageNames.txt',
+			'readme.txt',
+			'categoryList.json'
+		];
 		var ba:Array<String> = parseRepoFiles('loading_images/imageNames.txt', false, true).split('\n');
 		var imagesList:Array<String> = ['h'];
 		for (i in 0...readDir(Paths.modFolders('images/loading')).length)
 		{
 			var ha1:Array<String> = readDir(Paths.modFolders('images/loading'));
-			ha1.remove("loading-images-here.txt");
-			ha1.remove("imageNames.txt");
-			ha1.remove("categoryList.json");
+			for (i in 0...disabledFiles.length)
+				ha1.remove(disabledFiles[i]);
 			imagesList[i] = ha1[i].replace('.png', '');
 		}
-		//trace(ba.length + ' | ' + (imagesList.length - 2));
-		//trace(ba);
-		//trace(imagesList);
+		//trace(ba.length + ' | ' + (imagesList.length - disabledFiles.length));
+		//trace(ba); // list from imagesList.txt
+		//trace(imagesList); // list after readDir
 
-		for (i in 0...imagesList.length - 3)
-			if (imagesList[i] != ba[i])
+		for (i in 0...imagesList.length - disabledFiles.length)
+			if (imagesList[i] != ba[i] && isDir('mods/images/loading'))
 			{
 				deleteDir('mods/images/loading');
 				deleteDir('mods/images/loading', false);
 			}
 
-		if (!isDir(Paths.modFolders('images/loading')))
+		if (!isDir('mods/images/loading'))
 		{
-			createDir(Paths.modFolders('images/loading'));
-			trace('Update from server was found! Updating all images...'); // i think nobody not deleting this folder specially :)
+			createDir('mods/images/loading');
+			saveFile('mods/images/loading/readme.txt' , 'put your images/loading here!');
+			trace('Update from server was found! Updating all images...');
 		}
-		if (!exists('mods/images/loading/loading-images-here.txt'))
-			saveFile('mods/images/loading/loading-images-here.txt', '');
 
 		if (exists(Paths.modsTxt('loading/imageNames')))
 		{
-			if (ba.length != File.getContent(Paths.modsTxt('loading/imageNames')).trim().split('\n').length)
+			if (ba.length != getContent(Paths.modsTxt('loading/imageNames')).trim().split('\n').length)
 			{
 				saveFile('mods/images/loading/imageNames.txt', 'loading_images/imageNames.txt', true, false, true);
 				trace('List of images was updated');
@@ -332,10 +337,11 @@ class CoolUtil
 
 		for (i in 0...ba.length)
 		{
-			if (!exists(Paths.modsImages('loading/${File.getContent(Paths.modsTxt('loading/imageNames')).trim().split('\n')[i]}')))
+			var imagesArray:Array<String> = getContent(Paths.modsTxt('loading/imageNames')).trim().split('\n');
+			if (!exists(Paths.modsImages('loading/${imagesArray[i]}')))
 			{
-				saveFile('mods/images/loading/${File.getContent(Paths.modsTxt('loading/imageNames')).trim().split('\n')[i]}.png', 'loading_images/${File.getContent(Paths.modsTxt('loading/imageNames')).trim().split('\n')[i]}.png', true);
-				trace('Image ${File.getContent(Paths.modsTxt('loading/imageNames')).trim().split('\n')[i]} was downloaded');
+				saveFile('mods/images/loading/${imagesArray[i]}.png', 'loading_images/${imagesArray[i]}.png', true);
+				trace('Image ${imagesArray[i]} was downloaded');
 			}
 			//else trace('${Paths.modsTxt('loading/imageNames').trim().split('\n')[i]} image already exists! Skipping downloading it');
 		}
@@ -357,92 +363,108 @@ class CoolUtil
 		#end
 	}
 
-	inline static public function getCats(which:Int)
-	{
-		#if MODS_ALLOWED
-		var man = parseJSON(Paths.modFolders('images/loading/categoryList.json'));
-		if (which == 0)
-			return man.songs;
-		if (which == 1)
-			return man.characters;
-		if (which == 2)
-			return man.stages;
-		if (which == 3)
-			return man.notetypes;
-		else
-		{
-			trace('uh oh you using unexpected category! return 0...');
-			return 0;
-		}
-		#else
-		return null;
-		#end
-	}
-
-	static public function deleteAll()
+	static public function modCache(delete:Bool = false)
 	{
 		#if MODS_ALLOWED
 		var folders:Array<String> = [
+			'mods', // with exception
 			'characters',
+			'custom_events',
 			'custom_notetypes',
 			'data',
+			'fonts',
+			'images', // with exception
 			'images/characters',
 			'images/custom_notetypes',
+			'images/dialogue',
 			'images/icons',
+			'images/loading',
 			'images/stages',
 			'music',
+			'scripts',
 			'songs',
 			'sounds',
-			'stages',
-			'weeks'
+			'stages'
 		];
-		for (i in 0...folders.length)
+
+		if (delete)
 		{
-			if (isDir('mods/${folders[i]}'))
+			for (i in 0...folders.length)
+				if (isDir('mods/${folders[i]}') && folders[i] != 'mods')
+				{
+					deleteDir('mods/${folders[i]}');
+					deleteDir('mods/${folders[i]}', false);
+					createDir('mods/${folders[i]}');
+					if (folders[i] != 'images')
+						saveFile('mods/${folders[i]}/readme.txt' , 'put your ${folders[i]} here!');
+					//trace('Successfully deleted ${folders[i]} (${i})!');
+				}
+			loadingImages();
+			MusicBeatState.resetState();
+		}
+		else
+		{
+			for (i in 0...folders.length)
 			{
-				deleteDir('mods/${folders[i]}');
-				deleteDir('mods/${folders[i]}', false);
-				createDir('mods/${folders[i]}');
-				saveFile('mods/${folders[i]}/readme.txt' , 'put your ${folders[i]} here!');
-				//trace('Successfully deleted ${folders[i]} (${i})!');
+				if (folders[i] == 'mods')
+				{
+					if (!isDir(folders[i]))
+						createDir(folders[i]);
+				}
+				else if (!isDir('mods/${folders[i]}'))
+				{
+					createDir('mods/${folders[i]}');
+					if (folders[i] != 'images')
+						saveFile('mods/${folders[i]}/readme.txt' , 'put your ${folders[i]} here!');
+					//trace('Successfully deleted ${folders[i]} (${i})!');
+				}
+			}
+			if (!isDir('mods/images/loading'))
+			{
+				createDir('mods/images/loading');
+				saveFile('mods/images/loading/readme.txt' , 'put your images/loading here!');
 			}
 		}
-		MusicBeatState.resetState();
 		#end
 	}
 
 	static public function deleteThing(thing:String, cat:Int, cycle:Bool = true)
 	{
+		#if !MODS_ALLOWED
+		trace('Not working when MODS_ALLOWED is false!');
+		return;
+		#end
+
+		modCache();
 		switch (cat)
 		{
-			// 0 = song, 1 = character, 2 = stage, 3 = notetype, 4 = sound, 5 = music, 6 = image for stage, 7 = xml for stage
-			#if MODS_ALLOWED
+			// 0 = song, 1 = character, 2 = stage, 3 = notetype, 4 = custom events, 5 = sound, 6 = music, 7 = image for stage, 8 = xml for stage
 			case 0:
 				trace('Start removing song ${thing}...');
 
-				if (exists(Paths.modsSongs('${thing}/Inst')))
+				if (exists('mods/songs/${thing}/Inst.ogg'))
 				{
-					deleteFile(Paths.modsSongs('${thing}/Inst'));
+					deleteFile('mods/songs/${thing}/Inst.ogg');
 					//trace('Inst was removed');
 				}
 				else
 					trace('Inst is not exist! Skipping removing it');
 
-				if (exists(Paths.modsSongs('${thing}/Voices')))
+				if (exists('mods/songs/${thing}/Voices.ogg'))
 				{
-					deleteFile(Paths.modsSongs('${thing}/Voices'));
+					deleteFile('mods/songs/${thing}/Voices.ogg');
 					//trace('Voices was removed');
 				}
 				else
 					trace('Voices is not exist! Skipping removing it');
 
-				if (exists(Paths.modsJson('${thing}/songData')))
+				if (exists('mods/data/${thing}/songData.json'))
 				{
 					for (i in 1...parseDiffCount(thing) + 1)
 					{
-						if (exists(Paths.modsJson('${thing}/${thing}-${i}')))
+						if (exists('mods/data/${thing}/${thing}-${i}.json'))
 						{
-							deleteFile(Paths.modsJson('${thing}/${thing}-${i}'));
+							deleteFile('mods/data/${thing}/${thing}-${i}.json');
 							//trace('${i} difficulty was removed');
 						}
 						else
@@ -454,9 +476,9 @@ class CoolUtil
 					trace('File songData is not exist! Can\'t check difficulty count, starting alternative method...');
 					for (i in 1...parseDiffCount(thing, true) + 1)
 					{
-						if (exists(Paths.modsJson('${thing}/${thing}-${i}')))
+						if (exists('mods/data/${thing}/${thing}-${i}.json'))
 						{
-							deleteFile(Paths.modsJson('${thing}/${thing}-${i}'));
+							deleteFile('mods/data/${thing}/${thing}-${i}.json');
 							//trace('${i} difficulty was removed');
 						}
 						else
@@ -464,43 +486,35 @@ class CoolUtil
 					}
 				} // alt method to remove difficulties of song
 
-				if (exists(Paths.modFolders('data/${thing}/modchart.lua')))
+				if (exists('mods/data/${thing}/modchart.lua'))
 				{
-					if (parseJSON(Paths.modFolders('data/${thing}/songData.json')).usesModchart)
+					if (parseJSON('mods/data/${thing}/songData.json').uses.modchart)
 					{
-						deleteFile(Paths.modFolders('data/${thing}/modchart.lua'));
+						deleteFile('mods/data/${thing}/modchart.lua');
 						//trace('File modchart was removed');
 					}
 				}
 				else
 					trace('File modchart is not exist! Skipping removing it');
 
-				if (exists(Paths.modFolders('data/${thing}/events.json')))
+				if (exists('mods/data/${thing}/events.json'))
 				{
-					if (parseJSON(Paths.modFolders('data/${thing}/songData.json')).usesEvents)
+					if (parseJSON('mods/data/${thing}/songData.json').uses.events)
 					{
-						deleteFile(Paths.modFolders('data/${thing}/events.json'));
+						deleteFile('mods/data/${thing}/events.json');
 						//trace('File events was removed');
 					}
 				}
 				else
 					trace('File events is not exist! Skipping removing it');
 
-				if (exists(Paths.modsJson('${thing}/songData')))
+				if (exists('mods/data/${thing}/songData.json'))
 				{
-					deleteFile(Paths.modsJson('${thing}/songData'));
+					deleteFile('mods/data/${thing}/songData.json');
 					//trace('File songData was removed');
 				}
 				else
 					trace('File songData is not exist! Skipping removing it');
-
-				if (exists(Paths.modFolders('weeks/${thing}.json')))
-				{
-					deleteFile(Paths.modFolders('weeks/${thing}.json'));
-					//trace('Week file was removed');
-				}
-				else
-					trace('Week file is not exist! Skipping removing it');
 
 				if (isDir('mods/data/${thing}'))
 				{
@@ -524,33 +538,39 @@ class CoolUtil
 			case 1:
 				trace('Start removing character ${thing}...');
 
-				if (exists(Paths.modsImages('characters/${thing}')))
+				if (exists('mods/images/characters/${thing}.png'))
 				{
-					deleteFile(Paths.modsImages('characters/${thing}'));
+					deleteFile('mods/images/characters/${thing}.png');
 					//trace('PNG was removed');
 				}
 				else
 					trace('PNG is not exist! Skipping removing it');
 
-				if (exists(Paths.modsImages('icons/icon-${thing}')))
+				if (exists('mods/images/characters/${thing}.xml'))
 				{
-					deleteFile(Paths.modsImages('icons/icon-${thing}'));
-					//trace('Health icon was removed');
-				}
-				else
-					trace('Health icon is not exist! Skipping removing it');
-
-				if (exists(Paths.modsXml('characters/${thing}')))
-				{
-					deleteFile(Paths.modsXml('characters/${thing}'));
+					deleteFile('mods/images/characters/${thing}.xml');
 					//trace('XML was removed');
 				}
 				else
 					trace('XML is not exist! Skipping removing it');
 
-				if (exists(Paths.modFolders('characters/${thing}.json')))
+				switch (thing)
 				{
-					deleteFile(Paths.modFolders('characters/${thing}.json'));
+					case 'bf' | 'dad' | 'gf' | 'pico' | 'pico-player':
+						//trace('Health icon not needed! Skipping downloading it');
+					default:
+						if (exists('mods/images/icons/icon-${thing}.png'))
+						{
+							deleteFile('mods/images/icons/icon-${thing}.png');
+							//trace('Health icon was removed');
+						}
+						else
+							trace('Health icon is not exist! Skipping removing it');
+				}
+
+				if (exists('mods/characters/${thing}.json'))
+				{
+					deleteFile('mods/characters/${thing}.json');
 					//trace('JSON was removed');
 				}
 				else
@@ -561,9 +581,9 @@ class CoolUtil
 			case 2:
 				trace('Start removing stage ${thing}...');
 
-				if (exists(Paths.modFolders('stages/${thing}.lua')))
+				if (exists('mods/stages/${thing}.lua'))
 				{
-					deleteFile(Paths.modFolders('stages/${thing}.lua'));
+					deleteFile('mods/stages/${thing}.lua');
 					//trace('Lua was removed');
 				}
 				else
@@ -571,22 +591,31 @@ class CoolUtil
 
 				if (cycle)
 				{
-					for (i in 0...parseJSON(Paths.modFolders('stages/${thing}.json')).neededFiles.images.length)
-						deleteThing('${thing}/${parseJSON(Paths.modFolders('stages/${thing}.json')).neededFiles.images[i]}', 6, false);
-					for (i in 0...parseJSON(Paths.modFolders('stages/${thing}.json')).neededFiles.imagesWithXml.length)
+					var json = parseJSON('mods/stages/${thing}.json');
+					for (i in 0...json.neededFiles.images.length)
+						deleteThing('${thing}/${json.neededFiles.images[i]}', 7, false);
+					for (i in 0...json.neededFiles.imagesWithXml.length)
 					{
-						deleteThing('${thing}/${parseJSON(Paths.modFolders('stages/${thing}.json')).neededFiles.imagesWithXml[i]}', 6, false);
-						deleteThing('${thing}/${parseJSON(Paths.modFolders('stages/${thing}.json')).neededFiles.imagesWithXml[i]}', 7, false);
+						deleteThing('${thing}/${json.neededFiles.imagesWithXml[i]}', 7, false);
+						deleteThing('${thing}/${json.neededFiles.imagesWithXml[i]}', 8, false);
 					}
-					for (i in 0...parseJSON(Paths.modFolders('stages/${thing}.json')).neededFiles.sounds.length)
-						deleteThing(parseJSON(Paths.modFolders('stages/${thing}.json')).neededFiles.sounds[i], 4, false);
-					for (i in 0...parseJSON(Paths.modFolders('stages/${thing}.json')).neededFiles.music.length)
-						deleteThing(parseJSON(Paths.modFolders('stages/${thing}.json')).neededFiles.music[i], 5, false);
+					for (i in 0...json.neededFiles.sounds.length)
+						deleteThing(json.neededFiles.sounds[i], 5, false);
+					for (i in 0...json.neededFiles.music.length)
+						deleteThing(json.neededFiles.music[i], 6, false);
 				}
 
-				if (exists(Paths.modFolders('stages/${thing}.json')))
+				if (isDir('mods/images/stages/${thing}'))
 				{
-					deleteFile(Paths.modFolders('stages/${thing}.json'));
+					deleteDir('mods/images/stages/${thing}');
+					deleteDir('mods/images/stages/${thing}', false);
+				}
+				else
+					trace('Folder images/stages/${thing} is not exist! Skipping removing it');
+
+				if (exists('mods/stages/${thing}.json'))
+				{
+					deleteFile('mods/stages/${thing}.json');
 					//trace('JSON was removed');
 				}
 				else
@@ -613,9 +642,9 @@ class CoolUtil
 				else
 					trace('XML is not exist! Skipping removing it');
 
-				if (exists(Paths.modsImages('custom_notetypes/${thing}')))
+				if (exists('mods/images/custom_notetypes/${thing}.png'))
 				{
-					deleteFile(Paths.modsImages('custom_notetypes/${thing}'));
+					deleteFile('mods/images/custom_notetypes/${thing}.png');
 					//trace('PNG was removed');
 				}
 				else
@@ -623,12 +652,13 @@ class CoolUtil
 
 				if (cycle)
 				{
-					for (i in 0...parseJSON(Paths.modFolders('custom_notetypes/${thing}.json')).neededFiles.characters.length)
-						deleteThing(parseJSON(Paths.modFolders('custom_notetypes/${thing}.json')).neededFiles.characters[i], 1, false);
-					for (i in 0...parseJSON(Paths.modFolders('custom_notetypes/${thing}.json')).neededFiles.sounds.length)
-						deleteThing(parseJSON(Paths.modFolders('custom_notetypes/${thing}.json')).neededFiles.sounds[i], 4, false);
-					for (i in 0...parseJSON(Paths.modFolders('custom_notetypes/${thing}.json')).neededFiles.music.length)
-						deleteThing(parseJSON(Paths.modFolders('custom_notetypes/${thing}.json')).neededFiles.music[i], 5, false);
+					var json = parseJSON('mods/custom_notetypes/${thing}.json');
+					for (i in 0...json.neededFiles.characters.length)
+						deleteThing(json.neededFiles.characters[i], 1, false);
+					for (i in 0...json.neededFiles.sounds.length)
+						deleteThing(json.neededFiles.sounds[i], 5, false);
+					for (i in 0...json.neededFiles.music.length)
+						deleteThing(json.neededFiles.music[i], 6, false);
 				}
 
 				if (exists('mods/custom_notetypes/${thing}.json'))
@@ -642,103 +672,113 @@ class CoolUtil
 				trace('Custom notetype ${thing} removed successfully!');
 
 			case 4:
+				//trace('Start removing custom event ${thing}...');
+
+				if (exists('mods/custom_events/${thing}.lua'))
+				{
+					deleteFile('mods/custom_events/${thing}.lua');
+					trace('Lua of custom event ${thing} removed successfully!');
+				}
+				else
+					trace('Lua of custom event ${thing} is not exist! Skipping downloading it');
+
+				if (exists('mods/custom_events/${thing}.txt'))
+				{
+					deleteFile('mods/custom_events/${thing}.txt');
+					trace('Txt of custom event ${thing} removed successfully!');
+				}
+				else
+					trace('Txt of custom event ${thing} is not exist! Skipping downloading it');
+
+			case 5:
 				//trace('Start removing sound ${thing}...');
 
 				if (exists('mods/sounds/${thing}.ogg'))
 				{
 					deleteFile('mods/sounds/${thing}.ogg');
-					//trace('Sound was removed');
 					trace('Sound ${thing} removed successfully!');
 				}
 				else
-					trace('Sound is not exist! Skipping removing it');
+					trace('Sound ${thing} is not exist! Skipping removing it');
 
-			case 5:
+			case 6:
 				//trace('Start removing music ${thing}...');
 
 				if (exists('mods/music/${thing}.ogg'))
 				{
 					deleteFile('mods/music/${thing}.ogg');
-					//trace('Music was removed');
 					trace('Music ${thing} removed successfully!');
 				}
 				else
-					trace('Music is not exist! Skipping removing it');
+					trace('Music ${thing} is not exist! Skipping removing it');
 
-			case 6:
+			case 7:
 				//trace('Start removing image ${thing}...');
 
-				if (exists(Paths.modFolders('images/stages/${thing}.png')))
+				if (exists('mods/images/stages/${thing}.png'))
 				{
-					deleteFile(Paths.modFolders('images/stages/${thing}.png'));
-					//trace('Image was removed');
+					deleteFile('mods/images/stages/${thing}.png');
 					trace('Image ${thing} removed successfully!');
 				}
 				else
-					trace('Image is not exist! Skipping downloading it');
+					trace('Image ${thing} is not exist! Skipping downloading it');
 
-			case 7:
+			case 8:
 				//trace('Start removing XML of image ${thing}...');
 
-				if (exists(Paths.modFolders('images/stages/${thing}.xml')))
+				if (exists('mods/images/stages/${thing}.xml'))
 				{
-					deleteFile(Paths.modFolders('images/stages/${thing}.xml'));
-					//trace('XML of image was downloaded');
+					deleteFile('mods/images/stages/${thing}.xml');
 					trace('XML of image ${thing} removed successfully!');
 				}
 				else
-					trace('XML of image is not exist! Skipping downloading it');
-			#end
-
+					trace('XML of image ${thing} is not exist! Skipping downloading it');
 
 			default:
-				#if MODS_ALLOWED
 				trace('uh oh you using unexpected category! skipping deleting things...');
-				#else
-				trace('Not working when MODS_ALLOWED is false!');
-				#end
 		}
-		#if MODS_ALLOWED
 		MusicBeatState.resetState();
-		#end
 	}
 
 	static public function downloadThing(thing:String, cat:Int, cycle:Bool = true)
 	{
+		#if !MODS_ALLOWED
+		trace('Not working when MODS_ALLOWED is false!');
+		return;
+		#end
+
+		modCache();
 		switch (cat)
 		{
-			// 0 = song, 1 = character, 2 = stage, 3 = notetype, 4 = sound, 5 = music, 6 = image for stage, 7 = xml for stage
-			#if MODS_ALLOWED
+			// 0 = song, 1 = character, 2 = stage, 3 = notetype, 4 = custom events, 5 = sound, 6 = music, 7 = image for stage, 8 = xml for stage
 			case 0:
 				trace('Start downloading song ${thing}...');
 
-				if (!isDir(Paths.modFolders('songs/${thing}')))
-					createDir(Paths.modFolders('songs/${thing}'));
-				if (!isDir(Paths.modFolders('data/${thing}')))
-					createDir(Paths.modFolders('data/${thing}'));
+				createDir('mods/data/${thing}');
+				createDir('mods/songs/${thing}');
 
-				if (!exists(Paths.modsJson('${thing}/songData')))
+				if (!exists('mods/data/${thing}/songData.json'))
 				{
-					saveFile(Paths.modsJson('${thing}/songData'), 'data/${thing}/songData.json', true, true);
+					saveFile('mods/data/${thing}/songData.json', 'data/${thing}/songData.json', true, true);
 					//trace('File songData was downloaded');
 				}
 				else
 					trace('File songData already exists! Skipping downloading it');
 
-				var songData:SongData = parseJSON(Paths.modFolders('data/${thing}/songData.json'));
+				var songData:SongData = parseJSON('mods/data/${thing}/songData.json');
 
 				for (i in 1...parseDiffCount(thing, true) + 1)
 				{
-					if (!exists(Paths.modsJson('${thing}/${thing}-${i}')))
+					if (!exists('mods/data/${thing}/${thing}-${i}.json'))
 					{
-						saveFile(Paths.modsJson('${thing}/${thing}-${i}'), 'data/${thing}/${thing}-${i}.json', true, true);
+						saveFile('mods/data/${thing}/${thing}-${i}.json', 'data/${thing}/${thing}-${i}.json', true, true);
 						//trace('${i} difficulty was downloaded');
 					}
 					else
 						trace('${i} difficulty already exists! Skipping downloading it');
 				}
 
-				if (!exists(Paths.modsSongs('${thing}/Inst')))
+				if (!exists('mods/songs/${thing}/Inst.ogg'))
 				{
 					saveFile('mods/songs/${thing}/Inst.ogg', 'songs/${thing}/Inst.ogg', true);
 					//trace('Inst was downloaded');
@@ -746,9 +786,9 @@ class CoolUtil
 				else
 					trace('Inst already exists! Skipping downloading it');
 
-				if (parseJSON(Paths.modsJson('${thing}/${thing}-1')).song.needsVoices)
+				if (parseJSON('mods/data/${thing}/${thing}-1.json').song.needsVoices)
 				{
-					if (!exists(Paths.modsSongs('${thing}/Voices')))
+					if (!exists('mods/songs/${thing}/Voices.ogg'))
 					{
 						saveFile('mods/songs/${thing}/Voices.ogg', 'songs/${thing}/Voices.ogg', true);
 						//trace('Voices was downloaded');
@@ -759,11 +799,11 @@ class CoolUtil
 				else
 					trace('Voices not needed! Skipping downloading it');
 
-				if (!exists(Paths.modFolders('data/${thing}/events.json')))
+				if (!exists('mods/data/${thing}/events.json'))
 				{
 					if (songData.uses.events)
 					{
-						saveFile(Paths.modFolders('data/${thing}/events.json'), 'data/${thing}/events.json', true, true);
+						saveFile('mods/data/${thing}/events.json', 'data/${thing}/events.json', true, true);
 						//trace('File events was downloaded');
 					}
 					//else
@@ -772,11 +812,11 @@ class CoolUtil
 				else
 					trace('File events already exists! Skipping downloading it');
 
-				if (!exists(Paths.modFolders('data/${thing}/modchart.lua')))
+				if (!exists('mods/data/${thing}/modchart.lua'))
 				{
 					if (songData.uses.modchart)
 					{
-						saveFile(Paths.modFolders('data/${thing}/modchart.lua'), 'data/${thing}/modchart.lua', true);
+						saveFile('mods/data/${thing}/modchart.lua', 'data/${thing}/modchart.lua', true);
 						//trace('File modchart was downloaded');
 					}
 					//else
@@ -784,121 +824,107 @@ class CoolUtil
 				}
 				else
 					trace('Modchart already exists! Skipping downloading it');
-	
-				if (!exists(Paths.modFolders('weeks/${thing}.json')))
-				{
-					saveFile(Paths.modFolders('weeks/${thing}.json'), 'weeks/${thing}.json', true, true);
-					//trace('Week file was downloaded');
-				}
-				else
-					trace('Week file already exists! Skipping downloading it');
 
 				// extra files for song
 
-				//if (songData.uses.characters.length == 0)
-					//trace('Characters not needed! Skipping downloading it');
+				for (i in 0...songData.uses.custom_events.length)
+					downloadThing(songData.uses.custom_events[i], 4);
+				for (i in 0...songData.uses.custom_notetypes.length)
+					downloadThing(songData.uses.custom_notetypes[i], 3);
 				for (i in 0...songData.uses.characters.length)
 					downloadThing(songData.uses.characters[i], 1);
-
-				//if (songData.uses.stages.length == 0)
-					//trace('Stages not needed! Skipping downloading it');
 				for (i in 0...songData.uses.stages.length)
 					downloadThing(songData.uses.stages[i], 2);
-
-				//if (songData.uses.notetypes.length == 0)
-					//trace('Notetypes not needed! Skipping downloading it');
-				for (i in 0...songData.uses.notetypes.length)
-					downloadThing(songData.uses.notetypes[i], 3);
 	
 				trace('Song ${thing} downloaded successfully!');
 	
 			case 1:
 				trace('Start downloading character ${thing}...');
 
-				if (!exists(Paths.modFolders('characters/${thing}.json')))
+				if (!exists('mods/characters/${thing}.json'))
 				{
-					saveFile(Paths.modFolders('characters/${thing}.json'), 'characters/${thing}/${thing}.json', true, true);
+					saveFile('mods/characters/${thing}.json', 'characters/${thing}/${thing}.json', true, true);
 					//trace('JSON was downloaded');
 				}
 				else
 					trace('JSON already exists! Skipping downloading it');
 
-				if (!exists(Paths.modsImages('characters/${thing}')))
+				if (!exists('mods/images/characters/${thing}.png'))
 				{
-					saveFile(Paths.modFolders('images/characters/${thing}.png'), 'characters/${thing}/${thing}.png', true);
+					saveFile('mods/images/characters/${thing}.png', 'characters/${thing}/${thing}.png', true);
 					//trace('PNG was downloaded');
 				}
 				else
 					trace('PNG already exists! Skipping downloading it');
 
-				var icon = parseJSON(Paths.modFolders('characters/${thing}.json')).healthicon;
-				switch (icon)
+				if (!exists('mods/images/characters/${thing}.xml'))
+				{
+					saveFile('mods/images/characters/${thing}.xml', 'characters/${thing}/${thing}.xml', true);
+					//trace('XML was downloaded');
+				}
+				else
+					trace('XML already exists! Skipping downloading it');
+
+				switch (thing)
 				{
 					case 'bf' | 'dad' | 'gf' | 'pico' | 'pico-player':
 						//trace('Health icon not needed! Skipping downloading it');
 					default:
-						if (!exists(Paths.modsImages('icons/${icon}')))
+						if (!exists('mods/images/icons/icon-${thing}.png'))
 						{
-							saveFile(Paths.modFolders('images/icons/icon-${icon}.png'), 'icons/icon-${icon}.png', true);
+							saveFile('mods/images/icons/icon-${thing}.png', 'icons/icon-${thing}.png', true);
 							//trace('Health icon was downloaded');
 						}
 						else
 							trace('Health icon already exists! Skipping downloading it');
 				}
 
-				if (!exists(Paths.modsXml('characters/${thing}')))
-				{
-					saveFile(Paths.modFolders('images/characters/${thing}.xml'), 'characters/${thing}/${thing}.xml', true);
-					//trace('XML was downloaded');
-				}
-				else
-					trace('XML already exists! Skipping downloading it');
-
 				trace('Character ${thing} downloaded successfully!');
 
 			case 2:
 				trace('Start downloading stage ${thing}...');
 
-				if (!exists(Paths.modFolders('stages/${thing}.lua')))
+				if (!exists('mods/stages/${thing}.lua'))
 				{
-					saveFile(Paths.modFolders('stages/${thing}.lua'), 'stages/${thing}/${thing}.lua', true);
+					saveFile('mods/stages/${thing}.lua', 'stages/${thing}/${thing}.lua', true);
 					//trace('Lua was downloaded');
 				}
 				else
 					trace('Lua already exists! Skipping downloading it');
 
-				if (!exists(Paths.modFolders('stages/${thing}.json')))
+				if (!exists('mods/stages/${thing}.json'))
 				{
-					saveFile(Paths.modFolders('stages/${thing}.json'), 'stages/${thing}/${thing}.json', true, true);
+					saveFile('mods/stages/${thing}.json', 'stages/${thing}/${thing}.json', true, true);
 					//trace('JSON was downloaded');
 				}
 				else
 					trace('JSON already exists! Skipping downloading it');
 
-				if (!isDir('mods/images/stages/${thing}'))
-					createDir('mods/images/stages/${thing}');
+				createDir('mods/images/stages/${thing}');
 
 				if (cycle)
 				{
-					for (i in 0...parseJSON(Paths.modFolders('stages/${thing}.json')).neededFiles.images.length)
-						downloadThing('${thing}/${parseJSON(Paths.modFolders('stages/${thing}.json')).neededFiles.images[i]}', 6, false);
-					for (i in 0...parseJSON(Paths.modFolders('stages/${thing}.json')).neededFiles.imagesWithXml.length)
+					var json = parseJSON('mods/stages/${thing}.json');
+					for (i in 0...json.neededFiles.images.length)
+						downloadThing('${thing}/${json.neededFiles.images[i]}', 7, false);
+					for (i in 0...json.neededFiles.imagesWithXml.length)
 					{
-						downloadThing('${thing}/${parseJSON(Paths.modFolders('stages/${thing}.json')).neededFiles.imagesWithXml[i]}', 6, false);
-						downloadThing('${thing}/${parseJSON(Paths.modFolders('stages/${thing}.json')).neededFiles.imagesWithXml[i]}', 7, false);
+						downloadThing('${thing}/${json.neededFiles.imagesWithXml[i]}', 7, false);
+						downloadThing('${thing}/${json.neededFiles.imagesWithXml[i]}', 8, false);
 					}
-					for (i in 0...parseJSON(Paths.modFolders('stages/${thing}.json')).neededFiles.sounds.length)
-						downloadThing(parseJSON(Paths.modFolders('stages/${thing}.json')).neededFiles.sounds[i], 4, false);
-					for (i in 0...parseJSON(Paths.modFolders('stages/${thing}.json')).neededFiles.music.length)
-						downloadThing(parseJSON(Paths.modFolders('stages/${thing}.json')).neededFiles.music[i], 5, false);
+					for (i in 0...json.neededFiles.sounds.length)
+						downloadThing(json.neededFiles.sounds[i], 5, false);
+					for (i in 0...json.neededFiles.music.length)
+						downloadThing(json.neededFiles.music[i], 6, false);
 				}
+				// 0 = song, 1 = character, 2 = stage, 3 = notetype, 4 = custom events, 5 = sound, 6 = music, 7 = image for stage, 8 = xml for stage
 
 				trace('Stage ${thing} downloaded successfully!');
 
 			case 3:
 				//trace('Start downloading custom notetype ${thing}...');
 
-				if (!exists(Paths.modsImages('custom_notetypes/${thing}')))
+				if (!exists('mods/images/custom_notetypes/${thing}.png'))
 				{
 					saveFile('mods/images/custom_notetypes/${thing}.png', 'custom_notetypes/${thing}/${thing}.png', true);
 					//trace('PNG was downloaded');
@@ -906,7 +932,7 @@ class CoolUtil
 				else
 					trace('PNG already exists! Skipping downloading it');
 	
-				if (!exists(Paths.modFolders('images/custom_notetypes/${thing}')))
+				if (!exists('mods/images/custom_notetypes/${thing}.xml'))
 				{
 					saveFile('mods/images/custom_notetypes/${thing}.xml', 'custom_notetypes/${thing}/${thing}.xml', true);
 					//trace('XML was downloaded');
@@ -914,7 +940,7 @@ class CoolUtil
 				else
 					trace('XML already exists! Skipping downloading it');
 
-				if (!exists(Paths.modFolders('custom_notetypes/${thing}.lua')))
+				if (!exists('mods/custom_notetypes/${thing}.lua'))
 				{
 					saveFile('mods/custom_notetypes/${thing}.lua', 'custom_notetypes/${thing}/${thing}.lua', true);
 					//trace('Lua was downloaded');
@@ -922,9 +948,9 @@ class CoolUtil
 				else
 					trace('Lua already exists! Skipping downloading it');
 
-				if (!exists(Paths.modFolders('custom_notetypes/${thing}.json')))
+				if (!exists('mods/custom_notetypes/${thing}.json'))
 				{
-					saveFile(Paths.modFolders('custom_notetypes/${thing}.json'), 'custom_notetypes/${thing}/${thing}.json', true, true);
+					saveFile('mods/custom_notetypes/${thing}.json', 'custom_notetypes/${thing}/${thing}.json', true, true);
 					//trace('JSON was downloaded');
 				}
 				else
@@ -932,23 +958,42 @@ class CoolUtil
 
 				if (cycle)
 				{
-					for (i in 0...parseJSON(Paths.modFolders('custom_notetypes/${thing}.json')).neededFiles.characters.length)
-						downloadThing(parseJSON(Paths.modFolders('custom_notetypes/${thing}.json')).neededFiles.characters[i], 1, false);
-					for (i in 0...parseJSON(Paths.modFolders('custom_notetypes/${thing}.json')).neededFiles.sounds.length)
-						downloadThing(parseJSON(Paths.modFolders('custom_notetypes/${thing}.json')).neededFiles.sounds[i], 4, false);
-					for (i in 0...parseJSON(Paths.modFolders('custom_notetypes/${thing}.json')).neededFiles.music.length)
-						downloadThing(parseJSON(Paths.modFolders('custom_notetypes/${thing}.json')).neededFiles.music[i], 5, false);
+					var json = parseJSON('mods/custom_notetypes/${thing}.json');
+					for (i in 0...json.neededFiles.characters.length)
+						downloadThing(json.neededFiles.characters[i], 1, false);
+					for (i in 0...json.neededFiles.sounds.length)
+						downloadThing(json.neededFiles.sounds[i], 5, false);
+					for (i in 0...json.neededFiles.music.length)
+						downloadThing(json.neededFiles.music[i], 6, false);
 				}
 
 				trace('Custom notetype ${thing} downloaded successfully!');
 
 			case 4:
+				//trace('Start downloading custom event ${thing}...');
+
+				if (!exists('mods/custom_events/${thing}.lua'))
+				{
+					saveFile('mods/custom_events/${thing}.lua', 'custom_events/${thing}/${thing}.lua', true);
+					//trace('XML of image was downloaded');
+					trace('Lua of custom event ${thing} downloaded successfully!');
+				}
+				else
+					trace('Lua of custom event already exists! Skipping downloading it');
+
+				if (!exists('mods/custom_events/${thing}.txt'))
+				{
+					saveFile('mods/custom_events/${thing}.txt', 'custom_events/${thing}/${thing}.txt', true);
+					//trace('XML of image was downloaded');
+					trace('Txt of custom event ${thing} downloaded successfully!');
+				}
+				else
+					trace('Txt of custom event already exists! Skipping downloading it');
+
+			case 5:
 				//trace('Start downloading sound ${thing}...');
 
-				if (!isDir(Paths.modFolders('sounds')))
-					createDir(Paths.modFolders('sounds'));
-
-				if (!exists(Paths.modsSounds('${thing}')))
+				if (!exists('mods/sounds/${thing}.ogg'))
 				{
 					saveFile('mods/sounds/${thing}.ogg', 'sounds/${thing}.ogg', true);
 					//trace('Sound was downloaded');
@@ -957,13 +1002,10 @@ class CoolUtil
 				else
 					trace('Sound already exists! Skipping downloading it');
 
-			case 5:
+			case 6:
 				//trace('Start downloading music ${thing}...');
 
-				if (!isDir(Paths.modFolders('music')))
-					createDir(Paths.modFolders('music'));
-
-				if (!exists(Paths.modsMusic('${thing}')))
+				if (!exists('mods/music/${thing}.ogg'))
 				{
 					saveFile('mods/music/${thing}.ogg', 'music/${thing}.ogg', true);
 					//trace('Music was downloaded');
@@ -972,60 +1014,44 @@ class CoolUtil
 				else
 					trace('Music already exists! Skipping downloading it');
 
-			case 6:
+			case 7:
 				//trace('Start downloading image ${thing}...');
 
-				if (!exists(Paths.modFolders('images/stages/${thing}.png')))
+				if (!exists('mods/images/stages/${thing}.png'))
 				{
-					saveFile(Paths.modFolders('images/stages/${thing}.png'), 'stages/${thing}.png', true);
+					saveFile('mods/images/stages/${thing}.png', 'stages/${thing}.png', true);
 					//trace('Image was downloaded');
 					trace('Image ${thing} downloaded successfully!');
 				}
 				else
 					trace('Image already exists! Skipping downloading it');
 
-			case 7:
+			case 8:
 				//trace('Start downloading XML of image ${thing}...');
 
-				if (!exists(Paths.modFolders('images/stages/${thing}.xml')))
+				if (!exists('mods/images/stages/${thing}.xml'))
 				{
-					saveFile(Paths.modFolders('images/stages/${thing}.xml'), 'stages/${thing}.xml', true);
+					saveFile('mods/images/stages/${thing}.xml', 'stages/${thing}.xml', true);
 					//trace('XML of image was downloaded');
 					trace('XML of image ${thing} downloaded successfully!');
 				}
 				else
 					trace('XML of image already exists! Skipping downloading it');
-			#end
-
 
 			default:
-				#if MODS_ALLOWED
 				trace('uh oh you using unexpected category! skipping deleting things...');
-				#else
-				trace('Not working when MODS_ALLOWED is false!');
-				#end
 		}
-		#if MODS_ALLOWED
 		MusicBeatState.resetState();
-		#end
 	}
 
-	inline public static function format0dot00(value:Float):Float
-	{
-		return Std.parseFloat(FlxStringUtil.formatMoney(value));
-	}
-
-	public static function boundTo(value:Float, min:Float, max:Float):Float {
-		var newValue:Float = value;
-		if(newValue < min) newValue = min;
-		else if(newValue > max) newValue = max;
-		return newValue;
+	inline public static function boundTo(value:Float, min:Float, max:Float):Float {
+		return Math.max(min, Math.min(max, value));
 	}
 
 	public static function coolTextFile(path:String):Array<String>
 	{
 		var daList:Array<String> = [];
-		#if MODS_ALLOWED
+		#if sys
 		if(FileSystem.exists(path)) daList = File.getContent(path).trim().split('\n');
 		#else
 		if(Assets.exists(path)) daList = Assets.getText(path).trim().split('\n');
@@ -1037,6 +1063,43 @@ class CoolUtil
 		}
 
 		return daList;
+	}
+	public static function listFromString(string:String):Array<String>
+	{
+		var daList:Array<String> = [];
+		daList = string.trim().split('\n');
+
+		for (i in 0...daList.length)
+		{
+			daList[i] = daList[i].trim();
+		}
+
+		return daList;
+	}
+	public static function dominantColor(sprite:flixel.FlxSprite):Int{
+		var countByColor:Map<Int, Int> = [];
+		for(col in 0...sprite.frameWidth){
+			for(row in 0...sprite.frameHeight){
+			  var colorOfThisPixel:Int = sprite.pixels.getPixel32(col, row);
+			  if(colorOfThisPixel != 0){
+				  if(countByColor.exists(colorOfThisPixel)){
+				    countByColor[colorOfThisPixel] =  countByColor[colorOfThisPixel] + 1;
+				  }else if(countByColor[colorOfThisPixel] != 13520687 - (2*13520687)){
+					 countByColor[colorOfThisPixel] = 1;
+				  }
+			  }
+			}
+		 }
+		var maxCount = 0;
+		var maxKey:Int = 0;//after the loop this will store the max color
+		countByColor[flixel.util.FlxColor.BLACK] = 0;
+			for(key in countByColor.keys()){
+			if(countByColor[key] >= maxCount){
+				maxCount = countByColor[key];
+				maxKey = key;
+			}
+		}
+		return maxKey;
 	}
 
 	public static function numberArray(max:Int, ?min = 0):Array<Int>
@@ -1063,4 +1126,9 @@ class CoolUtil
 		FlxG.openURL(site);
 		#end
 	}
+
+	public static function camLerpShit(daLerp:Float)
+		{
+		  	return (FlxG.elapsed / 0.016666666666666666) * daLerp;
+		}
 }
