@@ -182,8 +182,8 @@ class PauseSubState extends MusicBeatSubstate
 					if (ClientPrefs.laneUnderlay < 0) ClientPrefs.laneUnderlay = 0;
 					else if (ClientPrefs.laneUnderlay > 100) ClientPrefs.laneUnderlay = 100;
 
-					PlayState.laneunderlayOpponent.alpha = ClientPrefs.laneUnderlay / 100;
-					PlayState.laneunderlay.alpha = ClientPrefs.laneUnderlay / 100;
+					PlayState.instance.laneunderlayOpponent.alpha = ClientPrefs.laneUnderlay / 100;
+					PlayState.instance.laneunderlay.alpha = ClientPrefs.laneUnderlay / 100;
 					FlxG.save.data.laneUnderlay = ClientPrefs.laneUnderlay;
 					FlxG.save.flush();
 					laneunderlayThing.text = "Lane Underlay (Press Shift and Left or Right): " + ClientPrefs.laneUnderlay + "%";

@@ -350,6 +350,10 @@ class FunkinLua {
 			}
 			luaTrace("Object " + obj + " doesn't exist!");
 		});
+		Lua_helper.add_callback(lua, "updateLaneUnderlay", function() {
+			PlayState.instance.updateLaneUnderlay();
+			return 1;
+		});
 
 		// gay ass tweens
 		Lua_helper.add_callback(lua, "doTweenX", function(tag:String, vars:String, value:Dynamic, duration:Float, ease:String) {

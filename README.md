@@ -3,12 +3,15 @@ FNF **Mod Loader** using **in-game** download. **Engine** currently **supports a
 ### To request new songs in official download menu, create issue or pull request in [this repository](https://github.com/TheLeerName/FNF-extra-docs)
 
 ## Changelogs and future updates:
-### Planning 1.2 or 1.1.1:
+### Planning 1.2 or 1.1.2:
 - **Options in pause menu**
 - Updated to **Psych Engine 0.5.1**
 - **Mod categories in download menu**
 - **Opponent Mode**
 - *???*
+
+### (Latest) 1.1.1 - Fix of Lane Underlay:
+- **Funny fix no access to lane underlay in lua**
 
 ### (Latest) 1.1 - The Multi-Key Update:
 - **Multi-Key support!** *(maps/charts with 1, 2, 3, 5, 6, 7, 8, 9 keys)*, **ALL** code of it [**i stole**](https://github.com/tposejank/FNF-PsychEngine-ExtraKeys)

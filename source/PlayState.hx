@@ -135,8 +135,8 @@ class PlayState extends MusicBeatState
 	private static var prevCamFollow:FlxPoint;
 	private static var prevCamFollowPos:FlxObject;
 
-	public static var laneunderlay:FlxSprite;
-	public static var laneunderlayOpponent:FlxSprite;
+	public var laneunderlay:FlxSprite;
+	public var laneunderlayOpponent:FlxSprite;
 
 	public var strumLineNotes:FlxTypedGroup<StrumNote>;
 	public var opponentStrums:FlxTypedGroup<StrumNote>;
@@ -2086,7 +2086,7 @@ class PlayState extends MusicBeatState
 		}
 	}
 
-	function updateLaneUnderlay()
+	public function updateLaneUnderlay()
 	{
 		var LU_X:Array<Array<Float>> = [ // scale, offset for X pos lane underlay
 			[0, 0], // 0 keys, for sync mania and key count

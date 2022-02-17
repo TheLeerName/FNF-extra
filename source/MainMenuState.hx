@@ -27,7 +27,7 @@ using StringTools;
 class MainMenuState extends MusicBeatState
 {
 	public static var psychEngineVersion:String = '0.5'; //This is also used for Discord RPC
-	public static var modVersion:String = '1.1';
+	public static var modVersion:String = 'sus'; // edits in project.xml
 	public static var curSelected:Int = 0;
 
 	public static var correct:String = 'correct engine - pass';
@@ -55,6 +55,7 @@ class MainMenuState extends MusicBeatState
 
 	override function create()
 	{
+		modVersion = Application.current.meta.get('version');
 		FlxG.mouse.visible = false;
 
 		#if desktop
