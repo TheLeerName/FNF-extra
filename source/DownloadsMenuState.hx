@@ -142,7 +142,7 @@ class DownloadsMenuState extends MusicBeatState
 		visibleWhenNoMods.push(noModsTxt);
 
 		updatePacks();
-		for (lm in FileAPI.file.parseTXT(path + '/downloadsList.txt'))
+		for (lm in FileAPI.file.parseTXT(path + '/downloadList.txt'))
 		{
 			var dss:Array<String> = lm.split('|');
 			if (FileAPI.file.exists(path + '/' + dss[0] + '/pack.json'))
