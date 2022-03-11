@@ -3,6 +3,7 @@ package editors;
 #if desktop
 import Discord.DiscordClient;
 #end
+import animateatlas.AtlasFrameMaker;
 import flixel.FlxG;
 import flixel.FlxObject;
 import flixel.FlxSprite;
@@ -70,6 +71,7 @@ class CharacterEditorState extends MusicBeatState
 	private var camHUD:FlxCamera;
 	private var camMenu:FlxCamera;
 
+	var changeBGbutton:FlxButton;
 	var leHealthIcon:HealthIcon;
 	var characterList:Array<String> = [];
 
@@ -103,6 +105,13 @@ class CharacterEditorState extends MusicBeatState
 		cameraFollowPointer.color = FlxColor.WHITE;
 		add(cameraFollowPointer);
 
+		changeBGbutton = new FlxButton(FlxG.width - 360, 25, "", function()
+		{
+			onPixelBG = !onPixelBG;
+			reloadBGs();
+		});
+		changeBGbutton.cameras = [camMenu];
+
 		loadChar(!daAnim.startsWith('bf'), false);
 
 		healthBarBG = new FlxSprite(30, FlxG.height - 75).loadGraphic(Paths.image('healthBar'));
@@ -133,21 +142,24 @@ class CharacterEditorState extends MusicBeatState
 		camFollow.screenCenter();
 		add(camFollow);
 
-		var tipText:FlxText = new FlxText(FlxG.width - 20, FlxG.height, 0,
-			"E/Q - Camera Zoom In/Out
-			\nJKLI - Move Camera
-			\nW/S - Previous/Next Animation
-			\nSpace - Play Animation
-			\nArrow Keys - Move Character Offset
-			\nZ - Reset Current Offset
-			\nHold Shift to Move 10x faster\n", 12);
-		tipText.cameras = [camHUD];
-		tipText.setFormat(null, 12, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-		tipText.scrollFactor.set();
-		tipText.borderSize = 1;
-		tipText.x -= tipText.width;
-		tipText.y -= tipText.height - 10;
-		add(tipText);
+		var tipTextArray:Array<String> = "E/Q - Camera Zoom In/Out
+		\nR - Reset Camera Zoom
+		\nJKLI - Move Camera
+		\nW/S - Previous/Next Animation
+		\nSpace - Play Animation
+		\nArrow Keys - Move Character Offset
+		\nT - Reset Current Offset
+		\nHold Shift to Move 10x faster\n".split('\n');
+
+		for (i in 0...tipTextArray.length-1)
+		{
+			var tipText:FlxText = new FlxText(FlxG.width - 320, FlxG.height - 15 - 16 * (tipTextArray.length - i), 300, tipTextArray[i], 12);
+			tipText.cameras = [camHUD];
+			tipText.setFormat(null, 12, FlxColor.WHITE, RIGHT, FlxTextBorderStyle.OUTLINE_FAST, FlxColor.BLACK);
+			tipText.scrollFactor.set();
+			tipText.borderSize = 1;
+			add(tipText);
+		}
 
 		FlxG.camera.follow(camFollow);
 
@@ -177,6 +189,7 @@ class CharacterEditorState extends MusicBeatState
 		UI_characterbox.scrollFactor.set();
 		add(UI_characterbox);
 		add(UI_box);
+		add(changeBGbutton);
 		
 		//addOffsetsUI();
 		addSettingsUI();
@@ -191,6 +204,7 @@ class CharacterEditorState extends MusicBeatState
 		super.create();
 	}
 
+	var onPixelBG:Bool = false;
 	var OFFSET_X:Float = 300;
 	function reloadBGs() {
 		var i:Int = bgLayer.members.length-1;
@@ -207,13 +221,56 @@ class CharacterEditorState extends MusicBeatState
 		var playerXDifference = 0;
 		if(char.isPlayer) playerXDifference = 670;
 
-		var bg:BGSprite = new BGSprite('stageback', -600 + OFFSET_X - playerXDifference, -300, 0.9, 0.9);
-		bgLayer.add(bg);
+		if(onPixelBG) {
+			var playerYDifference:Float = 0;
+			if(char.isPlayer) {
+				playerXDifference += 200;
+				playerYDifference = 220;
+			}
 
-		var stageFront:BGSprite = new BGSprite('stagefront', -650 + OFFSET_X - playerXDifference, 500, 0.9, 0.9);
-		stageFront.setGraphicSize(Std.int(stageFront.width * 1.1));
-		stageFront.updateHitbox();
-		bgLayer.add(stageFront);
+			var bgSky:BGSprite = new BGSprite('weeb/weebSky', OFFSET_X - (playerXDifference / 2) - 300, 0 - playerYDifference, 0.1, 0.1);
+			bgLayer.add(bgSky);
+			bgSky.antialiasing = false;
+
+			var repositionShit = -200 + OFFSET_X - playerXDifference;
+
+			var bgSchool:BGSprite = new BGSprite('weeb/weebSchool', repositionShit, -playerYDifference + 6, 0.6, 0.90);
+			bgLayer.add(bgSchool);
+			bgSchool.antialiasing = false;
+
+			var bgStreet:BGSprite = new BGSprite('weeb/weebStreet', repositionShit, -playerYDifference, 0.95, 0.95);
+			bgLayer.add(bgStreet);
+			bgStreet.antialiasing = false;
+
+			var widShit = Std.int(bgSky.width * 6);
+			var bgTrees:FlxSprite = new FlxSprite(repositionShit - 380, -800 - playerYDifference);
+			bgTrees.frames = Paths.getPackerAtlas('weeb/weebTrees');
+			bgTrees.animation.add('treeLoop', [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18], 12);
+			bgTrees.animation.play('treeLoop');
+			bgTrees.scrollFactor.set(0.85, 0.85);
+			bgLayer.add(bgTrees);
+			bgTrees.antialiasing = false;
+
+			bgSky.setGraphicSize(widShit);
+			bgSchool.setGraphicSize(widShit);
+			bgStreet.setGraphicSize(widShit);
+			bgTrees.setGraphicSize(Std.int(widShit * 1.4));
+
+			bgSky.updateHitbox();
+			bgSchool.updateHitbox();
+			bgStreet.updateHitbox();
+			bgTrees.updateHitbox();
+			changeBGbutton.text = "Regular BG";
+		} else {
+			var bg:BGSprite = new BGSprite('stageback', -600 + OFFSET_X - playerXDifference, -300, 0.9, 0.9);
+			bgLayer.add(bg);
+
+			var stageFront:BGSprite = new BGSprite('stagefront', -650 + OFFSET_X - playerXDifference, 500, 0.9, 0.9);
+			stageFront.setGraphicSize(Std.int(stageFront.width * 1.1));
+			stageFront.updateHitbox();
+			bgLayer.add(stageFront);
+			changeBGbutton.text = "Pixel BG";
+		}
 	}
 
 	/*var animationInputText:FlxUIInputText;
@@ -276,83 +333,83 @@ class CharacterEditorState extends MusicBeatState
 	}*/
 
 	var TemplateCharacter:String = '{
-		"animations": [
-			{
-				"loop": false,
-				"offsets": [
-					0,
-					0
-				],
-				"fps": 24,
-				"anim": "idle",
-				"indices": [],
-				"name": "Dad idle dance"
-			},
-			{
-				"offsets": [
-					0,
-					0
-				],
-				"indices": [],
-				"fps": 24,
-				"anim": "singLEFT",
-				"loop": false,
-				"name": "Dad Sing Note LEFT"
-			},
-			{
-				"offsets": [
-					0,
-					0
-				],
-				"indices": [],
-				"fps": 24,
-				"anim": "singDOWN",
-				"loop": false,
-				"name": "Dad Sing Note DOWN"
-			},
-			{
-				"offsets": [
-					0,
-					0
-				],
-				"indices": [],
-				"fps": 24,
-				"anim": "singUP",
-				"loop": false,
-				"name": "Dad Sing Note UP"
-			},
-			{
-				"offsets": [
-					0,
-					0
-				],
-				"indices": [],
-				"fps": 24,
-				"anim": "singRIGHT",
-				"loop": false,
-				"name": "Dad Sing Note RIGHT"
-			}
-		],
-		"no_antialiasing": false,
-		"image": "characters/DADDY_DEAREST",
-		"position": [
-			0,
-			0
-		],
-		"healthicon": "face",
-		"flip_x": false,
-		"healthbar_colors": [
-			161,
-			161,
-			161
-		],
-		"camera_position": [
-			0,
-			0
-		],
-		"sing_duration": 6.1,
-		"scale": 1
-	}';
+			"animations": [
+				{
+					"loop": false,
+					"offsets": [
+						0,
+						0
+					],
+					"fps": 24,
+					"anim": "idle",
+					"indices": [],
+					"name": "Dad idle dance"
+				},
+				{
+					"offsets": [
+						0,
+						0
+					],
+					"indices": [],
+					"fps": 24,
+					"anim": "singLEFT",
+					"loop": false,
+					"name": "Dad Sing Note LEFT"
+				},
+				{
+					"offsets": [
+						0,
+						0
+					],
+					"indices": [],
+					"fps": 24,
+					"anim": "singDOWN",
+					"loop": false,
+					"name": "Dad Sing Note DOWN"
+				},
+				{
+					"offsets": [
+						0,
+						0
+					],
+					"indices": [],
+					"fps": 24,
+					"anim": "singUP",
+					"loop": false,
+					"name": "Dad Sing Note UP"
+				},
+				{
+					"offsets": [
+						0,
+						0
+					],
+					"indices": [],
+					"fps": 24,
+					"anim": "singRIGHT",
+					"loop": false,
+					"name": "Dad Sing Note RIGHT"
+				}
+			],
+			"no_antialiasing": false,
+			"image": "characters/DADDY_DEAREST",
+			"position": [
+				0,
+				0
+			],
+			"healthicon": "face",
+			"flip_x": false,
+			"healthbar_colors": [
+				161,
+				161,
+				161
+			],
+			"camera_position": [
+				0,
+				0
+			],
+			"sing_duration": 6.1,
+			"scale": 1
+		}';
 
 	var charDropDown:FlxUIDropDownMenuCustom;
 	function addSettingsUI() {
@@ -406,7 +463,7 @@ class CharacterEditorState extends MusicBeatState
 				character.singDuration = parsedJson.sing_duration;
 				character.positionArray = parsedJson.position;
 				character.cameraPosition = parsedJson.camera_position;
-
+				
 				character.imageFile = parsedJson.image;
 				character.jsonScale = parsedJson.scale;
 				character.noAntialiasing = parsedJson.no_antialiasing;
@@ -502,6 +559,7 @@ class CharacterEditorState extends MusicBeatState
 				char.antialiasing = true;
 			}
 			char.noAntialiasing = noAntialiasingCheckBox.checked;
+			ghostChar.antialiasing = char.antialiasing;
 		};
 
 		positionXStepper = new FlxUINumericStepper(flipXCheckBox.x + 110, flipXCheckBox.y, 10, char.positionArray[0], -9000, 9000, 0);
@@ -728,6 +786,10 @@ class CharacterEditorState extends MusicBeatState
 				char.x = char.positionArray[0] + OFFSET_X + 100;
 				updatePointerPos();
 			}
+			else if(sender == singDurationStepper)
+			{
+				char.singDuration = singDurationStepper.value;//ermm you forgot this??
+			}
 			else if(sender == positionYStepper)
 			{
 				char.positionArray[1] = positionYStepper.value;
@@ -767,14 +829,21 @@ class CharacterEditorState extends MusicBeatState
 		if(char.animation.curAnim != null) {
 			lastAnim = char.animation.curAnim.name;
 		}
-
 		var anims:Array<AnimArray> = char.animationsArray.copy();
-		if(Paths.fileExists('images/' + char.imageFile + '.txt', TEXT)) {
+		if(Paths.fileExists('images/' + char.imageFile + '/Animation.json', TEXT)) {
+			char.frames = AtlasFrameMaker.construct(char.imageFile);
+		} else if(Paths.fileExists('images/' + char.imageFile + '.txt', TEXT)) {
 			char.frames = Paths.getPackerAtlas(char.imageFile);
 		} else {
 			char.frames = Paths.getSparrowAtlas(char.imageFile);
 		}
 
+		
+		
+		
+		
+		
+		
 		if(char.animationsArray != null && char.animationsArray.length > 0) {
 			for (anim in char.animationsArray) {
 				var animAnim:String = '' + anim.anim;
@@ -966,6 +1035,7 @@ class CharacterEditorState extends MusicBeatState
 			char.alpha = 1;
 		}
 		ghostChar.color = 0xFF666688;
+		ghostChar.antialiasing = char.antialiasing;
 		
 		ghostChar.setGraphicSize(Std.int(ghostChar.width * char.jsonScale));
 		ghostChar.updateHitbox();
@@ -1113,11 +1183,10 @@ class CharacterEditorState extends MusicBeatState
 					char.playAnim(char.animationsArray[curAnim].anim, true);
 					genBoyOffsets();
 				}
-
-				if (FlxG.keys.justPressed.R)
+				if (FlxG.keys.justPressed.T)
 				{
 					char.animationsArray[curAnim].offsets = [0, 0];
-
+					
 					char.addOffset(char.animationsArray[curAnim].anim, char.animationsArray[curAnim].offsets[0], char.animationsArray[curAnim].offsets[1]);
 					ghostChar.addOffset(char.animationsArray[curAnim].anim, char.animationsArray[curAnim].offsets[0], char.animationsArray[curAnim].offsets[1]);
 					genBoyOffsets();
@@ -1140,6 +1209,7 @@ class CharacterEditorState extends MusicBeatState
 						var negaMult:Int = 1;
 						if(i % 2 == 1) negaMult = -1;
 						char.animationsArray[curAnim].offsets[arrayVal] += negaMult * multiplier;
+						
 						char.addOffset(char.animationsArray[curAnim].anim, char.animationsArray[curAnim].offsets[0], char.animationsArray[curAnim].offsets[1]);
 						ghostChar.addOffset(char.animationsArray[curAnim].anim, char.animationsArray[curAnim].offsets[0], char.animationsArray[curAnim].offsets[1]);
 						
@@ -1152,7 +1222,7 @@ class CharacterEditorState extends MusicBeatState
 				}
 			}
 		}
-		camMenu.zoom = FlxG.camera.zoom;
+		//camMenu.zoom = FlxG.camera.zoom;
 		ghostChar.setPosition(char.x, char.y);
 		super.update(elapsed);
 	}

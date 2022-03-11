@@ -47,8 +47,6 @@ class NotesSubState extends MusicBeatSubstate
 		
 		var bg:FlxSprite = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
 		bg.color = 0xFFea71fd;
-		bg.setGraphicSize(Std.int(bg.width * 1.1));
-		bg.updateHitbox();
 		bg.screenCenter();
 		bg.antialiasing = ClientPrefs.globalAntialiasing;
 		add(bg);
@@ -72,7 +70,7 @@ class NotesSubState extends MusicBeatSubstate
 
 			var note:FlxSprite = new FlxSprite(posX, yPos);
 			note.frames = Paths.getSparrowAtlas('NOTE_assets');
-			var animation:String = Note.NoteData.getLetter(i) + '0';
+			var animation:String = Note.keysShit.get(Note.maxMania).get('letters')[i] + '0';
 			note.animation.addByPrefix('idle', animation);
 			note.animation.play('idle');
 			note.antialiasing = ClientPrefs.globalAntialiasing;

@@ -16,7 +16,6 @@ import flixel.math.FlxMath;
 import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxColor;
-import flixel.util.FlxTimer;
 import lime.app.Application;
 import Achievements;
 import editors.MasterEditorMenu;
@@ -26,28 +25,25 @@ using StringTools;
 
 class MainMenuState extends MusicBeatState
 {
-	public static var psychEngineVersion:String = '0.5'; //This is also used for Discord RPC
-	public static var modVersion:String = 'sus'; // edits in project.xml
+	public static var psychEngineVersion:String = '0.5.2h'; //This is also used for Discord RPC
+	public static var modVersion:String = 'hu'; // Edits in Project.xml
 	public static var curSelected:Int = 0;
 
-	public static var correct:String = 'correct engine - pass';
-	public static var incorrect:String = 'bitch why you using zoros engine';
 
 	var menuItems:FlxTypedGroup<FlxSprite>;
 	private var camGame:FlxCamera;
 	private var camAchievement:FlxCamera;
 	
 	var optionShit:Array<String> = [
-		//'story_mode',
+		'story_mode',
 		'freeplay',
-		//#if MODS_ALLOWED 'mods', #end
-		//#if ACHIEVEMENTS_ALLOWED 'awards', #end
-		//'credits',
-		'options',
-		'donate'
+		#if MODS_ALLOWED 'mods', #end
+		#if ACHIEVEMENTS_ALLOWED 'awards', #end
+		'credits',
+		#if !switch 'donate', #end
+		'options'
 	];
 
-	var funny:FlxSprite;
 	var magenta:FlxSprite;
 	var camFollow:FlxObject;
 	var camFollowPos:FlxObject;
@@ -56,14 +52,13 @@ class MainMenuState extends MusicBeatState
 	override function create()
 	{
 		modVersion = Application.current.meta.get('version');
-		FlxG.mouse.visible = false;
+
+		WeekData.loadTheFirstEnabledMod();
 
 		#if desktop
 		// Updating Discord Rich Presence
 		DiscordClient.changePresence("In the Menus", null);
 		#end
-
-		WeekData.setDirectoryFromWeek();
 		debugKeys = ClientPrefs.copyKey(ClientPrefs.keyBinds.get('debug_1'));
 
 		camGame = new FlxCamera();
@@ -102,6 +97,7 @@ class MainMenuState extends MusicBeatState
 		magenta.antialiasing = ClientPrefs.globalAntialiasing;
 		magenta.color = 0xFFfd719b;
 		add(magenta);
+		
 		// magenta.scrollFactor.set();
 
 		menuItems = new FlxTypedGroup<FlxSprite>();
@@ -135,26 +131,14 @@ class MainMenuState extends MusicBeatState
 
 		FlxG.camera.follow(camFollowPos, null, 1);
 
-		var versionShit:FlxText = new FlxText(12, FlxG.height - 64, 0, "FNF Extra v" + modVersion, 12);
-		versionShit.scrollFactor.set();
-		versionShit.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-		add(versionShit);
 		var versionShit:FlxText = new FlxText(12, FlxG.height - 44, 0, "Psych Engine v" + psychEngineVersion, 12);
 		versionShit.scrollFactor.set();
 		versionShit.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		add(versionShit);
-		var versionShit:FlxText = new FlxText(12, FlxG.height - 24, 0, "Friday Night Funkin' v0.2.7", 12);
+		var versionShit:FlxText = new FlxText(12, FlxG.height - 24, 0, "FNF Extra v" + modVersion, 12);
 		versionShit.scrollFactor.set();
 		versionShit.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		add(versionShit);
-
-		funny = new FlxSprite().loadGraphic(Paths.image('wheresmycandy', 'shared'));
-		funny.scrollFactor.set();
-		funny.updateHitbox();
-		funny.screenCenter();
-		funny.antialiasing = ClientPrefs.globalAntialiasing;
-		add(funny);
-		funny.alpha = 0;
 
 		// NG.core.calls.event.logEvent('swag').send();
 
@@ -172,6 +156,8 @@ class MainMenuState extends MusicBeatState
 			}
 		}
 		#end
+
+		FlxG.mouse.visible = false; // idk
 
 		super.create();
 	}
@@ -199,13 +185,13 @@ class MainMenuState extends MusicBeatState
 
 		if (!selectedSomethin)
 		{
-			if (controls.UI_UP_P && funny.alpha == 0)
+			if (controls.UI_UP_P)
 			{
 				FlxG.sound.play(Paths.sound('scrollMenu'));
 				changeItem(-1);
 			}
 
-			if (controls.UI_DOWN_P && funny.alpha == 0)
+			if (controls.UI_DOWN_P)
 			{
 				FlxG.sound.play(Paths.sound('scrollMenu'));
 				changeItem(1);
@@ -213,38 +199,16 @@ class MainMenuState extends MusicBeatState
 
 			if (controls.BACK)
 			{
-				if (funny.alpha == 1)
-					FlxTween.tween(funny, {alpha: 0}, 0.8, {ease: FlxEase.quartInOut,
-						onStart: function(twn:FlxTween)
-							{
-								FlxG.sound.play(Paths.sound('cancelMenu'));
-							}});
-				else if (funny.alpha == 0)
-				{
-					selectedSomethin = true;
-					FlxG.sound.play(Paths.sound('cancelMenu'));
-					MusicBeatState.switchState(new TitleState());
-				}
+				selectedSomethin = true;
+				FlxG.sound.play(Paths.sound('cancelMenu'));
+				MusicBeatState.switchState(new TitleState());
 			}
 
 			if (controls.ACCEPT)
 			{
 				if (optionShit[curSelected] == 'donate')
 				{
-					if (funny.alpha != 1)
-						{
-							FlxTween.tween(funny, {alpha: 1}, 0.8, {ease: FlxEase.quartInOut});
-							new FlxTimer().start(0.4, function(tmr:FlxTimer)
-								{
-									FlxG.sound.play(Paths.sound('dramaticBoom', 'shared'));
-								});
-						}
-						else
-							FlxTween.tween(funny, {alpha: 0}, 0.8, {ease: FlxEase.quartInOut,
-								onStart: function(twn:FlxTween)
-									{
-										FlxG.sound.play(Paths.sound('cancelMenu'));
-									}});
+					CoolUtil.browserLoad('https://github.com/TheLeerName/FNF-extra-docs');
 				}
 				else
 				{
@@ -273,8 +237,8 @@ class MainMenuState extends MusicBeatState
 
 								switch (daChoice)
 								{
-									//case 'story_mode':
-										//MusicBeatState.switchState(new StoryMenuState());
+									case 'story_mode':
+										MusicBeatState.switchState(new StoryMenuState());
 									case 'freeplay':
 										MusicBeatState.switchState(new FreeplayState());
 									#if MODS_ALLOWED
@@ -286,7 +250,7 @@ class MainMenuState extends MusicBeatState
 									case 'credits':
 										MusicBeatState.switchState(new CreditsState());
 									case 'options':
-										MusicBeatState.switchState(new options.OptionsState());
+										LoadingState.loadAndSwitchState(new options.OptionsState());
 								}
 							});
 						}
@@ -294,11 +258,10 @@ class MainMenuState extends MusicBeatState
 				}
 			}
 			#if desktop
-			else if (FlxG.keys.anyJustPressed(debugKeys) && funny.alpha == 0)
+			else if (FlxG.keys.anyJustPressed(debugKeys))
 			{
 				selectedSomethin = true;
 				MusicBeatState.switchState(new MasterEditorMenu());
-				MusicBeatState.canFullScreen = false;
 			}
 			#end
 		}

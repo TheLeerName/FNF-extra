@@ -72,6 +72,7 @@ class GameOverSubstate extends MusicBeatSubstate
 		add(camFollowPos);
 	}
 
+	var isFollowingAlready:Bool = false;
 	override function update(elapsed:Float)
 	{
 		super.update(elapsed);
@@ -93,9 +94,9 @@ class GameOverSubstate extends MusicBeatSubstate
 			PlayState.deathCounter = 0;
 			PlayState.seenCutscene = false;
 
-			/*if (PlayState.isStoryMode)
+			if (PlayState.isStoryMode)
 				MusicBeatState.switchState(new StoryMenuState());
-			else*/
+			else
 				MusicBeatState.switchState(new FreeplayState());
 
 			FlxG.sound.playMusic(Paths.music('freakyMenu'));
@@ -104,10 +105,11 @@ class GameOverSubstate extends MusicBeatSubstate
 
 		if (boyfriend.animation.curAnim.name == 'firstDeath')
 		{
-			if(boyfriend.animation.curAnim.curFrame == 12)
+			if(boyfriend.animation.curAnim.curFrame >= 12 && !isFollowingAlready)
 			{
 				FlxG.camera.follow(camFollowPos, LOCKON, 1);
 				updateCamera = true;
+				isFollowingAlready = true;
 			}
 
 			if (boyfriend.animation.curAnim.finished)

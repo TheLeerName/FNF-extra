@@ -100,7 +100,7 @@ class ControlsSubState extends MusicBeatSubstate {
 		['Up 2', 'note_nine8'],
 		['Right 2', 'note_nine9'],
 		[''],
-		/*['Try to figure out'],
+		['Try to figure out'],
 		['these ones.'],
 		[''],
 		['10 KEYS'],
@@ -114,7 +114,19 @@ class ControlsSubState extends MusicBeatSubstate {
 		['Down 2', 'note_ten8'],
 		['Up 2', 'note_ten9'],
 		['Right 2', 'note_ten10'],
-		[''],*/
+		['11 KEYS'],
+		['Left 1', 'note_elev1'],
+		['Down 1', 'note_elev2'],
+		['Up 1', 'note_elev3'],
+		['Right 1', 'note_elev4'],
+		['Down 3', 'note_elev5'],
+		['Center', 'note_elev6'],
+		['Up 3', 'note_elev7'],
+		['Left 2', 'note_elev8'],
+		['Down 2', 'note_elev9'],
+		['Up 2', 'note_elev10'],
+		['Right 2', 'note_elev11'],
+		[''],
 		['UI'],
 		['Left', 'ui_left'],
 		['Down', 'ui_down'],
@@ -147,8 +159,6 @@ class ControlsSubState extends MusicBeatSubstate {
 
 		var bg:FlxSprite = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
 		bg.color = 0xFFea71fd;
-		bg.setGraphicSize(Std.int(bg.width * 1.1));
-		bg.updateHitbox();
 		bg.screenCenter();
 		bg.antialiasing = ClientPrefs.globalAntialiasing;
 		add(bg);
@@ -190,30 +200,22 @@ class ControlsSubState extends MusicBeatSubstate {
 
 	var leaving:Bool = false;
 	var bindingTime:Float = 0;
-	var holdTime:Float = 0;
 	override function update(elapsed:Float) {
 		if(!rebindingKey) {
-			/*if (controls.UI_UP_P) {
+			if (controls.UI_UP_P) {
 				changeSelection(-1);
 			}
 			if (controls.UI_DOWN_P) {
 				changeSelection(1);
-			}*/
-			if (controls.UI_UP_P || controls.UI_DOWN_P) changeSelection(controls.UI_UP_P ? -1 : 1, true);
-			else if (controls.UI_UP || controls.UI_DOWN)
-			{
-				if (holdTime > 0.2)
-					changeSelection(controls.UI_UP ? -1 : 1, false);
-				holdTime += elapsed;
-			} else holdTime = 0;
-
-			if (controls.UI_LEFT_P || controls.UI_RIGHT_P) changeAlt();
+			}
+			if (controls.UI_LEFT_P || controls.UI_RIGHT_P) {
+				changeAlt();
+			}
 
 			if (controls.BACK) {
 				ClientPrefs.reloadControls();
 				close();
 				FlxG.sound.play(Paths.sound('cancelMenu'));
-				MusicBeatState.canFullScreen = true;
 			}
 
 			if(controls.ACCEPT && nextAccept <= 0) {
@@ -279,7 +281,7 @@ class ControlsSubState extends MusicBeatSubstate {
 		return num;
 	}
 	
-	function changeSelection(change:Int = 0, sound:Bool = true) {
+	function changeSelection(change:Int = 0) {
 		do {
 			curSelected += change;
 			if (curSelected < 0)
@@ -323,7 +325,7 @@ class ControlsSubState extends MusicBeatSubstate {
 				}
 			}
 		}
-		if (sound) FlxG.sound.play(Paths.sound('scrollMenu'));
+		FlxG.sound.play(Paths.sound('scrollMenu'));
 	}
 
 	function changeAlt() {
@@ -385,7 +387,7 @@ class ControlsSubState extends MusicBeatSubstate {
 			item.destroy();
 		}
 
-		//trace('Reloaded keys: ' + ClientPrefs.keyBinds);
+		trace('Reloaded keys: ' + ClientPrefs.keyBinds);
 
 		for (i in 0...grpOptions.length) {
 			if(!unselectableCheck(i, true)) {

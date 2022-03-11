@@ -25,9 +25,6 @@ class MusicBeatSubstate extends FlxSubState
 
 	override function update(elapsed:Float)
 	{
-		if (FlxG.keys.justPressed.F && MusicBeatState.canFullScreen)
-			FlxG.fullscreen = !FlxG.fullscreen;
-
 		//everyStep();
 		var oldStep:Int = curStep;
 

@@ -9,7 +9,7 @@ class NoteSplash extends FlxSprite
 	private var idleAnim:String;
 	private var textureLoaded:String = null;
 
-	var sc:Array<Float> = [0, 1.3, 1.2, 1.1, 1, 1, 0.9, 0.8, 0.7, 0.6, 0.5];
+	var sc:Array<Float> = [1.3, 1.2, 1.1, 1, 1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4];
 
 	public function new(x:Float = 0, y:Float = 0, ?note:Int = 0) {
 		super(x, y);
@@ -44,12 +44,12 @@ class NoteSplash extends FlxSprite
 		colorSwap.saturation = satColor;
 		colorSwap.brightness = brtColor;
 
+		var offsets:Array<Int> = [Note.offsets[PlayState.mania][0], Note.offsets[PlayState.mania][1]];
+
+		offset.set(offsets[0], offsets[1]);
+
 		var animNum:Int = FlxG.random.int(1, 2);
-		if (animNum == 1) setPosition(x - (Note.swagWidth * 0.95) + 10 * (sc[PlayState.mania]), y - (Note.swagWidth) + 10 * (sc[PlayState.mania]));
-
-		offset.set(10, 10);
-
-		animation.play('note' + Note.NoteData.getKeyMap(PlayState.mania, note, 0) + '-' + animNum, true);
+		animation.play('note' + Note.keysShit.get(PlayState.mania).get('pixelAnimIndex')[note] + '-' + animNum, true);
 		if(animation.curAnim != null)animation.curAnim.frameRate = 24 + FlxG.random.int(-2, 2);
 	}
 
@@ -65,7 +65,17 @@ class NoteSplash extends FlxSprite
 			animation.addByPrefix('note6-' + i, 'note splash G ' + i, 24, false);
 			animation.addByPrefix('note7-' + i, 'note splash H ' + i, 24, false);
 			animation.addByPrefix('note8-' + i, 'note splash I ' + i, 24, false);
-			animation.addByPrefix('note9-' + i, 'note splash E ' + i, 24, false);
+			animation.addByPrefix('note9-' + i, 'note splash J ' + i, 24, false);
+			animation.addByPrefix('note10-' + i, 'note splash K ' + i, 24, false);
+			animation.addByPrefix('note11-' + i, 'note splash L ' + i, 24, false);
+			animation.addByPrefix('note12-' + i, 'note splash M ' + i, 24, false);
+			animation.addByPrefix('note13-' + i, 'note splash N ' + i, 24, false);
+			animation.addByPrefix('note14-' + i, 'note splash O ' + i, 24, false);
+			animation.addByPrefix('note15-' + i, 'note splash P ' + i, 24, false);
+			animation.addByPrefix('note16-' + i, 'note splash Q ' + i, 24, false);
+			animation.addByPrefix('note17-' + i, 'note splash R ' + i, 24, false);
+
+			//animation.addByPrefix('note9-' + i, 'note splash E ' + i, 24, false);
 		}
 	}
 

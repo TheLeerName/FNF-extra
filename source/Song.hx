@@ -27,7 +27,9 @@ typedef SwagSong =
 	var gfVersion:String;
 	var stage:String;
 
-	var mania:Int;
+	var mania:Null<Int>;
+	var keyCount:Null<Int>;
+	var playerKeyCount:Null<Int>;
 
 	var arrowSkin:String;
 	var splashSkin:String;
@@ -51,7 +53,7 @@ class Song
 	public var player3:String = 'gf'; //deprecated
 	public var gfVersion:String = 'gf';
 
-	private static function onLoadJson(songJson) // Convert old charts to newest format
+	private static function onLoadJson(songJson:SwagSong) // Convert old charts to newest format
 	{
 		if(songJson.gfVersion == null)
 		{
@@ -67,20 +69,27 @@ class Song
 				var sec:SwagSection = songJson.notes[secNum];
 
 				var i:Int = 0;
-				var len:Int = sec.sectionNotes.length;
+				var notes:Array<Dynamic> = sec.sectionNotes;
+				var len:Int = notes.length;
 				while(i < len)
 				{
-					var note:Array<Dynamic> = sec.sectionNotes[i];
+					var note:Array<Dynamic> = notes[i];
 					if(note[1] < 0)
 					{
 						songJson.events.push([note[0], [[note[2], note[3], note[4]]]]);
-						sec.sectionNotes.remove(note);
-						len = sec.sectionNotes.length;
+						notes.remove(note);
+						len = notes.length;
 					}
 					else i++;
 				}
 			}
 		}
+
+                
+        if (songJson.mania == null) //yall better not replace this
+            {
+                songJson.mania = Note.defaultMania;
+            }
 	}
 
 	public function new(song, notes, bpm)

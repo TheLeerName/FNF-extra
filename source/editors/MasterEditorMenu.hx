@@ -21,6 +21,8 @@ using StringTools;
 class MasterEditorMenu extends MusicBeatState
 {
 	var options:Array<String> = [
+		'Week Editor',
+		'Menu Character Editor',
 		'Dialogue Editor',
 		'Dialogue Portrait Editor',
 		'Character Editor',
@@ -57,7 +59,7 @@ class MasterEditorMenu extends MusicBeatState
 			grpTexts.add(leText);
 		}
 		
-		/*#if MODS_ALLOWED
+		#if MODS_ALLOWED
 		var textBG:FlxSprite = new FlxSprite(0, FlxG.height - 42).makeGraphic(FlxG.width, 42, 0xFF000000);
 		textBG.alpha = 0.6;
 		add(textBG);
@@ -75,8 +77,10 @@ class MasterEditorMenu extends MusicBeatState
 		var found:Int = directories.indexOf(Paths.currentModDirectory);
 		if(found > -1) curDirectory = found;
 		changeDirectory();
-		#end*/
+		#end
 		changeSelection();
+
+		FlxG.mouse.visible = false;
 		super.create();
 	}
 
@@ -90,7 +94,7 @@ class MasterEditorMenu extends MusicBeatState
 		{
 			changeSelection(1);
 		}
-		/*#if MODS_ALLOWED
+		#if MODS_ALLOWED
 		if(controls.UI_LEFT_P)
 		{
 			changeDirectory(-1);
@@ -99,12 +103,11 @@ class MasterEditorMenu extends MusicBeatState
 		{
 			changeDirectory(1);
 		}
-		#end*/
+		#end
 
 		if (controls.BACK)
 		{
 			MusicBeatState.switchState(new MainMenuState());
-			MusicBeatState.canFullScreen = true;
 		}
 
 		if (controls.ACCEPT)
@@ -112,6 +115,10 @@ class MasterEditorMenu extends MusicBeatState
 			switch(options[curSelected]) {
 				case 'Character Editor':
 					LoadingState.loadAndSwitchState(new CharacterEditorState(Character.DEFAULT_CHARACTER, false));
+				case 'Week Editor':
+					MusicBeatState.switchState(new WeekEditorState());
+				case 'Menu Character Editor':
+					MusicBeatState.switchState(new MenuCharacterEditorState());
 				case 'Dialogue Portrait Editor':
 					LoadingState.loadAndSwitchState(new DialogueCharacterEditorState(), false);
 				case 'Dialogue Editor':
@@ -155,7 +162,7 @@ class MasterEditorMenu extends MusicBeatState
 			curSelected = 0;
 	}
 
-	/*#if MODS_ALLOWED
+	#if MODS_ALLOWED
 	function changeDirectory(change:Int = 0)
 	{
 		FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
@@ -177,5 +184,5 @@ class MasterEditorMenu extends MusicBeatState
 		}
 		directoryTxt.text = directoryTxt.text.toUpperCase();
 	}
-	#end*/
+	#end
 }
