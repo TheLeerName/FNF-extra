@@ -114,7 +114,7 @@ class ModsSubState extends MusicBeatSubstate
 	{
 		FileAPI.file.deleteFiles('mods/${name}');
 		FileAPI.file.deleteDir('mods/${name}');
-		var _modsList = FileAPI.file.parseTXT('downloadList.txt');
+		var _modsList = FileAPI.file.parseTXT(path + '/downloadList.txt');
 		var _modsList1 = [];
 		var int = 0;
 		for (i in 0..._modsList.length)
