@@ -3207,7 +3207,7 @@ class PlayState extends MusicBeatState
 				if(val2 <= 0)
 				{
 					songSpeed = newValue;
-					optionsWatermark.text = (ClientPrefs.ghostTapping ? "GhosTap | " : "") + (ClientPrefs.noAntimash ? "Mash | " : "") + FlxMath.roundDecimal(songSpeed, 2);
+					optionsWatermark.text = (ClientPrefs.ghostTapping ? "GhosTap | " : "") + (ClientPrefs.noAntimash ? "Mash | " : "") + "Spd " + FlxMath.roundDecimal(songSpeed, 2);
 				}
 				else
 				{
@@ -3215,11 +3215,11 @@ class PlayState extends MusicBeatState
 						function (twn:FlxTween)
 						{
 							songSpeedTween = null;
-							optionsWatermark.text = (ClientPrefs.ghostTapping ? "GhosTap | " : "") + (ClientPrefs.noAntimash ? "Mash | " : "") + FlxMath.roundDecimal(songSpeed, 2);
+							optionsWatermark.text = (ClientPrefs.ghostTapping ? "GhosTap | " : "") + (ClientPrefs.noAntimash ? "Mash | " : "") + "Spd " + FlxMath.roundDecimal(songSpeed, 2);
 						},
 						onUpdate: function (twn:FlxTween)
 						{
-							optionsWatermark.text = (ClientPrefs.ghostTapping ? "GhosTap | " : "") + (ClientPrefs.noAntimash ? "Mash | " : "") + FlxMath.roundDecimal(songSpeed, 2);
+							optionsWatermark.text = (ClientPrefs.ghostTapping ? "GhosTap | " : "") + (ClientPrefs.noAntimash ? "Mash | " : "") + "Spd " + FlxMath.roundDecimal(songSpeed, 2);
 						}
 					});
 				}
