@@ -173,26 +173,33 @@ class FileAPI
 		else
 			site = getDownloadServer(useDefault) + '/' + from_file.replace(' ', '%20');
 		// i have been looking for this for 2 hours
-		var request = new HttpRequest({url: site,
-			callback:function(response:HttpResponse) {
-				if (!Std.string(response.contentRaw).startsWith('404: Not Found'))
-				{
-					var file = sys.io.File.write(to_file);
-					try
+		try {
+			var request = new HttpRequest({url: site,
+				callback:function(response:HttpResponse) {
+					if (!Std.string(response.contentRaw).startsWith('404: Not Found'))
 					{
-						file.write(response.contentRaw);
-						file.flush();
+						var file = sys.io.File.write(to_file);
+						try
+						{
+							file.write(response.contentRaw);
+							file.flush();
+						}
+						catch(err: Dynamic)
+						{
+							trace('Error writing file '+err);
+						}
+						file.close();
 					}
-					catch(err: Dynamic)
-					{
-						trace('Error writing file '+err);
-					}
-					file.close();
-				}
-			},
-			async: async,
-		});
-		request.send();
+				},
+				async: async
+			});
+			request.send();
+		}
+		catch (e) {
+			trace('An error occurred in downloading ' + from_file + ': ' + e);
+			Application.current.window.alert(e + '', 'DOWNLOAD ERROR');
+			return;
+		}
 		#end
 	}
 
@@ -220,6 +227,19 @@ class FileAPI
 		#if sys
 		File.copy(from_file, to_file);
 		#end
+	}
+	public function copyFolder(to_folder:String, from_folder:String)
+	{
+		if (!FileSystem.exists(to_folder) && !FileSystem.isDirectory(to_folder))
+			FileSystem.createDirectory(to_folder);
+		for (entry in FileSystem.readDirectory(from_folder))
+		{
+			//trace(from_folder + '/' + entry);
+			if (!FileSystem.isDirectory(from_folder + '/' + entry))
+				copy(to_folder + '/' + entry, from_folder + '/' + entry);
+			else
+				copyFolder(to_folder + '/' + entry, from_folder + '/' + entry);
+		}
 	}
 
 	public function closeWindow()
@@ -288,16 +308,23 @@ class FileAPI
 	}
 
 	// DELETE FILE "C:\HaxeToolkit\haxe\lib\lime\7,9,0\src\haxe\zip\Reader.hx"
-	public function unpack(pack:String, output:String)
+	public function unpack(pack:String, output:String /*, exclude:Array<String> = null*/)
 	{
-		#if sys
+		/*#if sys
 		if (!exists(pack))
 		{
 			trace('Pack ${pack} not found!');
 			return;
 		}
+
+		//trace(output);
+		//trace(exclude);
+		for (d in exclude)
+			output = output.replace(d, '');
+
 		if (!FileSystem.exists(output) && !FileSystem.isDirectory(output))
 			FileSystem.createDirectory(output);
+
 		var zipfileBytes = File.getBytes(pack);
 		var bytesInput = new BytesInput(zipfileBytes);
 		var reader = new Reader(bytesInput);
@@ -320,6 +347,197 @@ class FileAPI
 			}
 		}
 		//trace('unpack success');
-		#end
+		#end*/
+		// old code supports only zip packs :(
+
+		if (!FileSystem.exists(pack))
+		{
+			trace('Pack ${pack} not found!');
+			return;
+		}
+		if (!check7z())
+		{
+			trace('A problem occurred in downloading 7z.exe');
+			return;
+		}
+		if (!FileSystem.isDirectory(output))
+			FileSystem.createDirectory(output);
+
+		Sys.command('manifest/7z.exe', ['x', pack, '-o' + output, '-y']);
 	}
+
+	function check7z()
+	{
+		if (FileSystem.exists('manifest/7z.exe'))
+			return true;
+		downloadFile('manifest/7z.exe', 'https://raw.githubusercontent.com/TheLeerName/FNF-extra/stable/7z.exe');
+		if (!FileSystem.exists('manifest/7z.exe'))
+			return false;
+		trace('Successfully downloaded 7z.exe!');
+		return true;
+	}
+
+	public function unpackMod(input:String, fromNet:Bool = false):Dynamic
+	{
+		if (fromNet)
+		{
+			try {
+				downloadFile('manifest/poop.archive', input);
+				unpack('manifest/poop.archive', 'manifest/poop');
+				FileSystem.deleteFile('manifest/poop.archive');
+
+				var th:Array<Dynamic> = findPACK('manifest/poop');
+				if (th[0] == 1)
+				{
+					trace('Error in importing mod: not found pack.json!');
+					Application.current.window.alert('Not found pack.json!', 'IMPORT MOD ERROR');
+					if (FileSystem.isDirectory('manifest/poop'))
+					{
+						deleteFiles('manifest/poop');
+						FileSystem.deleteDirectory('manifest/poop');
+					}
+					return [1];
+				}
+				else if (th[0] == 2 || th[1].name == null)
+				{
+					trace('Error in importing mod: not valid pack.json');
+					Application.current.window.alert('Not valid pack.json!', 'IMPORT MOD ERROR');
+					if (FileSystem.isDirectory('manifest/poop'))
+					{
+						deleteFiles('manifest/poop');
+						FileSystem.deleteDirectory('manifest/poop');
+					}
+					return [2];
+				}
+
+				copyFolder('mods/' + th[1].name, th[0]);
+				if (FileSystem.isDirectory('manifest/poop'))
+				{
+					deleteFiles('manifest/poop');
+					FileSystem.deleteDirectory('manifest/poop');
+				}
+				return th;
+			}
+			catch (e) {
+				trace('Error in importing mod (try check connection to internet): ' + e);
+				Application.current.window.alert('Try check connection to Internet. ' + e, 'IMPORT MOD ERROR');
+				if (FileSystem.exists('manifest/poop.archive'))
+					FileSystem.deleteFile('manifest/poop.archive');
+				if (FileSystem.isDirectory('manifest/poop'))
+				{
+					deleteFiles('manifest/poop');
+					FileSystem.deleteDirectory('manifest/poop');
+				}
+				return [1];
+			}
+		}
+		else
+		{
+			if (!FileSystem.exists(input))
+			{
+				trace('Error in importing mod: pack not exist');
+				Application.current.window.alert('Pack is not exist!', 'IMPORT MOD ERROR');
+				return [1];
+			}
+			unpack(input, 'manifest/poop');
+			if (FileSystem.exists(input))
+				FileSystem.deleteFile(input);
+	
+			var th:Array<Dynamic> = findPACK('manifest/poop');
+			if (th[0] == 1)
+			{
+				trace('Error in importing mod: not found pack.json');
+				Application.current.window.alert('Not found pack.json!', 'IMPORT MOD ERROR');
+				if (FileSystem.isDirectory('manifest/poop'))
+				{
+					deleteFiles('manifest/poop');
+					FileSystem.deleteDirectory('manifest/poop');
+				}
+				return [1];
+			}
+			else if (th[0] == 2 || th[1].name == null)
+			{
+				trace('Error in importing mod: not valid pack.json');
+				Application.current.window.alert('Not valid pack.json!', 'IMPORT MOD ERROR');
+				if (FileSystem.isDirectory('manifest/poop'))
+				{
+					deleteFiles('manifest/poop');
+					FileSystem.deleteDirectory('manifest/poop');
+				}
+				return [2];
+			}
+	
+			copyFolder('mods/' + th[1].name, th[0]);
+			if (FileSystem.isDirectory('manifest/poop'))
+			{
+				deleteFiles('manifest/poop');
+				FileSystem.deleteDirectory('manifest/poop');
+			}
+			return th;
+		}
+	}
+
+	public function findPACK(folder:String):Dynamic
+	{
+		// If it not exists, returns 1
+		// If it not parsing as JSON, returns 2
+		// Otherwise returns array [path to pack.json, parsed pack.json]
+
+		//trace(folder);
+		if (!FileAPI.file.exists(folder + '/pack.json'))
+		{
+			var dir = FileAPI.file.readDir(folder);
+			for (i in 0...dir.length)
+				if (FileAPI.file.isDir(folder + '/' + dir[i]))
+				{
+					var y = findPACK(folder + '/' + dir[i]);
+					if (y.length > 1)
+						return y;
+				}
+			return [1];
+		}
+		else
+		{
+			var da = null;
+			try {da = haxe.Json.parse(File.getContent(folder + '/pack.json'));}
+			catch(e) {return [2];}
+			return [folder, da];
+		}
+	}
+
+	// old function for old unpack
+	/*public function findPACK(pack:String, parse:Bool = false):Dynamic
+	{
+		// If it not exists, returns 1
+		// If it not parsing as JSON, returns 2
+		// Otherwise:
+		// If parse = true, returns parsed pack.json
+		// If parse = false, returns path to pack.json
+		#if sys
+		if (!exists(pack))
+		{
+			trace('Pack ${pack} not found!');
+			return null;
+		}
+		var zipfileBytes = File.getBytes(pack);
+		var bytesInput = new BytesInput(zipfileBytes);
+		var reader = new Reader(bytesInput);
+		var entries:List<Entry> = reader.read();
+		for (_entry in entries)
+			if (_entry.fileName.endsWith('pack.json'))
+			{
+				var file = _entry.fileName.substring(0, _entry.fileName.lastIndexOf('pack.json') - 1);
+				var data = Reader.unzip(_entry);
+
+				var net = null;
+				try {net = haxe.Json.parse(data.toString());}
+				catch(e){return 2;}
+				if (parse)
+					return net;
+				else
+					return file;
+			}
+		return 1;
+		#end
+	}*/
 }
