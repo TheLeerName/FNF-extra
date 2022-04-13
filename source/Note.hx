@@ -4,6 +4,7 @@ import flixel.input.keyboard.FlxKey;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.graphics.frames.FlxAtlasFrames;
+import flixel.graphics.frames.FlxFramesCollection;
 import flixel.math.FlxMath;
 import flixel.util.FlxColor;
 import flash.display.BitmapData;
@@ -359,22 +360,81 @@ class Note extends FlxSprite
 	function loadNoteAnims() {
 		for (i in 0...gfxLetter.length)
 			{
-				animation.addByPrefix(gfxLetter[i], gfxLetter[i] + '0');
+				var no = letter_to_direction(gfxLetter[i], mania);
+
+				if (existsAnim(frames, gfxLetter[i] + '0'))
+					animation.addByPrefix(gfxLetter[i], gfxLetter[i] + '0');
+				else
+					animation.addByPrefix(gfxLetter[i], no + '0');
 	
 				if (isSustainNote)
 				{
-					animation.addByPrefix(gfxLetter[i] + ' hold', gfxLetter[i] + ' hold');
-					animation.addByPrefix(gfxLetter[i] + ' tail', gfxLetter[i] + ' tail');
+					if (existsAnim(frames, gfxLetter[i] + ' tail'))
+					{
+						animation.addByPrefix(gfxLetter[i] + ' hold', gfxLetter[i] + ' hold');
+						animation.addByPrefix(gfxLetter[i] + ' tail', gfxLetter[i] + ' tail');
+					}
+					else
+					{
+						animation.addByPrefix(gfxLetter[i] + ' hold', no + ' hold piece');
+						if (no == 'purple')
+						{
+							if (existsAnim(frames, gfxLetter[i] + ' hold end'))
+								animation.addByPrefix(gfxLetter[i] + ' tail', no + ' hold end');
+							else
+								animation.addByPrefix(gfxLetter[i] + ' tail', 'pruple end hold');
+						}
+						else
+							animation.addByPrefix(gfxLetter[i] + ' tail', no + ' hold end');
+					}
 				}
 			}
 				
 			ogW = width;
 			ogH = height;
 			if (!isSustainNote)
-				setGraphicSize(Std.int(defaultWidth * scales[mania]));
+				setGraphicSize(Std.int(width * scales[mania]));
 			else
-				setGraphicSize(Std.int(defaultWidth * scales[mania]), Std.int(defaultHeight * scales[0]));
+				setGraphicSize(Std.int(width * scales[mania]), Std.int(height * scales[0]));
 			updateHitbox();
+	}
+
+	function letter_to_direction(letter:String, mania:Int)
+	{
+		var da:Array<String> = Note.keysShit.get(mania).get('letters');
+		var net:Array<String> = Note.keysShit.get(mania).get('anims');
+		for (i in 0...da.length)
+			if (da[i] == letter)
+			{
+				switch(net[i])
+				{
+					case 'LEFT':
+						return 'purple';
+					case 'DOWN':
+						return 'blue';
+					case 'UP':
+						return 'green';
+					case 'RIGHT':
+						return 'red';
+				}
+			}
+		return 'red';
+	}
+
+	function getAnimList(frames:FlxFramesCollection):Array<String>
+	{
+		var th:Array<String> = [];
+		for (uy in frames.frames)
+			th.push(uy.name);
+		return th;
+	}
+
+	function existsAnim(frames:FlxFramesCollection, anim:String):Bool
+	{
+		for (uy in frames.frames)
+			if (uy.name.startsWith(anim))
+				return true;
+		return false;
 	}
 
 	function loadPixelNoteAnims() {
