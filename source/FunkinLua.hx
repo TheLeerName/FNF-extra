@@ -142,7 +142,7 @@ class FunkinLua {
 		set('botPlay', PlayState.instance.cpuControlled);
 		set('practice', PlayState.instance.practiceMode);
 
-		for (i in 0...4) {
+		for (i in 0...Note.maxMania) {
 			set('defaultPlayerStrumX' + i, 0);
 			set('defaultPlayerStrumY' + i, 0);
 			set('defaultOpponentStrumX' + i, 0);
