@@ -3,7 +3,6 @@ package;
 #if desktop
 import Discord.DiscordClient;
 #end
-import flash.text.TextField;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.addons.display.FlxGridOverlay;
@@ -276,7 +275,7 @@ class ModsMenuState extends MusicBeatState
 		importButton = new FlxButton(startX, startY, "Import", function()
 		{
 			FlxG.sound.play(Paths.sound('scrollMenu'), 0.6);
-			openSubState(new ModsSubState('FUCK', 3));
+			openSubState(new ModsSubState('FUCK', 6));
 		});
 		importButton.setGraphicSize(200, 50);
 		importButton.updateHitbox();
@@ -305,7 +304,7 @@ class ModsMenuState extends MusicBeatState
 		deleteButton = new FlxButton(startX, startY, "Delete", function()
 		{
 			FlxG.sound.play(Paths.sound('scrollMenu'), 0.6);
-			openSubState(new ModsSubState(mods[curSelected].name, 2));
+			openSubState(new ModsSubState(mods[curSelected].folder, 2));
 		});
 		deleteButton.setGraphicSize(200, 50);
 		deleteButton.updateHitbox();
