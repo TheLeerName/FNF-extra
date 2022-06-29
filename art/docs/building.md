@@ -19,6 +19,7 @@
 	 - `haxelib install flixel-addons`
 	 - `haxelib install flixel-ui`
 	 - `haxelib install hscript`
+	 - `haxelib install hxCodec`
 	 - `haxelib git linc_luajit https://github.com/nebulazorua/linc_luajit.git`
 	 - `haxelib git faxe https://github.com/uhrobots/faxe`
 	 - `haxelib git discord_rpc https://github.com/Aidan63/linc_discord-rpc`
