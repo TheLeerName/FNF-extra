@@ -30,7 +30,6 @@ class PauseSubState extends MusicBeatSubstate
 	var skipTimeTracker:Alphabet;
 	var curTime:Float = Math.max(0, Conductor.songPosition);
 	//var botplayText:FlxText;
-	var laneunderlayThing:FlxText;
 
 	public static var songName:String = '';
 
@@ -60,6 +59,7 @@ class PauseSubState extends MusicBeatSubstate
 			difficultyChoices.push(diff);
 		}
 		difficultyChoices.push('BACK');
+
 
 		pauseMusic = new FlxSound();
 		if(songName != null) {
@@ -128,21 +128,6 @@ class PauseSubState extends MusicBeatSubstate
 		FlxTween.tween(levelDifficulty, {alpha: 1, y: levelDifficulty.y + 5}, 0.4, {ease: FlxEase.quartInOut, startDelay: 0.5});
 		FlxTween.tween(blueballedTxt, {alpha: 1, y: blueballedTxt.y + 5}, 0.4, {ease: FlxEase.quartInOut, startDelay: 0.7});
 
-		var funnytxts:Array<String> = FlxG.random.getObject(PlayState.instance.introText);
-		var funnyThing:FlxText = new FlxText(5, 38, 0, funnytxts[0], 12);
-		funnyThing.scrollFactor.set();
-		funnyThing.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-		add(funnyThing);
-		var funnyThing1:FlxText = new FlxText(5, 58, 0, funnytxts[1], 12);
-		funnyThing1.scrollFactor.set();
-		funnyThing1.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-		add(funnyThing1);
-
-		laneunderlayThing = new FlxText(5, 78, 0, "Lane Underlay (Press SHIFT and Left or Right): " + ClientPrefs.laneUnderlay + "%", 12);
-		laneunderlayThing.scrollFactor.set();
-		laneunderlayThing.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-		add(laneunderlayThing);
-
 		grpMenuShit = new FlxTypedGroup<Alphabet>();
 		add(grpMenuShit);
 
@@ -151,8 +136,10 @@ class PauseSubState extends MusicBeatSubstate
 	}
 
 	var holdTime:Float = 0;
+	var cantUnpause:Float = 0.1;
 	override function update(elapsed:Float)
 	{
+		cantUnpause -= elapsed;
 		if (pauseMusic.volume < 0.5)
 			pauseMusic.volume += 0.01 * elapsed;
 
@@ -173,74 +160,37 @@ class PauseSubState extends MusicBeatSubstate
 		}
 
 		var daSelected:String = menuItems[curSelected];
-		if (FlxG.keys.pressed.SHIFT)
+		switch (daSelected)
 		{
-			if (controls.UI_LEFT_P)
-			{
-				FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
-				ClientPrefs.laneUnderlay -= 5;
-				holdTime = 0;
-				laneunderlayThing.text = "Lane Underlay (Press SHIFT and Left or Right): " + ClientPrefs.laneUnderlay + "%";
-				PlayState.instance.laneunderlay.alpha = ClientPrefs.laneUnderlay;
-				PlayState.instance.laneunderlayOpponent.alpha = ClientPrefs.laneUnderlay;
-			}
-			if (controls.UI_RIGHT_P)
-			{
-				FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
-				ClientPrefs.laneUnderlay += 5;
-				holdTime = 0;
-				laneunderlayThing.text = "Lane Underlay (Press SHIFT and Left or Right): " + ClientPrefs.laneUnderlay + "%";
-				PlayState.instance.laneunderlay.alpha = ClientPrefs.laneUnderlay;
-				PlayState.instance.laneunderlayOpponent.alpha = ClientPrefs.laneUnderlay;
-			}
+			case 'Skip Time':
+				if (controls.UI_LEFT_P)
+				{
+					FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
+					curTime -= 1000;
+					holdTime = 0;
+				}
+				if (controls.UI_RIGHT_P)
+				{
+					FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
+					curTime += 1000;
+					holdTime = 0;
+				}
 
-			if(controls.UI_LEFT || controls.UI_RIGHT)
-			{
-				holdTime += elapsed;
-				if(holdTime > 0.5)
-					ClientPrefs.laneUnderlay += (controls.UI_LEFT ? -1 : 1);
-
-				if (ClientPrefs.laneUnderlay > 100) ClientPrefs.laneUnderlay = 100;
-				else if (ClientPrefs.laneUnderlay < 0) ClientPrefs.laneUnderlay = 0;
-				laneunderlayThing.text = "Lane Underlay (Press SHIFT and Left or Right): " + ClientPrefs.laneUnderlay + "%";
-				PlayState.instance.laneunderlay.alpha = ClientPrefs.laneUnderlay / 100;
-				PlayState.instance.laneunderlayOpponent.alpha = ClientPrefs.laneUnderlay / 100;
-			}
-		}
-		else
-		{
-			switch (daSelected)
-			{
-				case 'Skip Time':
-					if (controls.UI_LEFT_P)
+				if(controls.UI_LEFT || controls.UI_RIGHT)
+				{
+					holdTime += elapsed;
+					if(holdTime > 0.5)
 					{
-						FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
-						curTime -= 1000;
-						holdTime = 0;
-					}
-					if (controls.UI_RIGHT_P)
-					{
-						FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
-						curTime += 1000;
-						holdTime = 0;
+						curTime += 45000 * elapsed * (controls.UI_LEFT ? -1 : 1);
 					}
 
-					if(controls.UI_LEFT || controls.UI_RIGHT)
-					{
-						holdTime += elapsed;
-						if(holdTime > 0.5)
-						{
-							curTime += 45000 * elapsed * (controls.UI_LEFT ? -1 : 1);
-						}
-
-						if(curTime >= FlxG.sound.music.length) curTime -= FlxG.sound.music.length;
-						else if(curTime < 0) curTime += FlxG.sound.music.length;
-						updateSkipTimeText();
-					}
-			}
+					if(curTime >= FlxG.sound.music.length) curTime -= FlxG.sound.music.length;
+					else if(curTime < 0) curTime += FlxG.sound.music.length;
+					updateSkipTimeText();
+				}
 		}
 
-		if (accepted)
+		if (accepted && (cantUnpause <= 0 || !ClientPrefs.controllerMode))
 		{
 			if (menuItems == difficultyChoices)
 			{
@@ -266,6 +216,7 @@ class PauseSubState extends MusicBeatSubstate
 					close();
 				case 'Change Difficulty':
 					menuItems = difficultyChoices;
+					deleteSkipTimeText();
 					regenMenu();
 				case 'Toggle Practice Mode':
 					PlayState.instance.practiceMode = !PlayState.instance.practiceMode;
@@ -303,16 +254,31 @@ class PauseSubState extends MusicBeatSubstate
 				case "Exit to menu":
 					PlayState.deathCounter = 0;
 					PlayState.seenCutscene = false;
+
+					WeekData.loadTheFirstEnabledMod();
 					if(PlayState.isStoryMode) {
 						MusicBeatState.switchState(new StoryMenuState());
 					} else {
 						MusicBeatState.switchState(new FreeplayState());
 					}
+					PlayState.cancelMusicFadeTween();
 					FlxG.sound.playMusic(Paths.music('freakyMenu'));
 					PlayState.changedDifficulty = false;
 					PlayState.chartingMode = false;
 			}
 		}
+	}
+
+	function deleteSkipTimeText()
+	{
+		if(skipTimeText != null)
+		{
+			skipTimeText.kill();
+			remove(skipTimeText);
+			skipTimeText.destroy();
+		}
+		skipTimeText = null;
+		skipTimeTracker = null;
 	}
 
 	public static function restartSong(noTrans:Bool = false)
@@ -407,7 +373,7 @@ class PauseSubState extends MusicBeatSubstate
 	
 	function updateSkipTextStuff()
 	{
-		if(skipTimeText == null) return;
+		if(skipTimeText == null || skipTimeTracker == null) return;
 
 		skipTimeText.x = skipTimeTracker.x + skipTimeTracker.width + 60;
 		skipTimeText.y = skipTimeTracker.y;
