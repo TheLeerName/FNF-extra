@@ -102,13 +102,13 @@ class NotesSubState extends MusicBeatSubstate
 			if(holdTime < 0.5) {
 				if(controls.UI_LEFT_P) {
 					updateValue(-1);
-					FlxG.sound.play(Paths.sound('scrollMenu'));
+					FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
 				} else if(controls.UI_RIGHT_P) {
 					updateValue(1);
-					FlxG.sound.play(Paths.sound('scrollMenu'));
+					FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
 				} else if(controls.RESET) {
 					resetValue(curSelected, typeSelected);
-					FlxG.sound.play(Paths.sound('scrollMenu'));
+					FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
 				}
 				if(controls.UI_LEFT_R || controls.UI_RIGHT_R) {
 					holdTime = 0;
