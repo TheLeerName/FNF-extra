@@ -53,6 +53,8 @@ class ClientPrefs {
 		'opponentplay' => false
 	];
 
+	public static var laneUnderlay:Int = 10;
+
 	public static var comboOffset:Array<Int> = [0, 0, 0, 0];
 	public static var ratingOffset:Int = 0;
 	public static var sickWindow:Int = 45;
@@ -128,6 +130,8 @@ class ClientPrefs {
 		FlxG.save.data.hitsoundVolume = hitsoundVolume;
 		FlxG.save.data.pauseMusic = pauseMusic;
 		FlxG.save.data.checkForUpdates = checkForUpdates;
+
+		FlxG.save.data.laneUnderlay = laneUnderlay;
 	
 		FlxG.save.flush();
 
@@ -259,6 +263,9 @@ class ClientPrefs {
 		{
 			checkForUpdates = FlxG.save.data.checkForUpdates;
 		}
+
+		if (FlxG.save.data.laneUnderlay != null)
+			laneUnderlay = FlxG.save.data.laneUnderlay;
 
 		var save:FlxSave = new FlxSave();
 		save.bind('controls_v2', 'ninjamuffin99');
