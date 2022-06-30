@@ -193,20 +193,20 @@ class MainMenuState extends MusicBeatState
 
 			if (up)
 			{
-				FlxG.sound.play(Paths.sound('scrollMenu'));
+				FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
 				changeItem(-1);
 			}
 
 			if (down)
 			{
-				FlxG.sound.play(Paths.sound('scrollMenu'));
+				FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
 				changeItem(1);
 			}
 
 			if (back)
 			{
 				selectedSomethin = true;
-				FlxG.sound.play(Paths.sound('cancelMenu'));
+				FlxG.sound.play(Paths.sound('cancelMenu'), 0.4);
 				MusicBeatState.switchState(new TitleState());
 			}
 

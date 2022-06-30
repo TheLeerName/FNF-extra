@@ -86,11 +86,16 @@ class MasterEditorMenu extends MusicBeatState
 
 	override function update(elapsed:Float)
 	{
-		if (controls.UI_UP_P)
+		var accept = controls.ACCEPT || FlxG.mouse.justPressed;
+		var back = controls.BACK || FlxG.mouse.justPressedRight;
+		var up = controls.UI_UP_P || FlxG.mouse.wheel > 0;
+		var down = controls.UI_DOWN_P || FlxG.mouse.wheel < 0;
+
+		if (up)
 		{
 			changeSelection(-1);
 		}
-		if (controls.UI_DOWN_P)
+		if (down)
 		{
 			changeSelection(1);
 		}
@@ -105,12 +110,12 @@ class MasterEditorMenu extends MusicBeatState
 		}
 		#end
 
-		if (controls.BACK)
+		if (back)
 		{
 			MusicBeatState.switchState(new MainMenuState());
 		}
 
-		if (controls.ACCEPT)
+		if (accept)
 		{
 			switch(options[curSelected]) {
 				case 'Character Editor':

@@ -379,7 +379,7 @@ class FileAPI
 		return true;
 	}
 
-	inline public function unpackMod(input:String, fromNet:Bool = false):Dynamic
+	public function unpackMod(input:String, fromNet:Bool = false):Dynamic
 	{
 		if (fromNet)
 		{
