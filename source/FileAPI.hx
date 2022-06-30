@@ -205,8 +205,7 @@ class FileAPI
 
 	inline function getDownloadServer(useDefault:Bool = false)
 	{
-		//var path = DownloadsMenuState.path;
-		var path = 'hoe';
+		var path = DownloadsMenuState.path;
 		if (!exists(path) && !isDir(path))
 			createDir(path);
 
