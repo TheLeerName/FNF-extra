@@ -479,10 +479,10 @@ class FileAPI
 		}
 	}
 
-	inline public function findPACK(folder:String):Dynamic
+	public function findPACK(folder:String):Dynamic
 	{
-		// If it not exists, returns 1
-		// If it not parsing as JSON, returns 2
+		// If it not exists, returns [1]
+		// If it not parsing as JSON, returns [2]
 		// Otherwise returns array [path to pack.json, parsed pack.json]
 
 		//trace(folder);
