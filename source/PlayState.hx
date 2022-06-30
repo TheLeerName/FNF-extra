@@ -1012,7 +1012,7 @@ class PlayState extends MusicBeatState
 		laneunderlay.alpha = ClientPrefs.laneUnderlay / 100;
 		laneunderlay.scrollFactor.set();
 
-		if (!ClientPrefs.middleScroll)
+		if (!ClientPrefs.middleScroll && ClientPrefs.opponentStrums)
 			add(laneunderlayOpponent);
 		add(laneunderlay);
 
