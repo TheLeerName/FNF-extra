@@ -186,26 +186,31 @@ class MainMenuState extends MusicBeatState
 
 		if (!selectedSomethin)
 		{
-			if (controls.UI_UP_P)
+			var accept = controls.ACCEPT || FlxG.mouse.justPressed;
+			var back = controls.BACK || FlxG.mouse.justPressedRight;
+			var up = controls.UI_UP_P || FlxG.mouse.wheel > 0;
+			var down = controls.UI_DOWN_P || FlxG.mouse.wheel < 0;
+
+			if (up)
 			{
 				FlxG.sound.play(Paths.sound('scrollMenu'));
 				changeItem(-1);
 			}
 
-			if (controls.UI_DOWN_P)
+			if (down)
 			{
 				FlxG.sound.play(Paths.sound('scrollMenu'));
 				changeItem(1);
 			}
 
-			if (controls.BACK)
+			if (back)
 			{
 				selectedSomethin = true;
 				FlxG.sound.play(Paths.sound('cancelMenu'));
 				MusicBeatState.switchState(new TitleState());
 			}
 
-			if (controls.ACCEPT)
+			if (accept)
 			{
 				if (optionShit[curSelected] == 'donate')
 				{

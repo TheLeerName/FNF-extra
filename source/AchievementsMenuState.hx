@@ -78,14 +78,18 @@ class AchievementsMenuState extends MusicBeatState
 	override function update(elapsed:Float) {
 		super.update(elapsed);
 
-		if (controls.UI_UP_P) {
+		var back = controls.BACK || FlxG.mouse.justPressedRight;
+		var up = controls.UI_UP_P || FlxG.mouse.wheel > 0;
+		var down = controls.UI_DOWN_P || FlxG.mouse.wheel < 0;
+
+		if (up) {
 			changeSelection(-1);
 		}
-		if (controls.UI_DOWN_P) {
+		if (down) {
 			changeSelection(1);
 		}
 
-		if (controls.BACK) {
+		if (back) {
 			FlxG.sound.play(Paths.sound('cancelMenu'));
 			MusicBeatState.switchState(new MainMenuState());
 		}

@@ -268,9 +268,10 @@ class FreeplayState extends MusicBeatState
 		scoreText.text = 'PERSONAL BEST: ' + lerpScore + ' (' + ratingSplit.join('.') + '%)';
 		positionHighscore();
 
-		var upP = controls.UI_UP_P;
-		var downP = controls.UI_DOWN_P;
-		var accepted = controls.ACCEPT;
+		var accept = controls.ACCEPT || FlxG.mouse.justPressed;
+		var back = controls.BACK || FlxG.mouse.justPressedRight;
+		var up = controls.UI_UP_P || FlxG.mouse.wheel > 0;
+		var down = controls.UI_DOWN_P || FlxG.mouse.wheel < 0;
 		var space = FlxG.keys.justPressed.SPACE;
 		var ctrl = FlxG.keys.justPressed.CONTROL;
 
@@ -279,12 +280,12 @@ class FreeplayState extends MusicBeatState
 
 		if(songs.length > 1)
 		{
-			if (upP)
+			if (up)
 			{
 				changeSelection(-shiftMult);
 				holdTime = 0;
 			}
-			if (downP)
+			if (down)
 			{
 				changeSelection(shiftMult);
 				holdTime = 0;
@@ -308,9 +309,9 @@ class FreeplayState extends MusicBeatState
 			changeDiff(-1);
 		else if (controls.UI_RIGHT_P)
 			changeDiff(1);
-		else if (upP || downP) changeDiff();
+		else if (up || down) changeDiff();
 
-		if (controls.BACK)
+		if (back)
 		{
 			persistentUpdate = false;
 			if(colorTween != null) {
@@ -351,7 +352,7 @@ class FreeplayState extends MusicBeatState
 			}
 		}
 
-		else if (accepted)
+		else if (accept)
 		{
 			persistentUpdate = false;
 			var songLowercase:String = Paths.formatToSongPath(songs[curSelected].songName);

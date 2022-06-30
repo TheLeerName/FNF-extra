@@ -135,16 +135,21 @@ class BaseOptionsMenu extends MusicBeatSubstate
 	var holdValue:Float = 0;
 	override function update(elapsed:Float)
 	{
-		if (controls.UI_UP_P)
+		var accept = controls.ACCEPT || FlxG.mouse.justPressed;
+		var back = controls.BACK || FlxG.mouse.justPressedRight;
+		var up = controls.UI_UP_P || FlxG.mouse.wheel > 0;
+		var down = controls.UI_DOWN_P || FlxG.mouse.wheel < 0;
+
+		if (up)
 		{
 			changeSelection(-1);
 		}
-		if (controls.UI_DOWN_P)
+		if (down)
 		{
 			changeSelection(1);
 		}
 
-		if (controls.BACK) {
+		if (back) {
 			close();
 			FlxG.sound.play(Paths.sound('cancelMenu'));
 		}
@@ -159,7 +164,7 @@ class BaseOptionsMenu extends MusicBeatSubstate
 
 			if(usesCheckbox)
 			{
-				if(controls.ACCEPT)
+				if(accept)
 				{
 					FlxG.sound.play(Paths.sound('scrollMenu'));
 					curOption.setValue((curOption.getValue() == true) ? false : true);

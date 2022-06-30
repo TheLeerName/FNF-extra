@@ -116,23 +116,28 @@ class ControlsSubState extends MusicBeatSubstate {
 	var bindingTime:Float = 0;
 	override function update(elapsed:Float) {
 		if(!rebindingKey) {
-			if (controls.UI_UP_P) {
+			var accept = controls.ACCEPT || FlxG.mouse.justPressed;
+			var back = controls.BACK || FlxG.mouse.justPressedRight;
+			var up = controls.UI_UP_P || FlxG.mouse.wheel > 0;
+			var down = controls.UI_DOWN_P || FlxG.mouse.wheel < 0;
+
+			if (up) {
 				changeSelection(-1);
 			}
-			if (controls.UI_DOWN_P) {
+			if (down) {
 				changeSelection(1);
 			}
 			if (controls.UI_LEFT_P || controls.UI_RIGHT_P) {
 				changeAlt();
 			}
 
-			if (controls.BACK) {
+			if (back) {
 				ClientPrefs.reloadControls();
 				close();
 				FlxG.sound.play(Paths.sound('cancelMenu'));
 			}
 
-			if(controls.ACCEPT && nextAccept <= 0) {
+			if(accept && nextAccept <= 0) {
 				if(optionShit[curSelected][0] == defaultKey) {
 					ClientPrefs.keyBinds = ClientPrefs.defaultKeys.copy();
 					reloadKeys();

@@ -180,8 +180,8 @@ class CreditsState extends MusicBeatState
 				var shiftMult:Int = 1;
 				if(FlxG.keys.pressed.SHIFT) shiftMult = 3;
 
-				var upP = controls.UI_UP_P;
-				var downP = controls.UI_DOWN_P;
+				var upP = controls.UI_UP_P || FlxG.mouse.wheel > 0;
+				var downP = controls.UI_DOWN_P || FlxG.mouse.wheel < 0;
 
 				if (upP)
 				{
@@ -207,10 +207,13 @@ class CreditsState extends MusicBeatState
 				}
 			}
 
-			if(controls.ACCEPT && (creditsStuff[curSelected][3] == null || creditsStuff[curSelected][3].length > 4)) {
+			var accept = controls.ACCEPT || FlxG.mouse.justPressed;
+			var back = controls.BACK || FlxG.mouse.justPressedRight;
+
+			if(accept && (creditsStuff[curSelected][3] == null || creditsStuff[curSelected][3].length > 4)) {
 				CoolUtil.browserLoad(creditsStuff[curSelected][3]);
 			}
-			if (controls.BACK)
+			if (back)
 			{
 				if(colorTween != null) {
 					colorTween.cancel();
