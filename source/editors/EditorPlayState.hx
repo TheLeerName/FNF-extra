@@ -1,6 +1,5 @@
 package editors;
 
-import Section.SwagSection;
 import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.util.FlxColor;
 import flixel.FlxSprite;

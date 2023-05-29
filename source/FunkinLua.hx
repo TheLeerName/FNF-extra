@@ -43,10 +43,6 @@ import hscript.Parser;
 import hscript.Interp;
 #end
 
-#if desktop
-import Discord;
-#end
-
 using StringTools;
 
 class FunkinLua {

@@ -1,4 +1,4 @@
-package;
+package backend;
 
 typedef SwagSection =
 {

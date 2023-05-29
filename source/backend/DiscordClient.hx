@@ -1,4 +1,4 @@
-package;
+package backend;
 
 #if DISCORD_ALLOWED
 import discord_rpc.DiscordRpc;

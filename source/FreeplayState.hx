@@ -1,8 +1,5 @@
 package;
 
-#if desktop
-import Discord.DiscordClient;
-#end
 import editors.ChartingState;
 import flash.text.TextField;
 import flixel.FlxG;
@@ -17,7 +14,6 @@ import flixel.tweens.FlxTween;
 import lime.utils.Assets;
 import flixel.sound.FlxSound;
 import openfl.utils.Assets as OpenFlAssets;
-import WeekData;
 #if MODS_ALLOWED
 import sys.FileSystem;
 #end

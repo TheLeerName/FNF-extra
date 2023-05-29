@@ -8,10 +8,6 @@ import openfl.events.Event;
 import openfl.display.StageScaleMode;
 import lime.app.Application;
 
-#if desktop
-import Discord.DiscordClient;
-#end
-
 //crash handler stuff
 #if CRASH_HANDLER
 import openfl.events.UncaughtErrorEvent;

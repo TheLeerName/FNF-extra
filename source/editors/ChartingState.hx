@@ -1,14 +1,8 @@
 package editors;
 
-#if desktop
-import Discord.DiscordClient;
-#end
 import flash.geom.Rectangle;
 import haxe.Json;
 import haxe.io.Bytes;
-import Conductor.BPMChangeEvent;
-import Section.SwagSection;
-import Song.SwagSong;
 import flixel.FlxG;
 import flixel.FlxObject;
 import flixel.FlxSprite;

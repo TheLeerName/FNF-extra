@@ -5,7 +5,6 @@ import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxSort;
-import Section.SwagSection;
 #if MODS_ALLOWED
 import sys.io.File;
 import sys.FileSystem;

@@ -1,8 +1,5 @@
 package options;
 
-#if desktop
-import Discord.DiscordClient;
-#end
 import flixel.group.FlxGroup;
 import flixel.FlxG;
 import flixel.FlxSprite;

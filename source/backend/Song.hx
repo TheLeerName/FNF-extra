@@ -1,6 +1,6 @@
-package;
+package backend;
 
-import Section.SwagSection;
+import backend.Section;
 import haxe.Json;
 
 #if sys

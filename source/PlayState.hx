@@ -1,10 +1,5 @@
 package;
 
-#if desktop
-import Discord.DiscordClient;
-#end
-import Section.SwagSection;
-import Song.SwagSong;
 import flixel.FlxCamera;
 import flixel.FlxG;
 import flixel.FlxObject;
@@ -35,11 +30,8 @@ import openfl.events.KeyboardEvent;
 import flixel.util.FlxSave;
 import flixel.animation.FlxAnimationController;
 import animateatlas.AtlasFrameMaker;
-import Achievements;
-import StageData;
 import FunkinLua;
 import DialogueBoxPsych;
-import Conductor.Rating;
 
 #if !flash 
 import flixel.addons.display.FlxRuntimeShader;
@@ -237,7 +229,6 @@ class PlayState extends MusicBeatState
 	var heyTimer:Float;
 
 	var bgGirls:BackgroundGirls;
-	var wiggleShit:WiggleEffect = new WiggleEffect();
 	var bgGhouls:BGSprite;
 
 	var tankWatchtower:BGSprite;

@@ -1,8 +1,5 @@
 package;
 
-#if desktop
-import Discord.DiscordClient;
-#end
 import openfl.text.TextField;
 import flixel.FlxG;
 import flixel.FlxSprite;
