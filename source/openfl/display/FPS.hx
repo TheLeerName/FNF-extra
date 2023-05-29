@@ -1,6 +1,5 @@
 package openfl.display;
 
-import haxe.Timer;
 import openfl.events.Event;
 import openfl.text.TextField;
 import openfl.text.TextFormat;
@@ -9,9 +8,7 @@ import flixel.math.FlxMath;
 import openfl.display._internal.stats.Context3DStats;
 import openfl.display._internal.stats.DrawCallContext;
 #end
-#if flash
 import openfl.Lib;
-#end
 
 #if openfl
 import openfl.system.System;
@@ -55,13 +52,11 @@ class FPS extends TextField
 		currentTime = 0;
 		times = [];
 
-		#if flash
 		addEventListener(Event.ENTER_FRAME, function(e)
 		{
 			var time = Lib.getTimer();
 			__enterFrame(time - currentTime);
 		});
-		#end
 	}
 
 	// Event Handlers

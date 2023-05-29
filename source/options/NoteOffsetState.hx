@@ -1,12 +1,10 @@
 package options;
 
-import flixel.util.FlxStringUtil;
-import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 import flixel.tweens.FlxEase;
 import flixel.text.FlxText;
 import flixel.group.FlxSpriteGroup;
-import flixel.group.FlxGroup.FlxTypedGroup;
+import flixel.group.FlxGroup;
 import flixel.util.FlxColor;
 import flixel.FlxSprite;
 import flixel.FlxCamera;
