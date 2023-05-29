@@ -1,7 +1,8 @@
 package;
 
-import Sys.sleep;
+#if DISCORD_ALLOWED
 import discord_rpc.DiscordRpc;
+#end
 
 #if LUA_ALLOWED
 import llua.Lua;
@@ -13,8 +14,8 @@ using StringTools;
 class DiscordClient
 {
 	public static var isInitialized:Bool = false;
-	public function new()
-	{
+	public function new() {
+		#if DISCORD_ALLOWED
 		trace("Discord Client starting...");
 		DiscordRpc.start({
 			clientID: "863222024192262205",
@@ -27,56 +28,52 @@ class DiscordClient
 		while (true)
 		{
 			DiscordRpc.process();
-			sleep(2);
+			Sys.sleep(2);
 			//trace("Discord Client Update");
 		}
 
 		DiscordRpc.shutdown();
+		#end
 	}
 	
-	public static function shutdown()
-	{
+	public static function shutdown() {
+		#if DISCORD_ALLOWED
 		DiscordRpc.shutdown();
+		#end
 	}
 	
-	static function onReady()
-	{
+	static function onReady() {
+		#if DISCORD_ALLOWED
 		DiscordRpc.presence({
 			details: "In the Menus",
 			state: null,
 			largeImageKey: 'icon',
 			largeImageText: "Psych Engine"
 		});
+		#end
 	}
 
 	static function onError(_code:Int, _message:String)
-	{
 		trace('Error! $_code : $_message');
-	}
 
 	static function onDisconnected(_code:Int, _message:String)
-	{
 		trace('Disconnected! $_code : $_message');
-	}
 
-	public static function initialize()
-	{
+	public static function initialize() {
+		#if DISCORD_ALLOWED
 		var DiscordDaemon = sys.thread.Thread.create(() ->
 		{
 			new DiscordClient();
 		});
 		trace("Discord Client initialized");
 		isInitialized = true;
+		#end
 	}
 
-	public static function changePresence(details:String, state:Null<String>, ?smallImageKey : String, ?hasStartTimestamp : Bool, ?endTimestamp: Float)
-	{
+	public static function changePresence(details:String, state:Null<String>, ?smallImageKey : String, ?hasStartTimestamp : Bool, ?endTimestamp: Float) {
+		#if DISCORD_ALLOWED
 		var startTimestamp:Float = if(hasStartTimestamp) Date.now().getTime() else 0;
-
-		if (endTimestamp > 0)
-		{
-			endTimestamp = startTimestamp + endTimestamp;
-		}
+		if (endTimestamp > 0) endTimestamp = startTimestamp + endTimestamp;
 
 		DiscordRpc.presence({
 			details: details,
@@ -90,6 +87,7 @@ class DiscordClient
 		});
 
 		//trace('Discord RPC Updated. Arguments: $details, $state, $smallImageKey, $hasStartTimestamp, $endTimestamp');
+		#end
 	}
 
 	#if LUA_ALLOWED
