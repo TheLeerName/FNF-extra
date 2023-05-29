@@ -82,19 +82,17 @@ class GameOverSubstate extends MusicBeatSubstate
 			camFollowPos.setPosition(FlxMath.lerp(camFollowPos.x, camFollow.x, lerpVal), FlxMath.lerp(camFollowPos.y, camFollow.y, lerpVal));
 		}
 
-		var accept = controls.ACCEPT || FlxG.mouse.justPressed;
-		var back = controls.BACK || FlxG.mouse.justPressedRight;
-
-		if (accept)
+		if (controls.ACCEPT)
 		{
 			endBullshit();
 		}
 
-		if (back)
+		if (controls.BACK)
 		{
 			FlxG.sound.music.stop();
 			PlayState.deathCounter = 0;
 			PlayState.seenCutscene = false;
+			PlayState.chartingMode = false;
 
 			WeekData.loadTheFirstEnabledMod();
 			if (PlayState.isStoryMode)
@@ -106,7 +104,7 @@ class GameOverSubstate extends MusicBeatSubstate
 			PlayState.instance.callOnLuas('onGameOverConfirm', [false]);
 		}
 
-		if (boyfriend.animation.curAnim.name == 'firstDeath')
+		if (boyfriend.animation.curAnim != null && boyfriend.animation.curAnim.name == 'firstDeath')
 		{
 			if(boyfriend.animation.curAnim.curFrame >= 12 && !isFollowingAlready)
 			{

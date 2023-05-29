@@ -44,7 +44,8 @@ class ResetScoreSubState extends MusicBeatSubstate
 		alphabetArray.push(text);
 		text.alpha = 0;
 		add(text);
-		var text:Alphabet = new Alphabet(0, text.y + 90, name, true, false, 0.05, tooLong);
+		var text:Alphabet = new Alphabet(0, text.y + 90, name, true);
+		text.scaleX = tooLong;
 		text.screenCenter(X);
 		if(week == -1) text.x += 60 * tooLong;
 		alphabetArray.push(text);
@@ -81,19 +82,15 @@ class ResetScoreSubState extends MusicBeatSubstate
 		}
 		if(week == -1) icon.alpha += elapsed * 2.5;
 
-		var accept = controls.ACCEPT || FlxG.mouse.justPressed;
-		var back = controls.BACK || FlxG.mouse.justPressedRight;
-		var smth = controls.UI_UP_P || FlxG.mouse.wheel > 0 || controls.UI_DOWN_P || FlxG.mouse.wheel < 0 || controls.UI_LEFT_P || controls.UI_RIGHT_P;
-
-		if(smth) {
+		if(controls.UI_LEFT_P || controls.UI_RIGHT_P) {
 			FlxG.sound.play(Paths.sound('scrollMenu'), 1);
 			onYes = !onYes;
 			updateOptions();
 		}
-		if(back) {
+		if(controls.BACK) {
 			FlxG.sound.play(Paths.sound('cancelMenu'), 1);
 			close();
-		} else if(accept) {
+		} else if(controls.ACCEPT) {
 			if(onYes) {
 				if(week == -1) {
 					Highscore.resetSong(song, difficulty);

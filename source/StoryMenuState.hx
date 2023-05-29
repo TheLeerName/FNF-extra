@@ -204,23 +204,27 @@ class StoryMenuState extends MusicBeatState
 
 		// FlxG.watch.addQuick('font', scoreText.font);
 
-		var accept = controls.ACCEPT || FlxG.mouse.justPressed;
-		var back = controls.BACK || FlxG.mouse.justPressedRight;
-		var up = controls.UI_UP_P || FlxG.mouse.wheel > 0;
-		var down = controls.UI_DOWN_P || FlxG.mouse.wheel < 0;
-
 		if (!movedBack && !selectedWeek)
 		{
-			if (up)
+			var upP = controls.UI_UP_P;
+			var downP = controls.UI_DOWN_P;
+			if (upP)
 			{
 				changeWeek(-1);
-				FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
+				FlxG.sound.play(Paths.sound('scrollMenu'));
 			}
 
-			if (down)
+			if (downP)
 			{
 				changeWeek(1);
+				FlxG.sound.play(Paths.sound('scrollMenu'));
+			}
+
+			if(FlxG.mouse.wheel != 0)
+			{
 				FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
+				changeWeek(-FlxG.mouse.wheel);
+				changeDifficulty();
 			}
 
 			if (controls.UI_RIGHT)
@@ -237,7 +241,7 @@ class StoryMenuState extends MusicBeatState
 				changeDifficulty(1);
 			else if (controls.UI_LEFT_P)
 				changeDifficulty(-1);
-			else if (up || down)
+			else if (upP || downP)
 				changeDifficulty();
 
 			if(FlxG.keys.justPressed.CONTROL)
@@ -249,15 +253,15 @@ class StoryMenuState extends MusicBeatState
 			{
 				persistentUpdate = false;
 				openSubState(new ResetScoreSubState('', curDifficulty, '', curWeek));
-				//FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
+				//FlxG.sound.play(Paths.sound('scrollMenu'));
 			}
-			else if (accept)
+			else if (controls.ACCEPT)
 			{
 				selectWeek();
 			}
 		}
 
-		if (back && !movedBack && !selectedWeek)
+		if (controls.BACK && !movedBack && !selectedWeek)
 		{
 			FlxG.sound.play(Paths.sound('cancelMenu'));
 			movedBack = true;
@@ -287,8 +291,13 @@ class StoryMenuState extends MusicBeatState
 
 				grpWeekText.members[curWeek].startFlashing();
 
-				var bf:MenuCharacter = grpWeekCharacters.members[1];
-				if(bf.character != '' && bf.hasConfirmAnimation) grpWeekCharacters.members[1].animation.play('confirm');
+				for (char in grpWeekCharacters.members)
+				{
+					if (char.character != '' && char.hasConfirmAnimation)
+					{
+						char.animation.play('confirm');
+					}
+				}
 				stopspamming = true;
 			}
 

@@ -63,17 +63,6 @@ class GameplaySettingsSubState extends BaseOptionsMenu
 			true);
 		addOption(option);
 
-		var option:Option = new Option('Lane Underlay',
-			'Changes transparency of lane underlay behind the notes.',
-			'laneUnderlay',
-			'int',
-			10);
-		option.displayFormat = '%v%';
-		option.scrollSpeed = 50;
-		option.minValue = 0;
-		option.maxValue = 100;
-		addOption(option);
-
 		var option:Option = new Option('Ghost Tapping',
 			"If checked, you won't get misses from pressing keys\nwhile there are no notes able to be hit.",
 			'ghostTapping',

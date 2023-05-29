@@ -39,13 +39,11 @@ class OutdatedState extends MusicBeatState
 	override function update(elapsed:Float)
 	{
 		if(!leftState) {
-			var accept = controls.ACCEPT || FlxG.mouse.justPressed;
-			var back = controls.BACK || FlxG.mouse.justPressedRight;
-			if (accept) {
+			if (controls.ACCEPT) {
 				leftState = true;
 				CoolUtil.browserLoad("https://github.com/ShadowMario/FNF-PsychEngine/releases");
 			}
-			else if(back) {
+			else if(controls.BACK) {
 				leftState = true;
 			}
 

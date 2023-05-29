@@ -53,10 +53,11 @@ class MasterEditorMenu extends MusicBeatState
 
 		for (i in 0...options.length)
 		{
-			var leText:Alphabet = new Alphabet(0, (70 * i) + 30, options[i], true, false);
+			var leText:Alphabet = new Alphabet(90, 320, options[i], true);
 			leText.isMenuItem = true;
 			leText.targetY = i;
 			grpTexts.add(leText);
+			leText.snapToPosition();
 		}
 		
 		#if MODS_ALLOWED
@@ -86,16 +87,11 @@ class MasterEditorMenu extends MusicBeatState
 
 	override function update(elapsed:Float)
 	{
-		var accept = controls.ACCEPT || FlxG.mouse.justPressed;
-		var back = controls.BACK || FlxG.mouse.justPressedRight;
-		var up = controls.UI_UP_P || FlxG.mouse.wheel > 0;
-		var down = controls.UI_DOWN_P || FlxG.mouse.wheel < 0;
-
-		if (up)
+		if (controls.UI_UP_P)
 		{
 			changeSelection(-1);
 		}
-		if (down)
+		if (controls.UI_DOWN_P)
 		{
 			changeSelection(1);
 		}
@@ -110,12 +106,12 @@ class MasterEditorMenu extends MusicBeatState
 		}
 		#end
 
-		if (back)
+		if (controls.BACK)
 		{
 			MusicBeatState.switchState(new MainMenuState());
 		}
 
-		if (accept)
+		if (controls.ACCEPT)
 		{
 			switch(options[curSelected]) {
 				case 'Character Editor':
